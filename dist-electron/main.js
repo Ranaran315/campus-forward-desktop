@@ -1,8 +1,6 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -26,7 +24,7 @@ function createWindow() {
     // 无边框，以自定义标题栏结构
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
-      preload: path.join(__dirname, "preload.ts")
+      preload: path.join(__dirname, "preload.mjs")
     }
   });
   win.setMenu(null);
@@ -37,6 +35,9 @@ function createWindow() {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+  if (process.env.NODE_ENV === "development" || VITE_DEV_SERVER_URL) {
+    win.webContents.openDevTools();
   }
 }
 app.on("window-all-closed", () => {
@@ -53,6 +54,7 @@ app.on("activate", () => {
 app.whenReady().then(() => {
   createWindow();
   ipcMain.on("minimize-window", () => {
+    console.log("最小化窗口");
     win == null ? void 0 : win.minimize();
   });
   ipcMain.on("maximize-window", () => {

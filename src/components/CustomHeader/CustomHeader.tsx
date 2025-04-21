@@ -8,15 +8,16 @@ interface CustomHeaderProps {
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ title }) => {
   const handleMinimize = () => {
-    window.electron.ipcRenderer.send('minimize-window')
+    console.log('Minimize button clicked')
+    window.ipcRenderer.send('minimize-window')
   }
 
   const handleMaximize = () => {
-    window.electron.ipcRenderer.send('maximize-window')
+    window.ipcRenderer.send('maximize-window')
   }
 
   const handleClose = () => {
-    window.electron.ipcRenderer.send('close-window')
+    window.ipcRenderer.send('close-window')
   }
 
   return (

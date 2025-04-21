@@ -1,20 +1,9 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// The built directory structure
-//
-// ├─┬─┬ dist
-// │ │ └── index.html
-// │ │
-// │ ├─┬ dist-electron
-// │ │ ├── main.js
-// │ │ └── preload.mjs
-// │
 process.env.APP_ROOT = path.join(__dirname, '..')
 
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
@@ -38,7 +27,7 @@ function createWindow() {
     frame: false, // 无边框，以自定义标题栏结构
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.ts'),
+      preload: path.join(__dirname, 'preload.mjs'),
     },
   })
 
@@ -55,6 +44,11 @@ function createWindow() {
   } else {
     // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+  }
+
+  // 在开发环境下自动打开 DevTools
+  if (process.env.NODE_ENV === 'development' || VITE_DEV_SERVER_URL) {
+    win.webContents.openDevTools()
   }
 }
 
@@ -76,11 +70,14 @@ app.on('activate', () => {
   }
 })
 
+// 当 Electron 完成初始化时
 app.whenReady().then(() => {
+  // 创建窗口
   createWindow()
 
   // ---------- IPC 监视器 ----------
   ipcMain.on('minimize-window', () => {
+    console.log('最小化窗口')
     win?.minimize()
   })
 
