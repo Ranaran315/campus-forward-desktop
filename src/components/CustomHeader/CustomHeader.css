@@ -1,0 +1,36 @@
+/* src/components/CustomHeader.css */
+.custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0f0f0; /* 设置你想要的背景色 */
+  color: #333; /* 设置文字颜色 */
+  padding: 0 10px;
+  height: 30px; /* 设置头部高度 */
+  -webkit-app-region: drag; /* 允许拖动窗口 */
+}
+
+.app-title {
+  font-size: 16px;
+}
+
+.window-controls {
+  display: flex;
+}
+
+.window-controls button {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 5px 10px;
+  margin-left: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  -webit-app-region: no-drag; /* 禁止拖动按钮 */
+}
+
+.window-controls button:hover {
+  background-color: #ddd;
+}
+
+/* 可以根据你的原型图添加更多样式 */
