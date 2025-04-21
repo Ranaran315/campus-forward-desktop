@@ -3,15 +3,29 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f0f0f0; /* 设置你想要的背景色 */
-  color: #333; /* 设置文字颜色 */
-  padding: 0 10px;
+  background-color: var(--header-background); /* 设置你想要的背景色 */
+  color: var(--header-text); /* 设置文字颜色 */
+  padding: 15px 15px;
   height: 30px; /* 设置头部高度 */
   -webkit-app-region: drag; /* 允许拖动窗口 */
 }
 
-.app-title {
+.custom-header-left {
   font-size: 16px;
+}
+
+.custom-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+  outline: 1px solid var(--secondary-color); /* 设置头像边框颜色 */
+  overflow: hidden;
 }
 
 .window-controls {
@@ -19,18 +33,20 @@
 }
 
 .window-controls button {
+  color: var(--header-text);
   appearance: none;
   background: none;
   border: none;
   padding: 5px 10px;
   margin-left: 5px;
   cursor: pointer;
-  font-size: 14px;
-  -webit-app-region: no-drag; /* 禁止拖动按钮 */
+  font-size: 18px;
+  -webkit-app-region: no-drag; /* 禁止拖动按钮 */
 }
 
 .window-controls button:hover {
-  background-color: #ddd;
+  background-color: var(--header-text); /* 鼠标悬停时的背景色 */
+  color: var(--header-background); /* 鼠标悬停时的文字颜色 */
 }
 
 /* 可以根据你的原型图添加更多样式 */
