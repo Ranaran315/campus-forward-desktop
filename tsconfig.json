@@ -28,7 +28,9 @@
       "@hooks/*": ["./src/hooks/*"],
       "@utils/*": ["./src/utils/*"],
       "@styles/*": ["./src/styles/*"]
-    }
+    },
+
+    "types": ["vite-plugin-svgr/client", "node"]
   },
   "include": ["src", "electron"],
   "references": [{ "path": "./tsconfig.node.json" }]

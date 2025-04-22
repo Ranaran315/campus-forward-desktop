@@ -2,6 +2,9 @@
 import React from 'react'
 import './CustomHeader.css' // 你可以创建对应的 CSS 文件
 import avatar from '@/assets/react.svg' // 替换为你的头像路径
+import MinimizeIcon from '@/assets/icons/minimize.svg?react'
+import MaximizeIcon from '@/assets/icons/maximize.svg?react'
+import CloseIcon from '@/assets/icons/close.svg?react'
 
 interface CustomHeaderProps {
   title: string
@@ -31,9 +34,15 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ title }) => {
           <img src={avatar} alt="" />
         </div>
         <div className="window-controls">
-          <button onClick={handleMinimize}>−</button>
-          <button onClick={handleMaximize}>□</button>
-          <button onClick={handleClose}>×</button>
+          <button onClick={handleMinimize}>
+            <MinimizeIcon className="window-icon" />
+          </button>
+          <button onClick={handleMaximize}>
+            <MaximizeIcon className="window-icon" />
+          </button>
+          <button onClick={handleClose}>
+            <CloseIcon className="window-icon" />
+          </button>
         </div>
       </div>
     </div>

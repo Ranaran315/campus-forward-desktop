@@ -2,8 +2,8 @@ export const themes = {
   light: {
     '--primary-color': '#3498db',
     '--secondary-color': '#e74c3c',
-    '--background-color': '#f0f0f0',
-    '--text-color': '#333',
+    '--primary-background-color': '#f0f0f0',
+    '--primary-text-color': '#333',
     '--header-background': '#3498db',
     '--header-text': '#fff',
     // ... 其他颜色变量
@@ -11,8 +11,8 @@ export const themes = {
   dark: {
     '--primary-color': '#2c3e50',
     '--secondary-color': '#c0392b',
-    '--background-color': '#333',
-    '--text-color': '#ecf0f1',
+    '--primary-background-color': '#333',
+    '--primary-text-color': '#ecf0f1',
     '--header-background': '#2c3e50',
     '--header-text': '#ecf0f1',
     // ... 其他颜色变量
@@ -21,8 +21,8 @@ export const themes = {
   green: {
     '--primary-color': '#2ecc71',
     '--secondary-color': '#d35400',
-    '--background-color': '#f9f9f9',
-    '--text-color': '#444',
+    '--primary-background-color': '#f9f9f9',
+    '--primary-text-color': '#444',
     '--header-background': '#2ecc71',
     '--header-text': '#fff',
     // ... 其他颜色变量
