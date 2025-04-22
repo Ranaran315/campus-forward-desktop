@@ -1,7 +1,7 @@
 import { Link, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
 import CustomHeader from '@/components/CustomHeader/CustomHeader'
-import MessageViews from '@/views/Message/Message'
+import MessageViews from '@/views/Message/MessageViews'
 import NotificationViews from '@/views/Notifications/Notifications'
 import CalendarViews from '@/views/Calendar/Calendar'
 import ContactsViews from '@/views/Contacts/Contacts'

@@ -13,11 +13,13 @@
   -moz-osx-font-smoothing: grayscale;
 
   --primary-color: #133c9a;
-  --secondary-color: #00d6b9;
+  --secondary-color: #0bb8f3;
   --primary-background-color: #f0f0f0;
-  --secondary-background-color: #f0f3f6;
+  --secondary-background-color: #fff;
   --third-background-color: #e4e4e8;
+  --fill-color: #b9bbbc;
   --primary-text-color: #1a1a1a;
+  --secondary-text-color: #666;
   --header-background: var(--primary-color);
   --header-text: #fff;
 }
@@ -71,4 +73,26 @@ svg {
   width: 18px;
   height: 18px;
   color: currentColor;
+}
+
+/* 滚动条样式 */
+/* 全局样式 (src/index.css 或 src/App.css) */
+::-webkit-scrollbar {
+  width: 8px; /* 垂直滚动条宽度 */
+  height: 8px; /* 水平滚动条高度 */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--fill-color); /* 滑块颜色 */
+  border-radius: 4px; /* 滑块圆角 */
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1; /* 轨道颜色 */
+  border-radius: 4px; /* 轨道圆角 */
+}
+
+/* Hover 效果 */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
 }
