@@ -1,5 +1,4 @@
 import { ipcRenderer, contextBridge } from 'electron'
-import { send } from 'vite'
 
 // --------- 暴露一些 ipcRender 给渲染进程  ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -22,4 +21,4 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   // You can expose other APTs you need here.
   // ...
-})
+}) // 发送强制登出事件给主进程

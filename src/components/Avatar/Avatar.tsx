@@ -38,7 +38,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <div
-      className={`avtar ${className} ${isCircle ? 'circle' : ''}`}
+      className={`avatar ${className} ${isCircle ? 'is-circle' : ''}`}
       style={{ width: size, height: size }}
     >
       <img src={imageSrc || DefaultAvatar} alt={alt} />

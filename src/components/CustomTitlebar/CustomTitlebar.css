@@ -1,0 +1,18 @@
+.custom-titlebar {
+  width: 100%;
+  padding: 5px 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  -webkit-app-region: drag; /* 允许拖动窗口 */
+}
+
+.custom-titlebar-controls {
+  -webkit-app-region: no-drag; /* 禁止拖动按钮 */
+}
+
+.window-icon {
+  width: var(--normal-icon-size);
+  aspect-ratio: 1;
+  color: currentColor; /* 使用当前颜色 */
+}

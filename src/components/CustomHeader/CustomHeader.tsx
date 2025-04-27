@@ -4,7 +4,7 @@ import './CustomHeader.css' // 你可以创建对应的 CSS 文件
 import MinimizeIcon from '@/assets/icons/minimize.svg?react'
 import MaximizeIcon from '@/assets/icons/maximize.svg?react'
 import CloseIcon from '@/assets/icons/close.svg?react'
-import Avatar from '@/components/Avatar/avatar'
+import Avatar from '@/components/Avatar/Avatar'
 
 interface CustomHeaderProps {
   title: string

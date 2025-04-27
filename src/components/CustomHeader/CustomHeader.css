@@ -19,15 +19,6 @@
   align-items: center;
 }
 
-.avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-right: 10px;
-  outline: 1px solid var(--secondary-color); /* 设置头像边框颜色 */
-  overflow: hidden;
-}
-
 .window-controls {
   display: flex;
 }
@@ -53,8 +44,8 @@
 }
 
 .window-icon {
-  width: 18px;
-  height: 18px;
+  width: var(--normal-icon-size);
+  aspect-ratio: 1;
   color: currentColor; /* 使用当前颜色 */
 }
 

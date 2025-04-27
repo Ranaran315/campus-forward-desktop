@@ -1,0 +1,35 @@
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.input-inner {
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+  border: none;
+  outline: 1px solid transparent;
+  text-align: center;
+}
+
+.input-inner:focus {
+  outline-color: var(--primary-color);
+}
+
+.input-inner:disabled {
+  background-color: var(--disabled-background-color);
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}

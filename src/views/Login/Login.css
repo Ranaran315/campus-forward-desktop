@@ -1,0 +1,32 @@
+.login-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 0 10px;
+  box-sizing: border-box;
+  -webkit-app-region: drag;
+}
+
+.login-container .login-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+.login-container .to-register {
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.login-container .to-register:hover {
+  color: var(--secondary-color);
+}
+
+.login-container .error-info {
+  height: 20px;
+  color: var(--danger-color);
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}

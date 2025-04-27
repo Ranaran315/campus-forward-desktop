@@ -1,0 +1,56 @@
+/* src/components/Button/Button.css */
+.button {
+  display: inline-block;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.button-primary {
+  background-color: var(--primary-color);
+  color: var(--primary-background-color);
+}
+
+.button-primary:hover {
+  background-color: var(--secondary-color);
+}
+
+.button-danger {
+  background-color: var(--danger-color);
+  color: var(--primary-background-color);
+}
+
+.button-danger:hover {
+  background-color: var(--primary-background-color);
+  color: var(--danger-color);
+}
+
+.button-success {
+  background-color: var(--success-color);
+  color: var(--primary-background-color);
+}
+
+.button-success:hover {
+  background-color: var(--primary-background-color);
+  color: var(--success-color);
+}
+
+.button-warning {
+  background-color: var(--warning-color);
+  color: var(--primary-background-color);
+}
+
+.button-warning:hover {
+  background-color: var(--primary-background-color);
+  color: var(--warning-color);
+}
+
+.button.is-disabled {
+  background-color: var(--disabled-background-color);
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
