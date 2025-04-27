@@ -28,25 +28,24 @@ apiClient.interceptors.request.use(
 
 // 响应拦截器：处理 401 错误 (Token 失效/未认证)
 apiClient.interceptors.response.use(
-  (response) => response, // 成功响应直接返回
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.error('认证失败 (401)，需要重新登录。')
-      localStorage.removeItem('authToken') // 清除无效 Token
-
-      // 通知主进程处理强制登出和窗口切换
+      console.error('认证失败 (401)，可能需要重新登录。')
+      localStorage.removeItem('authToken')
+      // 通知主进程处理登出
       if (window.ipcRenderer?.send) {
         window.ipcRenderer.send('force-logout')
-      } else {
-        // Fallback 或给出错误提示
-        console.error('无法通知主进程强制登出。')
-        // 也可以尝试简单的 hash 跳转，但不一定总能正确处理窗口
-        // window.location.hash = '/login';
       }
-      // 返回一个特定的错误或让调用者处理
-      return Promise.reject(new Error('认证失败，请重新登录'))
+      // !!! 关键改动：重新抛出原始错误，或者一个带有标识的错误 !!!
+      // 这样调用者就能知道具体是 401 错误了
+      return Promise.reject(error) // 直接将原始 error 抛出
+      // 或者可以包装一下:
+      // const authError = new Error('Authentication Failed (401)');
+      // authError.originalError = error; // 可以附加原始错误信息
+      // return Promise.reject(authError);
     }
-    // 其他错误继续抛出
+    // 其他错误继续正常抛出
     return Promise.reject(error)
   }
 )

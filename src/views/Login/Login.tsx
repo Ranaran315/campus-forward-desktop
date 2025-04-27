@@ -41,19 +41,20 @@ function LoginPage() {
         setError('登录失败：未收到 access_token。')
       }
     } catch (err: any) {
-      console.log('登录出错:', err)
-      if (err.response && err.response.data?.message) {
+      console.error('登录出错:', err)
+      // !!! 关键改动：检查原始错误状态码 !!!
+      if (err.response && err.response.status === 401) {
+        // 如果是 401 错误，显示用户名密码无效
+        setError('登录失败：用户名或密码无效。')
+      } else if (err.response && err.response.data?.message) {
+        // 如果后端返回了具体的错误消息
         if (Array.isArray(err.response.data.message)) {
           setError(`登录失败: ${err.response.data.message.join(', ')}`)
         } else {
           setError(`登录失败: ${err.response.data.message}`)
         }
-      } else if (
-        err.message?.includes('Unauthorized') ||
-        err.response?.status === 401
-      ) {
-        setError('登录失败：用户名或密码无效。')
       } else {
+        // 其他情况（网络错误、服务器内部错误等）
         setError('登录失败，请检查网络或联系管理员。')
       }
     } finally {
