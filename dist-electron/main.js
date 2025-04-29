@@ -10434,6 +10434,7 @@ app$1.whenReady().then(() => {
     if (mainWin) {
       console.log("Main: Closing main window due to force-logout.");
       mainWin.close();
+      mainWin = null;
     }
     if (!loginWin) {
       console.log("Main: Creating login window due to force-logout.");

@@ -43,7 +43,7 @@ apiClient.interceptors.response.use(
     // 请求成功，后端返回的是标准格式 { statusCode, message, data }
     // 返回完整的 AxiosResponse，同时附加标准数据供调用者使用
     response.data = response.data as BackendStandardResponse
-    return response
+    return response.data // 直接返回 data 部分
   },
   (error: AxiosError) => {
     const customError: CustomAxiosError = error // 转换为自定义错误类型

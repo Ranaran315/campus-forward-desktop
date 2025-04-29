@@ -198,6 +198,7 @@ app.whenReady().then(() => {
     if (mainWin) {
       console.log('Main: Closing main window due to force-logout.')
       mainWin.close() // 关闭主窗口
+      mainWin = null
     }
     if (!loginWin) {
       // 确保登录窗口不存在时才创建
