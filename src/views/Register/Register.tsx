@@ -1,402 +1,429 @@
 // src/views/RegisterPage/RegisterPage.tsx
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import apiClient from '../../lib/axios'
-import type { RegisterFormData } from '../../types/user.types' // 导入类型
-import type { RegisterResponse } from '../../types/auth.types' // 导入类型
+import apiClient from '../../lib/axios' // 确认路径正确
+import type { RegisterFormData } from '../../types/user.types' // 更新后的类型
+import type { RegisterResponse } from '../../types/auth.types' // 确认路径和类型正确
+import { Form, InputField, RadioGroup } from '@/components/Form/Form' // 引入你的组件
+import CustomTitlebar from '@/components/CustomTitlebar/CustomTitlebar'
+import Button from '@/components/Button/Button' // 假设你有一个 Button 组件
+import styles from './Register.module.css' // 引入页面样式
 import './Register.css'
 
+// 总步骤数 (根据你的设计调整)
+const TOTAL_STEPS = 6
+
 function RegisterPage() {
-  const [formData, setFormData] = useState<RegisterFormData>({
-    userType: 'student',
-    identifier: '',
-    password: '',
-    realname: '',
-    gender: 'male',
-    departmentInfo: { departmentId: '', departmentName: '' },
-    email: '',
+  const [step, setStep] = useState(1)
+  const [formData, setFormData] = useState<Partial<RegisterFormData>>({
+    gender: 'male', // 默认值
+    departmentInfo: { departmentId: '', departmentName: '' }, // 初始化嵌套对象
+    classInfo: { classId: '', className: '' },
+    staffInfo: { titles: [], officeLocation: '', managedClassIds: [] },
+    email: '', // 初始化顶层字段
     phone: '',
-    classInfo: { classId: '', className: '' }, // 初始化以避免未定义错误
-    staffInfo: { titles: [], officeLocation: '', managedClassIds: [] }, // 初始化
   })
+  const [password, setPassword] = useState('') // 单独管理密码输入
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  // 通用输入处理
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  // --- 处理函数 ---
+  const handleNext = () => {
+    setError(null) // 清除错误
+    // --- 在进入下一步前进行当前步骤的简单校验 ---
+    if (step === 1 && !formData.userType) {
+      setError('请选择用户类型')
+      return
+    }
+    if (step === 2) {
+      if (!formData.identifier) {
+        setError('请输入学号或工号')
+        return
+      }
+      if (!password || password.length < 6) {
+        setError('密码长度不能少于6位')
+        return
+      }
+      if (password !== confirmPassword) {
+        setError('两次输入的密码不一致')
+        return
+      }
+    }
+    if (step === 3 && !formData.realname) {
+      setError('请输入真实姓名')
+      return
+    }
+    if (step === 4) {
+      if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
+        // 简单邮箱格式检查
+        setError('请输入有效的邮箱地址')
+        return
+      }
+    }
+    if (
+      step === 5 &&
+      (!formData.departmentInfo?.departmentId ||
+        !formData.departmentInfo?.departmentName)
+    ) {
+      setError('请填写完整的学院信息')
+      return
+    }
+    if (
+      step === 6 &&
+      formData.userType === 'student' &&
+      (!formData.classInfo?.classId || !formData.classInfo?.className)
+    ) {
+      setError('学生用户必须填写完整的班级信息')
+      return
+    }
+    // ---------------------------------------------
+    if (step < TOTAL_STEPS) {
+      setStep((prev) => prev + 1)
+    }
   }
 
-  // 处理嵌套对象输入
+  const handleBack = () => {
+    setError(null) // 清除错误
+    if (step > 1) {
+      setStep((prev) => prev - 1)
+    }
+  }
+
+  const handleChange = (name: string, value: string | number) => {
+    setFormData((prev) => ({ ...prev, [name]: value.toString() }))
+  }
+
   const handleNestedChange = (
     outerKey: keyof RegisterFormData,
     innerKey: string,
     value: string | string[]
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [outerKey]: { ...(prev[outerKey] as object), [innerKey]: value },
-    }))
+    setFormData((prev) => {
+      const currentOuter = prev[outerKey] || {}
+      return {
+        ...prev,
+        [outerKey]: {
+          ...(typeof currentOuter === 'object' && currentOuter !== null
+            ? currentOuter
+            : {}),
+          [innerKey]: value,
+        },
+      }
+    })
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (formData.password !== confirmPassword) {
+  // 最终提交
+  const handleSubmit = async () => {
+    console.log(formData)
+    // 最后确认密码一致性
+    if (password !== confirmPassword) {
       setError('两次输入的密码不一致')
+      setStep(2) // 跳回密码输入步骤
       return
     }
     setError(null)
     setLoading(true)
 
-    // 准备提交的数据，移除确认密码，清理可选对象
-    const submitData: Partial<RegisterFormData> & { password: string } = {
+    // 准备提交的数据，确保包含 password
+    const submitData: Partial<RegisterFormData> & { password?: string } = {
       ...formData,
-    }
-    if (submitData.userType === 'student') {
-      delete submitData.staffInfo // 学生不需要 staffInfo
-      if (!submitData.classInfo?.classId || !submitData.classInfo?.className) {
-        setError('学生必须提供完整的班级信息')
-        setLoading(false)
-        return
-      }
-    } else {
-      // staff
-      delete submitData.classInfo // 教职工不需要 classInfo
-      // staffInfo 可选，但如果提供了部分，要确保结构完整
-      submitData.staffInfo = submitData.staffInfo || {}
+      password: password, // 添加最终确认的密码
     }
 
+    // 清理与用户类型不符的数据
+    if (submitData.userType === 'student') delete submitData.staffInfo
+    else if (submitData.userType === 'staff') delete submitData.classInfo
+
     try {
+      // 注意：后端期望的 DTO 可能与 RegisterFormData 有细微差别，需要确保一致
       const response = await apiClient.post<RegisterResponse>(
         '/auth/register',
         submitData
       )
       console.log('注册成功:', response.data)
-      alert('注册成功！请返回登录。')
-      navigate('/login') // 跳转到登录页
+      alert('注册成功！即将跳转到登录页面。')
+      navigate('/login')
     } catch (err: any) {
       console.error('注册出错:', err)
-      if (err.response && err.response.data?.message) {
-        if (Array.isArray(err.response.data.message)) {
-          setError(`注册失败: ${err.response.data.message.join(', ')}`)
-        } else {
-          setError(`注册失败: ${err.response.data.message}`)
-        }
+      if (err.response?.data?.message) {
+        setError(
+          Array.isArray(err.response.data.message)
+            ? `注册失败: ${err.response.data.message.join(', ')}`
+            : `注册失败: ${err.response.data.message}`
+        )
       } else {
-        setError('注册失败，请检查输入或联系管理员')
+        setError('注册失败，请稍后重试或联系管理员')
       }
+      // 可以根据错误信息判断是否需要跳回之前的步骤
+      // if (error related to username/email/id) setStep(2);
     } finally {
       setLoading(false)
     }
   }
 
-  // --- JSX ---
-  return (
-    <div /* className="register-container" */ style={styles.container}>
-      <h2 style={styles.title}>用户注册</h2>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        {/* 用户类型 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="userType" style={styles.label}>
-            用户类型:
-          </label>
-          <select
+  // --- 渲染当前步骤的表单内容 ---
+  const renderStepContent = () => {
+    switch (step) {
+      case 1: // 选择用户类型
+        return (
+          <RadioGroup
             name="userType"
-            id="userType"
-            value={formData.userType}
+            options={[
+              { value: 'student', label: '学生' },
+              { value: 'staff', label: '教职工' },
+            ]}
+            value={formData.userType || 'student'}
             onChange={handleChange}
-            disabled={loading}
-            style={styles.input}
-          >
-            <option value="student">学生</option>
-            <option value="staff">教职工</option>
-          </select>
-        </div>
-        {/* 学号/工号 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="identifier" style={styles.label}>
-            {formData.userType === 'student' ? '学号:' : '工号:'}
-          </label>
-          <input
-            type="text"
-            name="identifier"
-            id="identifier"
-            value={formData.identifier}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            style={styles.input}
+            layout="button" // 使用按钮样式
+            direction="vertical"
           />
-        </div>
-        {/* 真实姓名 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="realname" style={styles.label}>
-            真实姓名:
-          </label>
-          <input
-            type="text"
-            name="realname"
-            id="realname"
-            value={formData.realname}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        {/* 昵称 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="nickname" style={styles.label}>
-            昵称:
-          </label>
-          <input
-            type="text"
-            name="nickname"
-            id="nickname"
-            value={formData.nickname || ''}
-            onChange={handleChange}
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        {/* 密码 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="password" style={styles.label}>
-            密码:
-          </label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            minLength={6}
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        {/* 确认密码 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="confirmPassword" style={styles.label}>
-            确认密码:
-          </label>
-          <input
-            type="password"
-            id="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={6}
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        {/* 性别 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="gender" style={styles.label}>
-            性别:
-          </label>
-          <select
-            name="gender"
-            id="gender"
-            value={formData.gender}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            style={styles.input}
-          >
-            <option value="male">男</option>
-            <option value="female">女</option>
-            <option value="other">其他</option>
-          </select>
-        </div>
-        {/* 邮箱 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="contactInfo.email" style={styles.label}>
-            邮箱:
-          </label>
-          <input
-            type="email"
-            name="contactInfo.email"
-            id="contactInfo.email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        {/* 电话 (可选) */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="contactInfo.phone" style={styles.label}>
-            电话:
-          </label>
-          <input
-            type="tel"
-            name="contactInfo.phone"
-            id="contactInfo.phone"
-            value={formData.phone || ''}
-            onChange={handleChange}
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        {/* 学院信息 */}
-        <div style={styles.inputGroup}>
-          <label htmlFor="departmentInfo.departmentId" style={styles.label}>
-            学院ID:
-          </label>
-          <input
-            type="text"
-            name="departmentInfo.departmentId"
-            id="departmentInfo.departmentId"
-            value={formData.departmentInfo.departmentId}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.inputGroup}>
-          <label htmlFor="departmentInfo.departmentName" style={styles.label}>
-            学院名称:
-          </label>
-          <input
-            type="text"
-            name="departmentInfo.departmentName"
-            id="departmentInfo.departmentName"
-            value={formData.departmentInfo.departmentName}
-            onChange={handleChange}
-            required
-            disabled={loading}
-            style={styles.input}
-          />
-        </div>
-
-        {/* 学生信息 */}
-        {formData.userType === 'student' && (
+        )
+      case 2: // 输入学号/工号和密码
+        return (
           <>
-            <div style={styles.inputGroup}>
-              <label htmlFor="classInfo.classId" style={styles.label}>
-                班级ID:
-              </label>
-              <input
-                type="text"
-                id="classInfo.classId"
-                value={formData.classInfo?.classId || ''}
-                onChange={(e) =>
-                  handleNestedChange('classInfo', 'classId', e.target.value)
-                }
-                required={formData.userType === 'student'}
-                disabled={loading}
-                style={styles.input}
-              />
-            </div>
-            <div style={styles.inputGroup}>
-              <label htmlFor="classInfo.className" style={styles.label}>
-                班级名称:
-              </label>
-              <input
-                type="text"
-                id="classInfo.className"
-                value={formData.classInfo?.className || ''}
-                onChange={(e) =>
-                  handleNestedChange('classInfo', 'className', e.target.value)
-                }
-                required={formData.userType === 'student'}
-                disabled={loading}
-                style={styles.input}
-              />
-            </div>
-          </>
-        )}
-
-        {/* 教职工信息 (简单示例) */}
-        {formData.userType === 'staff' && (
-          <div style={styles.inputGroup}>
-            <label htmlFor="staffInfo.officeLocation" style={styles.label}>
-              办公地点:
-            </label>
-            <input
-              type="text"
-              id="staffInfo.officeLocation"
-              value={formData.staffInfo?.officeLocation || ''}
-              onChange={(e) =>
-                handleNestedChange(
-                  'staffInfo',
-                  'officeLocation',
-                  e.target.value
-                )
-              }
-              disabled={loading}
-              style={styles.input}
+            <InputField
+              name="identifier"
+              label={formData.userType === 'student' ? '学号' : '工号'}
+              value={formData.identifier || ''}
+              onChange={handleChange}
+              required
+              placeholder={`请输入${
+                formData.userType === 'student' ? '学号' : '工号'
+              }`}
             />
-          </div>
-          // 职称(titles)等可能需要更复杂的输入组件
-        )}
+            <InputField
+              name="password" // 用本地 state 控制
+              label="设置密码"
+              type="password"
+              value={password}
+              onChange={(_name, value) => setPassword(value)}
+              required
+              minLength={6}
+              placeholder="请输入至少6位密码"
+            />
+            <InputField
+              name="confirmPassword" // 用本地 state 控制
+              label="确认密码"
+              type="password"
+              value={confirmPassword}
+              onChange={(_name, value) => setConfirmPassword(value)}
+              required
+              minLength={6}
+              placeholder="请再次输入密码"
+            />
+          </>
+        )
+      case 3: // 真实姓名、昵称、性别
+        return (
+          <>
+            <InputField
+              name="realname"
+              label="真实姓名"
+              value={formData.realname || ''}
+              onChange={handleChange}
+              required
+            />
+            <InputField
+              name="nickname"
+              label="昵称 (可选)"
+              value={formData.nickname || ''}
+              onChange={handleChange}
+            />
+            <RadioGroup
+              name="gender"
+              label="性别"
+              options={[
+                { value: 'male', label: '男' },
+                { value: 'female', label: '女' },
+                { value: 'other', label: '其他' },
+              ]}
+              value={formData.gender || 'male'}
+              onChange={handleChange}
+              layout="standard" // 标准样式
+              required
+            />
+          </>
+        )
+      case 4: // 联系方式 (Email, Phone)
+        return (
+          <>
+            <InputField
+              name="email"
+              label="邮箱"
+              type="email"
+              value={formData.email || ''}
+              onChange={handleChange}
+              required
+              placeholder="请输入常用邮箱"
+            />
+            <InputField
+              name="phone"
+              label="手机号 (可选)"
+              type="tel"
+              value={formData.phone || ''}
+              onChange={handleChange}
+              placeholder="请输入手机号码"
+            />
+          </>
+        )
+      case 5: // 组织信息 (学院)
+        return (
+          <>
+            <InputField
+              name="departmentInfo.departmentId" // 使用点表示嵌套
+              label="学院 ID"
+              value={formData.departmentInfo?.departmentId || ''}
+              onChange={(_name, value) =>
+                handleNestedChange('departmentInfo', 'departmentId', value)
+              }
+              required
+              placeholder="请输入学院 ID"
+            />
+            <InputField
+              name="departmentInfo.departmentName"
+              label="学院名称"
+              value={formData.departmentInfo?.departmentName || ''}
+              onChange={(_name, value) =>
+                handleNestedChange('departmentInfo', 'departmentName', value)
+              }
+              required
+              placeholder="请输入学院全称"
+            />
+          </>
+        )
+      case 6: // 特定信息 (班级 或 教职工)
+        return (
+          <>
+            {formData.userType === 'student' && (
+              <>
+                <InputField
+                  name="classInfo.classId"
+                  label="班级 ID"
+                  value={formData.classInfo?.classId || ''}
+                  onChange={(_name, value) =>
+                    handleNestedChange('classInfo', 'classId', value)
+                  }
+                  required={formData.userType === 'student'}
+                  placeholder="请输入班级 ID"
+                />
+                <InputField
+                  name="classInfo.className"
+                  label="班级名称"
+                  value={formData.classInfo?.className || ''}
+                  onChange={(_name, value) =>
+                    handleNestedChange('classInfo', 'className', value)
+                  }
+                  required={formData.userType === 'student'}
+                  placeholder="请输入班级全称"
+                />
+              </>
+            )}
+            {formData.userType === 'staff' && (
+              <>
+                <InputField
+                  name="staffInfo.officeLocation" // 注意 name 属性匹配 handleNestedChange
+                  label="办公地点 (可选)"
+                  value={formData.staffInfo?.officeLocation || ''}
+                  onChange={(_name, value) =>
+                    handleNestedChange('staffInfo', 'officeLocation', value)
+                  }
+                  placeholder="例如：科技楼A栋101"
+                />
+                {/* 职称 Titles 可能需要更复杂的输入组件 */}
+                <div>
+                  <label>职称 (可选，可多选，示例)</label>
+                  {/* // 这里应该用一个支持多选输入的组件，或者简单的文本框 */}
+                  <input
+                    type="text"
+                    placeholder="例如：教授,辅导员 (用逗号隔开)"
+                    onChange={(e) =>
+                      handleNestedChange(
+                        'staffInfo',
+                        'titles',
+                        e.target.value
+                          .split(',')
+                          .map((t) => t.trim())
+                          .filter((t) => t)
+                      )
+                    }
+                  />
+                </div>
+              </>
+            )}
+          </>
+        )
+      default:
+        return <div>未知步骤</div>
+    }
+  }
 
-        {/* 错误提示 */}
-        {error && (
-          <p
-            style={{ color: 'red', textAlign: 'center', marginBottom: '10px' }}
-          >
-            {error}
-          </p>
-        )}
-        {/* 按钮 */}
-        <button type="submit" disabled={loading} style={styles.button}>
-          {loading ? '注册中...' : '注 册'}
-        </button>
-      </form>
-      <p style={{ textAlign: 'center', marginTop: '15px' }}>
-        已有账户？ <Link to="/login">返回登录</Link>
-      </p>
+  // --- 渲染主 JSX ---
+  return (
+    <div className="register-container">
+      <CustomTitlebar title="新用户注册" />
+      <div className="register-layout">
+        {/* Row 1: Step Indicator */}
+        <div className="step-indicator">
+          步骤 {step} / {TOTAL_STEPS}:{' '}
+          {step === 1
+            ? '选择您的身份'
+            : step === 2
+            ? '设置登录信息'
+            : step === 3
+            ? '填写基本资料'
+            : step === 4
+            ? '填写联系方式'
+            : step === 5
+            ? '填写组织信息'
+            : step === 6
+            ? formData.userType === 'student'
+              ? '填写班级信息'
+              : '填写教职工信息'
+            : ''}
+        </div>
+
+        {/* Row 2: Form Content */}
+        <Form>
+          {renderStepContent()}
+          {/* 显示错误信息 */}
+          {error && <p className={styles.error}>{error}</p>}
+        </Form>
+
+        {/* Row 3: Navigation Buttons */}
+        <div
+          className={`navigation-controls ${
+            step === 1 || TOTAL_STEPS ? 'step_only' : ''
+          }`}
+        >
+          {step > 1 && (
+            <Button onClick={handleBack} disabled={loading}>
+              上一步
+            </Button>
+          )}
+          {step < TOTAL_STEPS ? (
+            <Button onClick={handleNext} disabled={loading}>
+              下一步
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={styles.submitButton}
+            >
+              {loading ? '注册中...' : '完成注册'}
+            </Button>
+          )}
+        </div>
+
+        {/* Row 4: Back to Login */}
+        <div className={styles.backToLogin}>
+          <Link to="/login">返回登录</Link>
+        </div>
+      </div>
     </div>
   )
-}
-
-// --- 使用和 LoginPage 相同的简单样式 ---
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: '450px',
-    margin: '30px auto',
-    padding: '30px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    backgroundColor: '#f9f9f9',
-  },
-  title: { textAlign: 'center', marginBottom: '25px' },
-  form: { display: 'flex', flexDirection: 'column' },
-  inputGroup: { marginBottom: '12px' },
-  label: {
-    marginBottom: '4px',
-    display: 'block',
-    fontWeight: 'bold',
-    fontSize: '14px',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '3px',
-    boxSizing: 'border-box',
-  },
-  button: {
-    padding: '10px 15px',
-    backgroundColor: '#28a745',
-    color: 'white',
-    border: 'none',
-    borderRadius: '3px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    marginTop: '10px',
-  },
 }
 
 export default RegisterPage

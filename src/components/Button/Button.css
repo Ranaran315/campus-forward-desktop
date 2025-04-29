@@ -4,8 +4,8 @@
   padding: 10px 15px;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
   cursor: pointer;
+  font-size: inherit;
   transition: background-color 0.3s ease;
   white-space: nowrap;
 }

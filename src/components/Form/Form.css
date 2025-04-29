@@ -7,6 +7,7 @@
   border-radius: 5px;
 }
 
+/* input输入框 */
 .input-group label {
   display: block;
   margin-bottom: 5px;
@@ -32,4 +33,188 @@
   background-color: var(--disabled-background-color);
   color: var(--disabled-text-color);
   cursor: not-allowed;
+}
+
+/* 下拉选择框 */
+.select-group select {
+  /* 基础样式，可以继承 .input-inner 的部分样式 */
+  width: 100%;
+  padding: 10px 8px; /* 调整 padding 以适应箭头 */
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+  border: 1px solid #ccc; /* Select 通常需要边框 */
+  background-color: white;
+  cursor: pointer;
+  /* 可以添加外观属性来美化，或去除默认箭头 */
+  appearance: none; /* 隐藏默认箭头 (可能需要 -webkit- -moz-) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A"); /* 自定义箭头 */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 30px; /* 为箭头留出空间 */
+}
+
+.select-group select:focus {
+  border-color: var(--primary-color, #007bff); /* 使用变量或默认色 */
+  outline: none; /* 移除默认 outline */
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* 添加 focus 效果 */
+}
+
+.select-group select:disabled {
+  background-color: var(--disabled-background-color, #e9ecef);
+  color: var(--disabled-text-color, #6c757d);
+  cursor: not-allowed;
+  border-color: #ced4da;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23aaa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A"); /* 禁用的箭头颜色 */
+}
+
+/* 多选样式（可选，默认样式可能够用） */
+.select-group select[multiple] {
+  height: auto; /* 允许多选框根据选项数量调整高度 */
+  min-height: 80px; /* 最小高度 */
+  background-image: none; /* 多选通常不需要箭头 */
+  padding-right: 8px; /* 移除箭头空间 */
+}
+
+/* Radio Group 通用 */
+.radio-group {
+  border: none; /* 去掉 fieldset 默认边框 */
+  padding: 0;
+  margin: 0;
+  margin-bottom: 15px; /* 与其他 input-group 保持间距 */
+}
+
+.radio-group .group-label {
+  /* legend 标签 */
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  padding: 0; /* 去掉 legend 默认 padding */
+  font-size: inherit; /* 继承字体大小 */
+}
+
+.radio-group .options-container {
+  display: flex;
+  gap: 10px; /* 选项之间的间距 */
+}
+
+.radio-group .options-container.vertical {
+  flex-direction: column; /* 垂直排列选项 */
+  align-items: center;
+}
+
+.radio-group .radio-option {
+  display: flex; /* 让 input 和 label 在一行 */
+  align-items: center;
+  position: relative; /* 用于隐藏 input */
+  width: 100%;
+}
+
+.radio-group .options-container.vertical .radio-option .radio-label {
+  width: 100%;
+}
+
+.radio-group .radio-option.disabled .radio-label {
+  color: var(--disabled-text-color, #6c757d);
+  cursor: not-allowed;
+}
+
+/* 标准布局样式 (Standard Layout) */
+.radio-group-standard .radio-input-hidden {
+  /* 标准布局下，可以让原生 radio 可见或自定义样式 */
+  /* 如果想用原生样式: */
+  /* position: static; opacity: 1; pointer-events: auto; margin-right: 8px; */
+
+  /* 如果想自定义样式 (隐藏原生，用 label 模拟) */
+  position: absolute;
+  opacity: 0;
+  pointer-events: none; /* 让点击穿透到 label */
+}
+
+.radio-group-standard .standard-label {
+  cursor: pointer;
+  padding-left: 25px; /* 为自定义 radio 留出空间 */
+  position: relative;
+  line-height: 18px; /* 调整行高使对齐 */
+  user-select: none; /* 禁止选中文本 */
+}
+
+/* 自定义 radio 外观 (圆圈) */
+.radio-group-standard .standard-label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  background-color: white;
+  transition: border-color 0.2s ease;
+}
+/* 自定义 radio 外观 (选中时的点) */
+.radio-group-standard .standard-label::after {
+  content: '';
+  position: absolute;
+  left: 4px; /* 定位到圆圈中心 */
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #007bff);
+  transform: scale(0); /* 默认隐藏 */
+  transition: transform 0.2s ease;
+}
+
+/* 选中状态的样式 */
+.radio-group-standard .radio-input-hidden:checked + .standard-label::before {
+  border-color: var(--primary-color, #007bff);
+}
+.radio-group-standard .radio-input-hidden:checked + .standard-label::after {
+  transform: scale(1); /* 显示选中点 */
+}
+.radio-group-standard .radio-input-hidden:focus + .standard-label::before {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus 效果 */
+}
+
+/* 按钮布局样式 (Button Layout) */
+.radio-group-button .radio-input-hidden {
+  /* 完全隐藏原生 radio */
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.radio-group-button .button-label {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: var(--secondary-background-color);
+  text-align: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
+  user-select: none;
+}
+
+.radio-group .radio-option .button-label:hover {
+  background-color: var(--secondary-color); /* 悬停时的背景色 */
+  color: var(--primary-background-color);
+  border-color: transparent;
+  cursor: pointer; /* 鼠标悬停时显示手型光标 */
+}
+
+.radio-group-button .radio-option.disabled .button-label {
+  background-color: var(--disabled-background-color, #e9ecef);
+  border-color: #ced4da;
+}
+
+/* 按钮选中时的样式 */
+.radio-group-button .radio-input-hidden:checked + .button-label {
+  background-color: var(--primary-color, #007bff);
+  color: white;
 }

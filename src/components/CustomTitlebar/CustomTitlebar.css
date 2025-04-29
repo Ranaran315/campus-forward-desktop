@@ -4,10 +4,12 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  background-color: var(--primary-background-color);
   -webkit-app-region: drag; /* 允许拖动窗口 */
 }
 
 .custom-titlebar-controls {
+  background-color: inherit;
   -webkit-app-region: no-drag; /* 禁止拖动按钮 */
 }
 
@@ -15,4 +17,8 @@
   width: var(--normal-icon-size);
   aspect-ratio: 1;
   color: currentColor; /* 使用当前颜色 */
+}
+
+.window-icon:hover {
+  color: var(--primary-color);
 }

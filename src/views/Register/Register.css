@@ -1,0 +1,49 @@
+.register-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--primary-background-color); /* 淡色背景 */
+  overflow: hidden;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.register-layout {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 20px;
+  padding-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.register-layout .step-indicator {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.register-layout .form {
+  flex: 0.5;
+}
+
+.register-layout .navigation-controls {
+  display: flex;
+  justify-content: space-between; /* 两端对齐 */
+  gap: 20px;
+  width: 100%;
+}
+
+.register-layout .navigation-controls.step_only {
+  justify-content: center;
+}
+
+.register-layout .navigation-controls.step_only .button {
+  width: 100%;
+}
