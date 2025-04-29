@@ -137,21 +137,14 @@ app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    // 根据 token 判断创建哪个窗口
-    const storedToken = store.get('authToken')
-    if (storedToken) {
-      console.log('Main (Activate): Found token, creating main window.')
-      createMainWindow()
-    } else {
-      console.log('Main (Activate): No token found, creating login window.')
-      createLoginWindow()
-    }
+    // --- 修改：始终创建登录窗口 ---
+    console.log('Main (Activate): No windows open, creating login window.')
+    createLoginWindow()
+    // --- 结束修改 ---
   } else {
-    if (mainWin) {
-      mainWin.focus()
-    } else if (loginWin) {
-      loginWin.focus()
-    }
+    // 如果已有窗口，聚焦最前面的那个 (可能是主窗口或登录窗口)
+    const win = BrowserWindow.getFocusedWindow() || mainWin || loginWin
+    win?.focus()
   }
 })
 
@@ -165,7 +158,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // ---------- 7. 添加/修改 IPC 监视器 ----------
+  // ----------  IPC 监视器 ----------
 
   // 登录成功处理
   ipcMain.on('login-success', (_, token) => {
@@ -237,15 +230,7 @@ app.whenReady().then(() => {
   })
   // ------------------------------------------
 
-  // --- 8. 启动逻辑：检查 Token 决定显示哪个窗口 ---
-  const storedToken = store.get('authToken')
-  // 简单的存在性检查
-  if (storedToken) {
-    console.log('Main: Found stored token on startup. Creating main window.')
-    createMainWindow()
-  } else {
-    console.log('Main: No token found on startup. Creating login window.')
-    createLoginWindow()
-  }
+  // --- 启动逻辑：始终创建登录窗口 ---
+  createLoginWindow()
   // ------------------------------------------
 })

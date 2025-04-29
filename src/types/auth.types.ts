@@ -2,7 +2,13 @@
 export interface LoginResponse {
   access_token: string
   // 可能还包含 user 信息，根据后端实际返回情况定义
-  // user?: { id: string; username: string; roles: string[]; nickname?: string; }
+  user?: {
+    id: string
+    username: string
+    nickname?: string
+    avatar?: string
+    password?: string
+  }
 }
 
 // 可以在这里添加 RegisterResponse 类型等

@@ -14,15 +14,6 @@
   box-sizing: border-box;
 }
 
-.login-container .to-register {
-  color: var(--primary-color);
-  cursor: pointer;
-}
-
-.login-container .to-register:hover {
-  color: var(--secondary-color);
-}
-
 .login-container .error-info {
   height: 20px;
   color: var(--primary-danger-color);
