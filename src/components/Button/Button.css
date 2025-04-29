@@ -23,33 +23,30 @@
 }
 
 .button-danger {
-  background-color: var(--danger-color);
+  background-color: var(--primary-danger-color);
   color: var(--primary-background-color);
 }
 
 .button-danger:hover {
-  background-color: var(--primary-background-color);
-  color: var(--danger-color);
+  background-color: var(--secondary-danger-color);
 }
 
 .button-success {
-  background-color: var(--success-color);
+  background-color: var(--primary-success-color);
   color: var(--primary-background-color);
 }
 
 .button-success:hover {
-  background-color: var(--primary-background-color);
-  color: var(--success-color);
+  background-color: var(--secondary-success-color);
 }
 
 .button-warning {
-  background-color: var(--warning-color);
+  background-color: var(--primary-warning-color);
   color: var(--primary-background-color);
 }
 
 .button-warning:hover {
-  background-color: var(--primary-background-color);
-  color: var(--warning-color);
+  background-color: var(--secondary-warning-color);
 }
 
 .button.is-disabled {

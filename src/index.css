@@ -17,9 +17,12 @@
   --secondary-color: #0bb8f3;
 
   /* 辅助色 */
-  --danger-color: #ff4d4f;
-  --success-color: #52c41a;
-  --warning-color: #faad14;
+  --primary-danger-color: #ff4d4f;
+  --secondary-danger-color: #f44336;
+  --primary-success-color: #52c41a;
+  --secondary-success-color: #4caf50;
+  --primary-warning-color: #faad14;
+  --secondary-warning-color: #ff9800;
 
   /* 背景 */
   --primary-background-color: #f0f0f0;

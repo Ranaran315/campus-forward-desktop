@@ -25,7 +25,7 @@
 
 .login-container .error-info {
   height: 20px;
-  color: var(--danger-color);
+  color: var(--primary-danger-color);
   font-size: 14px;
   margin-top: 10px;
   text-align: center;
