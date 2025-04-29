@@ -6,7 +6,7 @@
 }
 
 .message-list-container {
-  max-width: 450px; /* 设置最大宽度 */
+  max-width: 350px; /* 设置最大宽度 */
   background-color: var(--secondary-background-color);
   border-radius: 8px;
   padding: 20px;
@@ -34,6 +34,11 @@
   align-items: center;
   gap: 10px;
   box-sizing: border-box;
+}
+
+.message-item-left {
+  display: flex;
+  align-items: center;
 }
 
 .message-item.active {

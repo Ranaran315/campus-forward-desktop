@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './MessageViews.css'
-import Avatar from '@/components/Avatar/avatar'
+import Avatar from '@/components/Avatar/Avatar'
 
 interface Message {
   id: string
@@ -74,7 +74,7 @@ function MessageViews() {
               onClick={() => handleMessageClick(message)}
             >
               <div className="message-item-left">
-                <Avatar src={message.avatar} size="30px"></Avatar>
+                <Avatar src={message.avatar} size="35px"></Avatar>
               </div>
               <div className="message-item-right">
                 <div className="message-item-desc">

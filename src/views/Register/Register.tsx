@@ -7,7 +7,6 @@ import type { RegisterResponse } from '../../types/auth.types' // 确认路径�
 import { Form, InputField, RadioGroup } from '@/components/Form/Form' // 引入你的组件
 import CustomTitlebar from '@/components/CustomTitlebar/CustomTitlebar'
 import Button from '@/components/Button/Button' // 假设你有一个 Button 组件
-import styles from './Register.module.css' // 引入页面样式
 import './Register.css'
 
 // 总步骤数 (根据你的设计调整)
@@ -16,6 +15,7 @@ const TOTAL_STEPS = 6
 function RegisterPage() {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState<Partial<RegisterFormData>>({
+    userType: 'student',
     gender: 'male', // 默认值
     departmentInfo: { departmentId: '', departmentName: '' }, // 初始化嵌套对象
     classInfo: { classId: '', className: '' },
@@ -221,6 +221,7 @@ function RegisterPage() {
             <InputField
               name="realname"
               label="真实姓名"
+              placeholder="请输入真实姓名"
               value={formData.realname || ''}
               onChange={handleChange}
               required
@@ -228,6 +229,7 @@ function RegisterPage() {
             <InputField
               name="nickname"
               label="昵称 (可选)"
+              placeholder="默认使用真实姓名"
               value={formData.nickname || ''}
               onChange={handleChange}
             />
@@ -237,7 +239,6 @@ function RegisterPage() {
               options={[
                 { value: 'male', label: '男' },
                 { value: 'female', label: '女' },
-                { value: 'other', label: '其他' },
               ]}
               value={formData.gender || 'male'}
               onChange={handleChange}
@@ -388,7 +389,7 @@ function RegisterPage() {
         <Form>
           {renderStepContent()}
           {/* 显示错误信息 */}
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className="error-message">{error}</p>}
         </Form>
 
         {/* Row 3: Navigation Buttons */}
@@ -407,18 +408,14 @@ function RegisterPage() {
               下一步
             </Button>
           ) : (
-            <Button
-              onClick={handleSubmit}
-              disabled={loading}
-              className={styles.submitButton}
-            >
+            <Button onClick={handleSubmit} disabled={loading} theme="success">
               {loading ? '注册中...' : '完成注册'}
             </Button>
           )}
         </div>
 
         {/* Row 4: Back to Login */}
-        <div className={styles.backToLogin}>
+        <div className="back-to-login">
           <Link to="/login">返回登录</Link>
         </div>
       </div>

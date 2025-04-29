@@ -10279,6 +10279,7 @@ const optimizer = {
   }
 };
 const store = new ElectronStore();
+console.log("Electron Store Path:", store.path);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -10333,7 +10334,7 @@ function createLoginWindow() {
 }
 function createMainWindow() {
   mainWin = new BrowserWindow({
-    width: 960,
+    width: 1260,
     // 初始宽度
     height: 670,
     // 初始高度
@@ -10393,7 +10394,6 @@ app$1.on("activate", () => {
       console.log("Main (Activate): No token found, creating login window.");
       createLoginWindow();
     }
-    createMainWindow();
   } else {
     if (mainWin) {
       mainWin.focus();

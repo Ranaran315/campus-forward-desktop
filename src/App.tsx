@@ -17,11 +17,15 @@ import MessageViews from '@/views/Message/MessageViews'
 import NotificationViews from '@/views/Notifications/Notifications'
 import CalendarViews from '@/views/Calendar/Calendar'
 import ContactsViews from '@/views/Contacts/Contacts'
+import ProfileViwes from '@/views/Profile/Profile'
+import SkinViews from '@/views/Skin/Skin'
+import SettingViews from '@/views/Setting/Setting'
 // sidebar 图标
 import MessageIcon from '@/assets/icons/message.svg?react'
 import ContactIcon from '@/assets/icons/contact.svg?react'
 import CalendarIcon from '@/assets/icons/calendar.svg?react'
 import NotificationIcon from '@/assets/icons/notification.svg?react'
+import ProfileIcon from '@/assets/icons/profile.svg?react'
 import SkinIcon from '@/assets/icons/skin.svg?react'
 import SettingIcon from '@/assets/icons/setting.svg?react'
 
@@ -91,11 +95,30 @@ function AppLayout() {
             </Link>
           </div>
           <div className="sidebar-item sidebar-bottom">
-            <Link to="/skin" className="sidebar-button skin">
+            <Link
+              to="/profile"
+              className={`sidebar-button ${
+                currentPath === '/profile' ? 'active' : ''
+              }`}
+            >
               <SkinIcon className="sidebar-icon" />
-              <span>皮肤</span>
+              <span>个人资料</span>
             </Link>
-            <Link to="/setting" className="sidebar-button settings">
+            <Link
+              to="/skin"
+              className={`sidebar-button ${
+                currentPath === '/skin' ? 'active' : ''
+              }`}
+            >
+              <ProfileIcon className="sidebar-icon" />
+              <span>调色盘</span>
+            </Link>
+            <Link
+              to="/setting"
+              className={`sidebar-button ${
+                currentPath === '/setting' ? 'active' : ''
+              }`}
+            >
               <SettingIcon className="sidebar-icon" />
               <span>设置</span>
             </Link>
@@ -125,6 +148,9 @@ function App() {
             <Route path="notifications" element={<NotificationViews />} />
             <Route path="calendar" element={<CalendarViews />} />
             <Route path="contacts" element={<ContactsViews />} />
+            <Route path="profile" element={<ProfileViwes />} />
+            <Route path="skin" element={<SkinViews />} />
+            <Route path="setting" element={<SettingViews />} />
           </Route>
         </Route>
       </Routes>

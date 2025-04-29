@@ -1,6 +1,9 @@
 /* src/components/Button/Button.css */
 .button {
-  display: inline-block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
   padding: 10px 15px;
   border: none;
   border-radius: 8px;

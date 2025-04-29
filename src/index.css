@@ -37,8 +37,12 @@
   --disabled-background-color: #ccc;
   --disabled-text-color: #666;
 
+  /* 图标大小 */
   --normal-icon-size: 18px;
   --large-icon-size: 24px;
+
+  /* 阴影 */
+  --primary-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 a {
@@ -84,6 +88,10 @@ input,
 button,
 a {
   -webkit-app-region: no-drag;
+}
+
+ul {
+  list-style: none;
 }
 
 /* 滚动条样式 */

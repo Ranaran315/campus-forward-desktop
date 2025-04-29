@@ -5,6 +5,7 @@ import Store from 'electron-store'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 
 const store = new Store()
+console.log('Electron Store Path:', store.path)
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -72,7 +73,7 @@ function createLoginWindow() {
 // --- 创建主窗口 ---
 function createMainWindow() {
   mainWin = new BrowserWindow({
-    width: 960, // 初始宽度
+    width: 1260, // 初始宽度
     height: 670, // 初始高度
     minWidth: 960, // 最小宽度
     minHeight: 670, // 最小高度
@@ -145,7 +146,6 @@ app.on('activate', () => {
       console.log('Main (Activate): No token found, creating login window.')
       createLoginWindow()
     }
-    createMainWindow()
   } else {
     if (mainWin) {
       mainWin.focus()
