@@ -10369,9 +10369,6 @@ function createMainWindow() {
   mainWin.on("closed", () => {
     console.log("Main: Main window closed.");
     mainWin = null;
-    if (process.platform !== "darwin") {
-      app$1.quit();
-    }
   });
   mainWin.webContents.setWindowOpenHandler((details) => {
     shell$1.openExternal(details.url);

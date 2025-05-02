@@ -12,6 +12,7 @@ import Modal from '@/components/Modal/Modal'; // 引入 Modal 组件
 import ChangePasswordForm from './ChangePasswordForm/ChangePasswordForm';
 import EditProfileForm from './EditProfileForm/EditProfileForm';
 import { ProfileFormData } from './Profile.type';
+import { useNavigate } from 'react-router-dom';
 // import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner'; // 如果需要加载指示器，取消注释
 
 // --- 前端使用的用户数据类型 (根据实际 API 调整) ---
@@ -78,7 +79,7 @@ function ProfileViews() {
   const editFormRef = useRef<{ submit: () => Promise<void> }>(null);
   const passwordFormRef = useRef<{ submit: () => Promise<void> }>(null);
 
-  // const navigate = useNavigate(); // 如果需要导航，取消注释
+  // const navigate = useNavigate();
 
   // --- 获取用户信息 ---
   const fetchUserProfile = useCallback(async () => {
@@ -120,7 +121,7 @@ function ProfileViews() {
       localStorage.removeItem('accessToken'); // 假设 token 存储在这里
       // 可选：跳转到登录页
       // navigate('/login');
-      window.location.href = '/login'; // 或者直接刷新跳转
+      window.ipcRenderer.send('force-logout'); // 发送登出信号到主进程
     } catch (logoutError: any) {
       console.error('登出失败:', logoutError);
       setError(logoutError.response?.data?.message || '登出时发生错误');
@@ -139,21 +140,13 @@ function ProfileViews() {
     // showToast('个人资料更新成功！', 'success');
   }, []); // 空依赖，因为 closeEditModal 和 setUserData 是稳定的
 
-  const handlePasswordSuccess = useCallback(() => {
+  const handlePasswordSuccess = useCallback(async () => {
     closePasswordModal(); // 成功后关闭 Modal
     console.log("Password changed successfully!");
+    // 退出登录
+    handleLogout()
     // 可以在这里显示全局成功提示
     // showToast('密码修改成功！', 'success');
-  }, []); // 空依赖
-
-  // --- 表单错误处理回调 ---
-  const handleFormError = useCallback((message: string) => {
-      // 在这里处理表单报告的错误，例如显示全局提示
-      setError(`操作失败: ${message}`); // 更新全局错误状态，显示在页面上
-      console.error("Form submission error:", message);
-      // 通常不需要在出错时关闭 Modal，让用户可以修正输入
-      // 可以在这里显示全局错误提示
-      // showToast(`操作失败: ${message}`, 'error');
   }, []); // 空依赖
 
   // --- 创建触发函数，用于 Modal 的 onConfirm ---
@@ -290,7 +283,6 @@ function ProfileViews() {
           submitRef={editFormRef} // 传递 ref
           initialData={profileFormData} // 传递初始数据
           onSuccess={handleProfileSuccess} // 传递成功回调
-          onError={handleFormError}      // 传递失败回调
           setLoading={setIsEditLoading}  // 传递设置加载状态的函数
           userId={userData._id} // 传递用户 ID
         />
@@ -311,7 +303,6 @@ function ProfileViews() {
         <ChangePasswordForm
           submitRef={passwordFormRef} // 传递 ref
           onSuccess={handlePasswordSuccess} // 传递成功回调
-          onError={handleFormError}       // 传递失败回调
           setLoading={setIsPasswordLoading} // 传递设置加载状态的函数
         />
       </Modal>

@@ -7,13 +7,13 @@ import AvatarUpload from '@/components/AvatarUpload/AvatarUpload'; // 假设头�
 import apiClient from '@/lib/axios'; // 你的 axios 实例
 import './EditProfileForm.css'; // 确保 CSS 文件存在
 import { ProfileFormData } from '../Profile.type';
+import { showMessage } from '@/components/Message/MessageContainer';
 
 
 // --- 组件 Props 定义 ---
 interface EditProfileFormProps {
   initialData: ProfileFormData & { avatar?: string }; // 包含头像 URL 的初始数据
   onSuccess: (updatedData: ProfileFormData & { avatar?: string }) => void; // 成功回调
-  onError: (message: string) => void; // 失败回调
   setLoading: (loading: boolean) => void; // 更新父组件加载状态的函数
   userId: string; // 当前用户 ID，可能用于某些操作
   submitRef?: RefObject<{ submit: () => Promise<void> }>; // 父组件触发提交的 ref
@@ -22,7 +22,6 @@ interface EditProfileFormProps {
 const EditProfileForm: React.FC<EditProfileFormProps> = ({
     initialData,
     onSuccess,
-    onError,
     setLoading,
     userId, // userId 可能在未来用于更复杂逻辑，暂时保留
     submitRef
@@ -103,8 +102,10 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
         if (!profileUpdatePayload.realname?.trim()) {
             throw new Error("真实姓名不能为空。");
         }
-        if (!profileUpdatePayload.email?.trim()) {
-            throw new Error("邮箱不能为空。");
+        // 邮箱格式校验
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (profileUpdatePayload.email && !emailRegex.test(profileUpdatePayload.email)) {
+            throw new Error("请输入有效的邮箱地址。");
         }
         // 可选：手机号格式校验
         const phoneRegex = /^1[3-9]\d{9}$/;
@@ -116,18 +117,17 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({
         const profileResponse = await apiClient.patch('/users/me/profile', profileUpdatePayload);
 
         // 4. 调用成功回调，传递更新后的数据 (包括可能更新的头像 URL)
+        showMessage.success('保存成功'); // 显示成功消息
         onSuccess({ ...profileResponse.data, avatar: finalAvatarUrl });
 
     } catch (err: any) {
       // 捕获所有错误 (包括上传、校验、请求)
       console.error('保存资料失败:', err);
-      const errorMessage = err.response?.data?.message || err.message || '保存失败，请检查输入或稍后重试。';
-      setError(errorMessage); // 在表单内显示错误
-      onError(errorMessage); // 通知父组件错误
+      showMessage.error(err.message || err.backendMessage?.join(',') || '保存失败，请检查输入或稍后重试。')
     } finally {
       setLoading(false); // 通知父组件加载结束
     }
-  }, [avatarFile, formData, initialData.avatar, onError, onSuccess, setLoading]); // 添加依赖
+  }, [avatarFile, formData, initialData.avatar, onSuccess, setLoading]); // 添加依赖
 
   // --- 使用 useImperativeHandle 暴露 submit 方法给父组件 ---
   useImperativeHandle(submitRef, () => ({

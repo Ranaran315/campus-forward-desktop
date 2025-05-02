@@ -1,0 +1,59 @@
+.message-transition-enter {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+    /* 从上方轻微缩小进入 */
+}
+
+.message-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+    /* 匹配 timeout */
+}
+
+/* 离开动画 */
+.message-transition-exit {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.message-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+    /* 向上方轻微缩小离开 */
+    transition: opacity 300ms ease-in, transform 300ms ease-in;
+    /* 匹配 timeout */
+}
+
+.message-container {
+    position: fixed;
+    /* 固定定位 */
+    top: 20px;
+    /* 距离顶部 20px */
+    left: 50%;
+    /* 水平居中 */
+    transform: translateX(-50%);
+    /* 精确水平居中 */
+    z-index: 1050;
+    /* 确保在顶层，根据需要调整 */
+    width: auto;
+    /* 宽度自适应内容 */
+    max-width: 80%;
+    /* 最大宽度 */
+    pointer-events: none;
+    /* 允许点击穿透容器本身 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 消息居中对齐 */
+}
+
+/* 让 Message 组件可以被点击 */
+.message-container .message {
+    pointer-events: auto;
+    margin-bottom: 10px;
+    /* 消息之间的间距 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* 添加阴影 */
+    transform-origin: center top;
+}

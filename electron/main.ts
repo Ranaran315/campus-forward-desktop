@@ -110,11 +110,6 @@ function createMainWindow() {
   mainWin.on('closed', () => {
     console.log('Main: Main window closed.')
     mainWin = null
-    // 主窗口关闭通常意味着应用退出 (除非是 macOS 且登录窗口还开着)
-    // loginWin?.close(); // 可以选择关闭登录窗口（如果还存在）
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
   })
 
   // (可选) 处理新窗口打开行为，例如在新窗口中打开外部链接

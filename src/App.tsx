@@ -28,6 +28,8 @@ import NotificationIcon from '@/assets/icons/notification.svg?react'
 import ProfileIcon from '@/assets/icons/profile.svg?react'
 import SkinIcon from '@/assets/icons/skin.svg?react'
 import SettingIcon from '@/assets/icons/setting.svg?react'
+// 全局组件
+import MessageContainer from '@/components/Message/MessageContainer'
 
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
@@ -135,6 +137,7 @@ function AppLayout() {
 function App() {
   return (
     <>
+      <MessageContainer></MessageContainer>
       <Routes>
         <Route path="/login" element={<LoginViews></LoginViews>}></Route>
         <Route
