@@ -1,5 +1,7 @@
 // src/components/Form/Form.tsx (修改后的完整代码)
 import React, { useCallback, ReactNode, ChangeEvent } from 'react'
+import EyeOnIcon from '@/assets/icons/eye_on.svg?react'
+import EyeOffIcon from '@/assets/icons/eye_off.svg?react'
 import './Form.css' // 引入 CSS 文件
 
 // --- Form 组件  ---
@@ -29,6 +31,8 @@ interface InputFieldProps {
   value: string // !! 关键：value 直接由父组件提供 !!
   minLength?: number // 最小长度
   maxLength?: number // 最大长度
+  pattern?: string // 正则表达式模式
+  max?: string // 最大值 (适用于日期等类型)
   // !! 关键：onChange 由父组件提供，用于更新父组件的状态 !!
   onChange: (name: string, value: string) => void
 }
@@ -43,6 +47,8 @@ const InputField: React.FC<InputFieldProps> = React.memo(
     placeholder,
     value, // 直接使用父组件传入的 value
     onChange, // 直接使用父组件传入的 onChange
+    pattern,
+    max,
     ...rest
   }) => {
     // 处理原生 input 的 onChange 事件
@@ -55,21 +61,44 @@ const InputField: React.FC<InputFieldProps> = React.memo(
       [name, onChange] // 依赖项是 name 和父组件传入的 onChange 函数
     )
 
+    const [isShowPassword, setShowPassword] = React.useState(false)
+    const togglePasswordVisibility = () => {
+      setShowPassword((prev) => !prev)
+    }
+
+    const inputType = type === 'password'
+      ? isShowPassword ? 'text' : 'password'
+      : type;
+
     return (
       <div className={`input-group ${className || ''}`}>
         {label && <label htmlFor={name}>{label}</label>}
-        <input
-          type={type}
-          id={name} // id 用于 label 关联
-          name={name} // name 属性
-          value={value} // !! input 的值完全由父组件的 prop 控制 !!
-          onChange={handleChange} // !! input 的改变事件触发父组件的更新 !!
-          required={required}
-          disabled={disabled}
-          placeholder={placeholder}
-          className="input-inner" // 你可以添加更多样式控制
-          {...rest} // 允许传递其他属性，如 maxLength, minLength 等
-        />
+        <div className="input-wrapper">
+          <input
+            type={inputType}
+            id={name} // id 用于 label 关联
+            name={name} // name 属性
+            value={value} // !! input 的值完全由父组件的 prop 控制 !!
+            onChange={handleChange} // !! input 的改变事件触发父组件的更新 !!
+            required={required}
+            disabled={disabled}
+            placeholder={placeholder}
+            className="input-inner" // 你可以添加更多样式控制
+            pattern={pattern} // 允许传递正则表达式模式
+            max={max}
+            {...rest} // 允许传递其他属性，如 maxLength, minLength 等
+          />
+          {type === 'password' && (
+            <button
+              type="button"
+              className="toggle-password-visibility"
+              onClick={togglePasswordVisibility}
+              aria-label={isShowPassword ? 'Hide password' : 'Show password'}
+            >
+              {isShowPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+            </button>
+          )}
+        </div>
       </div>
     )
   }

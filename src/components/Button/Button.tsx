@@ -2,8 +2,10 @@
 import React, { ReactNode } from 'react'
 import './Button.css' // 导入按钮的样式
 
+type ButtonTheme = 'primary' | 'secondary' | 'danger' | 'success' | 'warning'
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  theme?: 'primary' | 'secondary' | 'danger' | 'success' | 'warning'
+  theme?: ButtonTheme
   children: ReactNode
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 }
@@ -28,4 +30,5 @@ const Button: React.FC<ButtonProps> = ({
   )
 }
 
+export type { ButtonTheme } // 导出 ButtonTheme 类型
 export default Button

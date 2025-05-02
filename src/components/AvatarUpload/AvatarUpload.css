@@ -1,0 +1,26 @@
+/* filepath: d:\大学资料\论文毕设\毕设\campus-forward-desktop\src\components\AvatarUpload\AvatarUpload.css */
+.avatar-upload-group {
+    margin-bottom: 15px;
+    text-align: center; /* Center content */
+  }
+  
+  .avatar-upload-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    text-align: left; /* Align label left if preferred */
+  }
+  
+  .avatar-upload-controls {
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Stack avatar and button vertically */
+    align-items: center; /* Center items horizontally */
+    gap: 10px; /* Space between avatar and button */
+  }
+  
+  /* Adjust button style if needed */
+  .avatar-upload-controls .button {
+     /* Example: make button smaller */
+     /* padding: 5px 10px;
+     font-size: 0.9em; */
+  }

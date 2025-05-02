@@ -146,6 +146,9 @@ function LoginPage() {
     <div className="login-container">
       <CustomTitlebar></CustomTitlebar>
       <div className="login-layout">
+        <div className="login-title">
+          <span>飞书</span>
+        </div>
         <Avatar size="80px"></Avatar>
         <Form className="login-form">
           <InputField

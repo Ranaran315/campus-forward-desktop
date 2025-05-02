@@ -1,0 +1,11 @@
+.edit-profile-form {
+    .form-actions {
+        display: flex;
+        justify-content: space-between; /* Aligns buttons to the edges */
+        margin-top: 20px; /* Adds space above the buttons */
+        .button {
+            width: 43%;
+        }
+    }
+}
+

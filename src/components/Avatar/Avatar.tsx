@@ -9,6 +9,7 @@ interface AvatarProps {
   className?: string
   isCircle?: boolean // 是否为圆形头像，默认为 true
   size?: string | number // 头像大小，可以是像素值或百分比
+  onClick?: () => void // 点击事件处理函数
 }
 
 const Avatar: React.FC<AvatarProps> = ({
@@ -17,6 +18,7 @@ const Avatar: React.FC<AvatarProps> = ({
   className,
   isCircle = true,
   size = '20px',
+  onClick,
 }) => {
   const [imageSrc, setImageSrc] = React.useState<string | null>(src || null)
 
@@ -40,6 +42,7 @@ const Avatar: React.FC<AvatarProps> = ({
     <div
       className={`avatar ${className} ${isCircle ? 'is-circle' : ''}`}
       style={{ width: size, height: size }}
+      onClick={onClick}
     >
       <img src={imageSrc || DefaultAvatar} alt={alt} />
     </div>

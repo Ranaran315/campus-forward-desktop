@@ -1,0 +1,92 @@
+/* filepath: d:\大学资料\论文毕设\毕设\campus-forward-desktop\src\components\Modal\Modal.css */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top */
+    padding: 20px;
+  }
+  
+  .modal-content {
+    background-color: var(--primary-background-color);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    max-width: 500px; /* Adjust as needed */
+    width: 100%;
+    max-height: 90vh; /* Limit height */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    overflow-x: hidden;
+    position: relative; /* For positioning close button */
+    animation: modal-fade-in 0.3s ease-out;
+    box-sizing: border-box;
+  }
+  
+  @keyframes modal-fade-in {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-text-color);
+  }
+  
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    padding: 5px;
+    line-height: 1;
+  }
+  .modal-close-btn:hover {
+     color: var(--primary-text-color);
+  }
+  .modal-close-btn svg {
+     display: block; /* Prevents extra space below icon */
+     width: 20px;
+     height: 20px;
+  }
+  
+  
+  .modal-body {
+    margin-bottom: 20px;
+    padding: 0 20px;
+    .form {
+        padding: 0;
+    }
+  }
+  .modal-body .input-group,
+  .modal-body .radio-group {
+     margin-bottom: 15px; /* Spacing between form fields */
+  }
+  
+  
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    border-top: 1px solid var(--border-color, #eee);
+    padding-top: 15px;
+    margin-top: 20px;
+  }

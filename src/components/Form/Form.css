@@ -8,31 +8,46 @@
 }
 
 /* input输入框 */
-.input-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.input-inner {
-  width: 100%;
-  padding: 12px 8px;
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
-  border: none;
-  outline: 1px solid transparent;
-  text-align: center;
-}
-
-.input-inner:focus {
-  outline-color: var(--primary-color);
-}
-
-.input-inner:disabled {
-  background-color: var(--disabled-background-color);
-  color: var(--disabled-text-color);
-  cursor: not-allowed;
+.input-group {
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  .input-wrapper {
+    position: relative;
+    &:focus-within .toggle-password-visibility {
+      opacity: 1;
+    }
+    .input-inner {
+      width: 100%;
+      padding: 12px 8px;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      border: none;
+      outline: 1px solid transparent;
+      text-align: center;
+      &:focus {
+        outline-color: var(--primary-color);
+      }
+      &:disabled {
+        background-color: var(--disabled-background-color);
+        color: var(--disabled-text-color);
+        cursor: not-allowed;
+      }
+    }
+    .toggle-password-visibility {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 16px;
+      background-color: transparent;
+      opacity: 0;
+    }
+  }
 }
 
 /* 下拉选择框 */
