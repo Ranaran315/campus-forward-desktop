@@ -48,6 +48,7 @@
   --primary-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   /* 字体大小 */
+  --mini-font-size: 10px;
   --small-font-size: 12px;
   --normal-font-size: 14px;
   --large-font-size: 16px;

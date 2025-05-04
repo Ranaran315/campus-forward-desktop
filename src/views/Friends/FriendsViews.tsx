@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react'
 import axios from '@/lib/axios'
-import Avatar from '@/components/Avatar/Avatar'
-import { InputField } from '@/components/Form/Form'
 import { showMessage } from '@/components/Message/MessageContainer'
 import { debounce } from 'lodash'
-import SearchIcon from "@/assets/icons/search.svg?react"
-import AddFriendIcon from "@/assets/icons/add_friend.svg?react"
-import RemindIcon from "@/assets/icons/remind.svg?react"
-import ArrowDownIcon from "@/assets/icons/arrow_down.svg?react"
-import ArrowRightIcon from "@/assets/icons/arrow_right.svg?react"
 import "./FriendsViews.css"
 import AddFriendPanel from './AddFriendPanel'
+import FriendsSidebar from './FriendsSidebar'
+import FriendRequestsPanel from './FriendRequestsPanel'
 
 // 类型定义
 interface Friend {
@@ -48,7 +43,6 @@ function FriendsViews() {
   // 状态定义
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([])
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
-  const [selectedView, setSelectedView] = useState<'details' | 'requests'>('details')
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([])
@@ -129,13 +123,19 @@ function FriendsViews() {
   // 处理好友点击
   const handleFriendClick = (friend: Friend) => {
     setSelectedFriend(friend)
-    setSelectedView('details')
   }
 
   // 查看好友请求
   const viewFriendRequests = () => {
-    setSelectedView('requests')
+    setSelectedTab('requests')
     setSelectedFriend(null)
+  }
+
+  // 处理好友请求后的回调
+  const handleRequestHandled = () => {
+    // 刷新好友请求列表和好友列表
+    fetchFriendRequests()
+    fetchFriends()
   }
 
   // 创建新分类
@@ -161,24 +161,6 @@ function FriendsViews() {
     }
   }
 
-  // 过滤好友列表
-  const getFilteredGroups = () => {
-    if (!searchQuery) return categoryGroups
-
-    return categoryGroups.map(group => ({
-      ...group,
-      friends: group.friends.filter(friend => {
-        const displayName = friend.remark || friend.friend.nickname || friend.friend.username
-        return displayName.toLowerCase().includes(searchQuery.toLowerCase())
-      })
-    })).filter(group => group.friends.length > 0)
-  }
-
-  // 获取显示名称
-  const getDisplayName = (friend: Friend) => {
-    return friend.remark || friend.friend.nickname || friend.friend.username
-  }
-
   // 初始加载
   useEffect(() => {
     fetchFriends()
@@ -194,130 +176,26 @@ function FriendsViews() {
 
   return (
     <div className="friends-container">
-      <aside className="friends-sidebar">
-        {/* 头部区域：搜索框和添加好友按钮 */}
-        <div className="friends-header">
-          <div className="search-box">
-            <InputField
-              name='search'
-              theme="search"
-              type="text"
-              placeholder="搜索好友"
-              value={searchQuery}
-              onChange={handleSearch}
-            />
-          </div>
-          <button className={`add-friend-btn ${selectedTab === 'addFriend' ? 'active' : ''}`} onClick={viewAddFriend}>
-            <AddFriendIcon />
-          </button>
-        </div>
+      <FriendsSidebar
+        categoryGroups={categoryGroups}
+        selectedFriend={selectedFriend}
+        selectedTab={selectedTab}
+        pendingRequests={pendingRequests}
+        isLoading={isLoading}
+        searchQuery={searchQuery}
+        isAddingCategory={isAddingCategory}
+        newCategoryName={newCategoryName}
+        onFriendClick={handleFriendClick}
+        onViewFriendRequests={viewFriendRequests}
+        onViewAddFriend={viewAddFriend}
+        onToggleCategory={toggleCategory}
+        onSearch={handleSearch}
+        onAddCategory={() => setIsAddingCategory(true)}
+        onCancelAddCategory={() => setIsAddingCategory(false)}
+        onNewCategoryNameChange={setNewCategoryName}
+        onCreateCategory={handleCreateCategory}
+      />
 
-        {/* 功能区域：好友通知 */}
-        <div className="friends-functions">
-          <div
-            className={`function-item ${selectedView === 'requests' ? 'active' : ''} ${pendingRequests.length > 0 ? 'has-badge' : ''}`}
-            onClick={viewFriendRequests}
-          >
-            <RemindIcon />
-            <span className="function-text">好友通知</span>
-            <div className="function-item-right">
-              {pendingRequests.length > 0 && (
-                <span className="badge">{pendingRequests.length}</span>
-              )}
-              <ArrowRightIcon></ArrowRightIcon>
-            </div>
-          </div>
-        </div>
-
-        {/* 好友分类操作区 */}
-        <div className="category-controls">
-          <h3 className="section-title">我的好友</h3>
-          <button
-            className="category-add-btn"
-            onClick={() => setIsAddingCategory(true)}
-          >
-            {/* <Icon icon="mdi:folder-plus-outline" /> */}
-          </button>
-        </div>
-
-        {isAddingCategory && (
-          <div className="add-category-form">
-            <input
-              type="text"
-              placeholder="新分类名称"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              autoFocus
-            />
-            <div className="form-actions">
-              <button className="confirm-btn" onClick={handleCreateCategory}>确定</button>
-              <button className="cancel-btn" onClick={() => setIsAddingCategory(false)}>取消</button>
-            </div>
-          </div>
-        )}
-
-        {/* 好友列表区域 */}
-        {isLoading ? (
-          <div className="loading-container">
-            {/* <Icon icon="mdi:loading" className="loading-icon spin" /> */}
-            <span>加载中...</span>
-          </div>
-        ) : (
-          <div className="friends-list-container">
-            {getFilteredGroups().length === 0 ? (
-              <div className="empty-state">
-                {searchQuery ? '没有找到匹配的好友' : '暂无好友'}
-              </div>
-            ) : (
-              getFilteredGroups().map(group => (
-                <div key={group.category} className="category-group">
-                  <div
-                    className="category-header"
-                    onClick={() => toggleCategory(group.category)}
-                  >
-                    {
-                      group.isExpanded ? (
-                        <ArrowDownIcon></ArrowDownIcon>
-                      ) : (
-                        <ArrowRightIcon></ArrowRightIcon>
-                      )
-                    }
-                    {/* <Icon 
-                      icon={group.isExpanded ? "mdi:chevron-down" : "mdi:chevron-right"} 
-                      className="category-icon" 
-                    /> */}
-                    <span className="category-name">{group.category}</span>
-                    <span className="friend-count">{group.friends.length}</span>
-                  </div>
-
-                  {group.isExpanded && (
-                    <ul className="friend-list">
-                      {group.friends.map(friend => (
-                        <li
-                          key={friend._id}
-                          className={`friend-item ${selectedFriend?._id === friend._id && selectedView === 'details' ? 'active' : ''}`}
-                          onClick={() => handleFriendClick(friend)}
-                        >
-                          <Avatar
-                            src={friend.friend.avatar}
-                            alt={getDisplayName(friend)}
-                            size={40}
-                          />
-                          <div className="friend-info">
-                            <span className="friend-name">{getDisplayName(friend)}</span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </aside>
-
-      {/* 右侧区域将在下一步实现 */}
       <main className="friends-layout">
         {selectedTab === 'details' && selectedFriend && (
           <div className="friend-profile">
@@ -327,8 +205,10 @@ function FriendsViews() {
 
         {selectedTab === 'requests' && (
           <div className="friend-requests-panel">
-            <h2 className="panel-title">好友请求</h2>
-            {/* 这里是好友请求列表内容，后续完善 */}
+            <FriendRequestsPanel
+              requests={pendingRequests}
+              onRequestHandled={handleRequestHandled}
+            />
           </div>
         )}
 
