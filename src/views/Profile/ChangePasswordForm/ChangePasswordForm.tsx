@@ -86,6 +86,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
       <InputField
         name="newPassword"
         label="新密码"
+        placeholder='请输入新密码'
         type="password"
         value={formData.newPassword}
         onChange={handleInputChange}
@@ -95,6 +96,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
       <InputField
         name="confirmPassword"
         label="确认新密码"
+        placeholder='请再次输入新密码'
         type="password"
         value={formData.confirmPassword}
         onChange={handleInputChange}
@@ -102,7 +104,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
         minLength={6}
       />
       {/* 前端校验错误信息显示 */}
-      {error && <div className="form-error-message">{error}</div>}
+      <div className="form-error-message">{error}</div>
     </div>
   );
 };

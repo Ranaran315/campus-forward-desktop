@@ -51,7 +51,7 @@ const Modal: React.FC<ModalProps> = ({
   showConfirmButton = true,
   cancelText = '取消',
   confirmText = '确认',
-  cancelButtonTheme = 'secondary',
+  cancelButtonTheme = 'warning',
   confirmButtonTheme = 'primary',
   onConfirm,
   onCancel, // Specific cancel handler

@@ -2,6 +2,7 @@
 import React, { useCallback, ReactNode, ChangeEvent } from 'react'
 import EyeOnIcon from '@/assets/icons/eye_on.svg?react'
 import EyeOffIcon from '@/assets/icons/eye_off.svg?react'
+import SearchIcon from '@/assets/icons/search.svg?react'
 import './Form.css' // 引入 CSS 文件
 
 // --- Form 组件  ---
@@ -33,6 +34,7 @@ interface InputFieldProps {
   maxLength?: number // 最大长度
   pattern?: string // 正则表达式模式
   max?: string // 最大值 (适用于日期等类型)
+  theme?: 'default' | 'search'
   // !! 关键：onChange 由父组件提供，用于更新父组件的状态 !!
   onChange: (name: string, value: string) => void
 }
@@ -49,6 +51,7 @@ const InputField: React.FC<InputFieldProps> = React.memo(
     onChange, // 直接使用父组件传入的 onChange
     pattern,
     max,
+    theme,
     ...rest
   }) => {
     // 处理原生 input 的 onChange 事件
@@ -71,9 +74,10 @@ const InputField: React.FC<InputFieldProps> = React.memo(
       : type;
 
     return (
-      <div className={`input-group ${className || ''}`}>
+      <div className={`input-group ${className || ''} ${theme ? `theme-${theme}` : ''}`}>
         {label && <label htmlFor={name}>{label}</label>}
         <div className="input-wrapper">
+          {theme === 'search' && <SearchIcon className="search-icon" />}
           <input
             type={inputType}
             id={name} // id 用于 label 关联
@@ -103,6 +107,96 @@ const InputField: React.FC<InputFieldProps> = React.memo(
     )
   }
 )
+
+// --- TextAreaField 组件 ---
+interface TextAreaFieldProps {
+  name: string              // textarea 的 name 属性
+  label?: string            // 标签文本
+  value: string             // 文本值
+  onChange: (name: string, value: string) => void // 值变化回调
+  className?: string        // 自定义CSS类名
+  placeholder?: string      // 占位符
+  rows?: number             // 默认行数
+  minRows?: number          // 最小行数
+  maxRows?: number          // 最大行数
+  maxLength?: number        // 最大字符数
+  required?: boolean        // 是否必填
+  disabled?: boolean        // 是否禁用
+  resizable?: 'both' | 'horizontal' | 'vertical' | 'none' // 调整大小方向
+  minWidth?: string         // 最小宽度
+  minHeight?: string        // 最小高度
+  maxWidth?: string         // 最大宽度
+  maxHeight?: string        // 最大高度
+  showCount?: boolean       // 是否显示字数统计
+}
+const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(({
+  name,
+  label,
+  value,
+  onChange,
+  className,
+  placeholder,
+  rows = 3,
+  minRows,
+  maxRows,
+  maxLength,
+  required,
+  disabled,
+  resizable = 'both',
+  minWidth,
+  minHeight,
+  maxWidth,
+  maxHeight,
+  showCount = false
+}) => {
+  // 处理文本变化
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = event.target.value;
+      onChange(name, newValue);
+    },
+    [name, onChange]
+  );
+
+  // 计算样式
+  const textareaStyle: React.CSSProperties = {
+    resize: resizable,
+    minWidth,
+    minHeight,
+    maxWidth,
+    maxHeight,
+  };
+
+  // 计算当前字符和最大字符数显示
+  const charCount = value ? value.length : 0;
+  const countDisplay = maxLength ? `${charCount}/${maxLength}` : `${charCount}字`;
+
+  return (
+    <div className={`textarea-group ${className || ''}`}>
+      {label && <label htmlFor={name}>{label}</label>}
+      <div className="textarea-wrapper">
+        <textarea
+          id={name}
+          name={name}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          rows={rows}
+          maxLength={maxLength}
+          required={required}
+          disabled={disabled}
+          style={textareaStyle}
+          className="textarea-inner"
+        />
+        {showCount && (
+          <div className={`char-count ${maxLength && charCount >= maxLength ? 'limit-reached' : ''}`}>
+            {countDisplay}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
 
 // --- SelectField 组件 (下拉选择框) ---
 interface SelectFieldProps {
@@ -276,4 +370,4 @@ const RadioGroup: React.FC<RadioGroupProps> = React.memo(
   }
 )
 
-export { Form, InputField, SelectField, RadioGroup }
+export { Form, InputField, TextAreaField, SelectField, RadioGroup }

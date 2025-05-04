@@ -14,29 +14,36 @@
     margin-bottom: 5px;
     font-weight: bold;
   }
+
   .input-wrapper {
     position: relative;
+
     &:focus-within .toggle-password-visibility {
       opacity: 1;
     }
+
     .input-inner {
       width: 100%;
       padding: 12px 8px;
       border-radius: 8px;
-      font-size: 16px;
       box-sizing: border-box;
       border: none;
       outline: 1px solid transparent;
       text-align: center;
+      font-size: var(--normal-font-size);
+      font-family: inherit;
+
       &:focus {
         outline-color: var(--primary-color);
       }
+
       &:disabled {
         background-color: var(--disabled-background-color);
         color: var(--disabled-text-color);
         cursor: not-allowed;
       }
     }
+
     .toggle-password-visibility {
       position: absolute;
       right: 10px;
@@ -48,32 +55,123 @@
       opacity: 0;
     }
   }
+
+  &.theme-search {
+    .input-wrapper {
+      .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: var(--secondary-text-color);
+      }
+
+      .input-inner {
+        text-align: left;
+        border: 1px solid var(--secondary-background-color);
+        background-color: var(--primary-background-color);
+        border-radius: 100px;
+        transition: all 0.3s;
+
+        &:focus {
+          outline: none;
+          background-color: #fff;
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+      }
+    }
+  }
+}
+
+/* 文本域样式 */
+.textarea-group {
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .textarea-wrapper {
+    position: relative;
+
+    .textarea-inner {
+      width: 100%;
+      padding: 12px 8px;
+      border-radius: 8px;
+      box-sizing: border-box;
+      border: 1px solid var(--border-color, #ddd);
+      background-color: var(--primary-background-color, #fff);
+      font-family: inherit;
+      font-size: var(--normal-font-size, 14px);
+      line-height: 1.5;
+      transition: border-color 0.2s, box-shadow 0.2s;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+      }
+
+      &:disabled {
+        background-color: var(--disabled-background-color);
+        color: var(--disabled-text-color);
+        cursor: not-allowed;
+      }
+    }
+
+    .char-count {
+      position: absolute;
+      bottom: 8px;
+      right: 10px;
+      font-size: 12px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      pointer-events: none;
+      /* 确保不影响文本区域操作 */
+
+      &.limit-reached {
+        color: var(--danger-color, #ff4d4f);
+      }
+    }
+  }
 }
 
 /* 下拉选择框 */
 .select-group select {
   /* 基础样式，可以继承 .input-inner 的部分样式 */
   width: 100%;
-  padding: 10px 8px; /* 调整 padding 以适应箭头 */
+  padding: 10px 8px;
+  /* 调整 padding 以适应箭头 */
   border-radius: 8px;
   font-size: 16px;
   box-sizing: border-box;
-  border: 1px solid #ccc; /* Select 通常需要边框 */
+  border: 1px solid #ccc;
+  /* Select 通常需要边框 */
   background-color: white;
   cursor: pointer;
   /* 可以添加外观属性来美化，或去除默认箭头 */
-  appearance: none; /* 隐藏默认箭头 (可能需要 -webkit- -moz-) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A"); /* 自定义箭头 */
+  appearance: none;
+  /* 隐藏默认箭头 (可能需要 -webkit- -moz-) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
+  /* 自定义箭头 */
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 16px;
-  padding-right: 30px; /* 为箭头留出空间 */
+  padding-right: 30px;
+  /* 为箭头留出空间 */
 }
 
 .select-group select:focus {
-  border-color: var(--primary-color, #007bff); /* 使用变量或默认色 */
-  outline: none; /* 移除默认 outline */
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* 添加 focus 效果 */
+  border-color: var(--primary-color, #007bff);
+  /* 使用变量或默认色 */
+  outline: none;
+  /* 移除默认 outline */
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  /* 添加 focus 效果 */
 }
 
 .select-group select:disabled {
@@ -81,23 +179,30 @@
   color: var(--disabled-text-color, #6c757d);
   cursor: not-allowed;
   border-color: #ced4da;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23aaa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A"); /* 禁用的箭头颜色 */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23aaa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
+  /* 禁用的箭头颜色 */
 }
 
 /* 多选样式（可选，默认样式可能够用） */
 .select-group select[multiple] {
-  height: auto; /* 允许多选框根据选项数量调整高度 */
-  min-height: 80px; /* 最小高度 */
-  background-image: none; /* 多选通常不需要箭头 */
-  padding-right: 8px; /* 移除箭头空间 */
+  height: auto;
+  /* 允许多选框根据选项数量调整高度 */
+  min-height: 80px;
+  /* 最小高度 */
+  background-image: none;
+  /* 多选通常不需要箭头 */
+  padding-right: 8px;
+  /* 移除箭头空间 */
 }
 
 /* Radio Group 通用 */
 .radio-group {
-  border: none; /* 去掉 fieldset 默认边框 */
+  border: none;
+  /* 去掉 fieldset 默认边框 */
   padding: 0;
   margin: 0;
-  margin-bottom: 15px; /* 与其他 input-group 保持间距 */
+  margin-bottom: 15px;
+  /* 与其他 input-group 保持间距 */
 }
 
 .radio-group .group-label {
@@ -105,24 +210,30 @@
   display: block;
   margin-bottom: 8px;
   font-weight: bold;
-  padding: 0; /* 去掉 legend 默认 padding */
-  font-size: inherit; /* 继承字体大小 */
+  padding: 0;
+  /* 去掉 legend 默认 padding */
+  font-size: inherit;
+  /* 继承字体大小 */
 }
 
 .radio-group .options-container {
   display: flex;
-  gap: 10px; /* 选项之间的间距 */
+  gap: 10px;
+  /* 选项之间的间距 */
 }
 
 .radio-group .options-container.vertical {
-  flex-direction: column; /* 垂直排列选项 */
+  flex-direction: column;
+  /* 垂直排列选项 */
   align-items: center;
 }
 
 .radio-group .radio-option {
-  display: flex; /* 让 input 和 label 在一行 */
+  display: flex;
+  /* 让 input 和 label 在一行 */
   align-items: center;
-  position: relative; /* 用于隐藏 input */
+  position: relative;
+  /* 用于隐藏 input */
   width: 100%;
 }
 
@@ -144,15 +255,19 @@
   /* 如果想自定义样式 (隐藏原生，用 label 模拟) */
   position: absolute;
   opacity: 0;
-  pointer-events: none; /* 让点击穿透到 label */
+  pointer-events: none;
+  /* 让点击穿透到 label */
 }
 
 .radio-group-standard .standard-label {
   cursor: pointer;
-  padding-left: 25px; /* 为自定义 radio 留出空间 */
+  padding-left: 25px;
+  /* 为自定义 radio 留出空间 */
   position: relative;
-  line-height: 18px; /* 调整行高使对齐 */
-  user-select: none; /* 禁止选中文本 */
+  line-height: 18px;
+  /* 调整行高使对齐 */
+  user-select: none;
+  /* 禁止选中文本 */
 }
 
 /* 自定义 radio 外观 (圆圈) */
@@ -168,29 +283,36 @@
   background-color: white;
   transition: border-color 0.2s ease;
 }
+
 /* 自定义 radio 外观 (选中时的点) */
 .radio-group-standard .standard-label::after {
   content: '';
   position: absolute;
-  left: 4px; /* 定位到圆圈中心 */
+  left: 4px;
+  /* 定位到圆圈中心 */
   top: 4px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: var(--primary-color, #007bff);
-  transform: scale(0); /* 默认隐藏 */
+  transform: scale(0);
+  /* 默认隐藏 */
   transition: transform 0.2s ease;
 }
 
 /* 选中状态的样式 */
-.radio-group-standard .radio-input-hidden:checked + .standard-label::before {
+.radio-group-standard .radio-input-hidden:checked+.standard-label::before {
   border-color: var(--primary-color, #007bff);
 }
-.radio-group-standard .radio-input-hidden:checked + .standard-label::after {
-  transform: scale(1); /* 显示选中点 */
+
+.radio-group-standard .radio-input-hidden:checked+.standard-label::after {
+  transform: scale(1);
+  /* 显示选中点 */
 }
-.radio-group-standard .radio-input-hidden:focus + .standard-label::before {
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); /* Focus 效果 */
+
+.radio-group-standard .radio-input-hidden:focus+.standard-label::before {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  /* Focus 效果 */
 }
 
 /* 按钮布局样式 (Button Layout) */
@@ -217,10 +339,12 @@
 }
 
 .radio-group .radio-option .button-label:hover {
-  background-color: var(--secondary-color); /* 悬停时的背景色 */
+  background-color: var(--secondary-color);
+  /* 悬停时的背景色 */
   color: var(--primary-background-color);
   border-color: transparent;
-  cursor: pointer; /* 鼠标悬停时显示手型光标 */
+  cursor: pointer;
+  /* 鼠标悬停时显示手型光标 */
 }
 
 .radio-group-button .radio-option.disabled .button-label {
@@ -229,7 +353,7 @@
 }
 
 /* 按钮选中时的样式 */
-.radio-group-button .radio-input-hidden:checked + .button-label {
+.radio-group-button .radio-input-hidden:checked+.button-label {
   background-color: var(--primary-color, #007bff);
   color: white;
 }

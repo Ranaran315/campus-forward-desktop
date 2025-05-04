@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './MessageViews.css'
+import './ChatViews.css'
 import Avatar from '@/components/Avatar/Avatar'
 
 interface Message {
@@ -52,7 +52,7 @@ const messageList: Message[] = [
   },
 ]
 
-function MessageViews() {
+function ChatViews() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
 
   const handleMessageClick = (message: Message) => {
@@ -109,4 +109,4 @@ function MessageViews() {
   )
 }
 
-export default MessageViews
+export default ChatViews

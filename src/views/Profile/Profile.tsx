@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'; // 引入 useRef
+import { useState, useEffect, useCallback, useRef } from 'react'; // 引入 useRef
 import apiClient from '../../lib/axios'; // 确认 apiClient 路径
 import './Profile.css'; // 导入 CSS 文件
 import Avatar from '@/components/Avatar/Avatar'; // 假设有头像组件
@@ -12,7 +12,7 @@ import Modal from '@/components/Modal/Modal'; // 引入 Modal 组件
 import ChangePasswordForm from './ChangePasswordForm/ChangePasswordForm';
 import EditProfileForm from './EditProfileForm/EditProfileForm';
 import { ProfileFormData } from './Profile.type';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 // import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner'; // 如果需要加载指示器，取消注释
 
 // --- 前端使用的用户数据类型 (根据实际 API 调整) ---

@@ -13,12 +13,14 @@
     "@electron-toolkit/utils": "^4.0.0",
     "axios": "^1.9.0",
     "electron-store": "^10.0.1",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.5.1",
     "react-transition-group": "^4.4.5"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.16",
     "@types/node": "^22.14.1",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",

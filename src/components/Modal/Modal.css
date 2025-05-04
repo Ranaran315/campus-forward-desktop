@@ -84,9 +84,11 @@
   
   .modal-footer {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
+    justify-content: space-between; /* Align buttons to the right */
     gap: 10px; /* Space between buttons */
-    border-top: 1px solid var(--border-color, #eee);
-    padding-top: 15px;
+    padding: 0 20px;
     margin-top: 20px;
+    .button {
+      width: 43%;
+    }
   }

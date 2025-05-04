@@ -13,16 +13,16 @@ import RegisterViews from './views/Register/Register'
 // 主应用头部
 import CustomHeader from '@/components/CustomHeader/CustomHeader'
 // 主应用路由
-import MessageViews from '@/views/Message/MessageViews'
+import ChatViews from '@/views/Chat/ChatViews'
 import NotificationViews from '@/views/Notifications/Notifications'
 import CalendarViews from '@/views/Calendar/Calendar'
-import ContactsViews from '@/views/Contacts/Contacts'
+import FriendsViews from '@/views/Friends/FriendsViews'
 import ProfileViwes from '@/views/Profile/Profile'
 import SkinViews from '@/views/Skin/Skin'
 import SettingViews from '@/views/Setting/Setting'
 // sidebar 图标
 import MessageIcon from '@/assets/icons/message.svg?react'
-import ContactIcon from '@/assets/icons/contact.svg?react'
+import FriendIcon from '@/assets/icons/friend.svg?react'
 import CalendarIcon from '@/assets/icons/calendar.svg?react'
 import NotificationIcon from '@/assets/icons/notification.svg?react'
 import ProfileIcon from '@/assets/icons/profile.svg?react'
@@ -92,8 +92,8 @@ function AppLayout() {
                 currentPath === '/contacts' ? 'active' : ''
               }`}
             >
-              <ContactIcon className="sidebar-icon" />
-              <span>通讯录</span>
+              <FriendIcon className="sidebar-icon" />
+              <span>好友</span>
             </Link>
           </div>
           <div className="sidebar-item sidebar-bottom">
@@ -147,10 +147,10 @@ function App() {
 
         <Route element={<ProtectedRoute></ProtectedRoute>}>
           <Route path="/" element={<AppLayout />}>
-            <Route index element={<MessageViews />} /> {/* 默认子路由 */}
+            <Route index element={<ChatViews />} /> {/* 默认子路由 */}
             <Route path="notifications" element={<NotificationViews />} />
             <Route path="calendar" element={<CalendarViews />} />
-            <Route path="contacts" element={<ContactsViews />} />
+            <Route path="contacts" element={<FriendsViews />} />
             <Route path="profile" element={<ProfileViwes />} />
             <Route path="skin" element={<SkinViews />} />
             <Route path="setting" element={<SettingViews />} />
