@@ -42,7 +42,7 @@ interface FriendsSidebarProps {
   categoryGroups: CategoryGroup[]
   selectedFriend: Friend | null
   selectedTab: 'details' | 'requests' | 'addFriend'
-  pendingRequests: FriendRequest[]
+  pendingRequestsCount: number
   isLoading: boolean
   searchQuery: string
   isAddingCategory: boolean
@@ -64,7 +64,7 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
   categoryGroups,
   selectedFriend,
   selectedTab,
-  pendingRequests,
+  pendingRequestsCount,
   isLoading,
   searchQuery,
   isAddingCategory,
@@ -128,14 +128,14 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
       {/* 功能区域：好友通知 */}
       <div className="friends-functions">
         <div
-          className={`function-item ${selectedTab === 'requests' ? 'active' : ''} ${pendingRequests.length > 0 ? 'has-badge' : ''}`}
+          className={`function-item ${selectedTab === 'requests' ? 'active' : ''} ${pendingRequestsCount > 0 ? 'has-badge' : ''}`}
           onClick={onViewFriendRequests}
         >
           <RemindIcon />
           <span className="function-text">好友通知</span>
           <div className="function-item-right">
-            {pendingRequests.length > 0 && (
-              <span className="badge">{pendingRequests.length}</span>
+            {pendingRequestsCount > 0 && (
+              <span className="badge">{pendingRequestsCount}</span>
             )}
             <ArrowRightIcon />
           </div>
