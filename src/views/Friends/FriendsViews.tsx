@@ -2,11 +2,11 @@ import { useEffect, useState, useCallback } from 'react'
 import axios from '@/lib/axios'
 import { showMessage } from '@/components/Message/MessageContainer'
 import { debounce } from 'lodash'
-import { useWebSocket } from '@/hooks/useWebSocket'
 import './FriendsViews.css'
 import AddFriendPanel from './AddFriendPanel'
 import FriendsSidebar from './FriendsSidebar'
 import FriendRequestsPanel from './FriendRequestsPanel'
+import { useWebSocketContext } from '@/contexts/WebSocketProvider'
 
 // 类型定义
 interface Friend {
@@ -54,15 +54,7 @@ function FriendsViews() {
   >('details')
 
   // --- 使用 WebSocket Hook ---
-  const {
-    socket,
-    isConnected,
-    on: socketOn,
-  } = useWebSocket({
-    onConnect: () => console.log('WebSocket connected from FriendsViews'),
-    onError: (err: any) =>
-      showMessage.error(`WebSocket 连接失败: ${err.message}`),
-  })
+  const { isConnected, on: socketOn } = useWebSocketContext()
 
   // 查看添加好友页面
   const viewAddFriend = () => {
@@ -177,36 +169,28 @@ function FriendsViews() {
 
   // --- WebSocket 事件处理 ---
   useEffect(() => {
-    // 确保 socket 实例存在且已连接后再监听事件
-    if (socket && isConnected) {
-      console.log('Setting up WebSocket event listener for newFriendRequest')
-      // !!! 'newFriendRequest' 是示例事件名，请替换为你的后端实际使用的事件名 !!!
-      const unsubscribe = socketOn('newFriendRequest', (data: any) => {
-        console.log('Received new friend request notification via hook:', data)
-        showMessage.info('您有一条新的好友请求')
-        fetchFriendRequests()
-      })
+    // isConnected 状态现在由 Context 提供
+    console.log(`FriendsViews: WebSocket connected state: ${isConnected}`)
 
-      // 可选：监听其他事件
-      // const unsubscribeHandled = socketOn('friendRequestHandled', (data) => { ... });
+    // 使用 Context 提供的 'on' 方法注册监听器
+    // 'on' 方法内部会处理 socket 是否存在和连接状态
+    // !!! 'newFriendRequest' 是示例事件名，请替换为你的后端实际使用的事件名 !!!
+    const unsubscribe = socketOn('newFriendRequest', (data: any) => {
+      console.log('Received new friend request notification via context:', data)
+      showMessage.info('您有一条新的好友请求')
+      fetchFriendRequests() // 调用稳定引用的回调
+    })
 
-      // 返回清理函数，在组件卸载或 socket 实例变化时取消监听
-      return () => {
-        console.log('Cleaning up WebSocket event listener for newFriendRequest')
+    // 返回清理函数，在组件卸载时取消监听
+    return () => {
+      console.log('FriendsViews: Cleaning up listener for newFriendRequest')
+      // 调用 'on' 方法返回的取消订阅函数
+      if (unsubscribe) {
         unsubscribe()
-        // unsubscribeHandled(); // 如果有其他监听也需要取消
       }
-    } else {
-      console.log(
-        'WebSocket not ready for event listeners (socket:',
-        socket,
-        'isConnected:',
-        isConnected,
-        ')'
-      )
     }
-    // 依赖 socket 实例、连接状态和回调函数
-  }, [socket, isConnected, socketOn, fetchFriendRequests])
+    // 依赖项是 Context 提供的稳定函数 socketOn 和 你定义的稳定回调 fetchFriendRequests
+  }, [socketOn, fetchFriendRequests]) // 移除 isConnected 和 socket 依赖
 
   // 初始加载
   useEffect(() => {

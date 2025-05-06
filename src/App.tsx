@@ -30,6 +30,7 @@ import SkinIcon from '@/assets/icons/skin.svg?react'
 import SettingIcon from '@/assets/icons/setting.svg?react'
 // 全局组件
 import MessageContainer from '@/components/Message/MessageContainer'
+import { WebSocketProvider } from './contexts/WebSocketProvider'
 
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
@@ -146,7 +147,14 @@ function App() {
         ></Route>
 
         <Route element={<ProtectedRoute></ProtectedRoute>}>
-          <Route path="/" element={<AppLayout />}>
+          <Route
+            path="/"
+            element={
+              <WebSocketProvider>
+                <AppLayout />
+              </WebSocketProvider>
+            }
+          >
             <Route index element={<ChatViews />} /> {/* 默认子路由 */}
             <Route path="notifications" element={<NotificationViews />} />
             <Route path="calendar" element={<CalendarViews />} />
