@@ -1,59 +1,44 @@
 .message {
-    padding: 10px 15px;
-    margin-bottom: 15px;
-    /* 与下方元素的间距 */
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid transparent;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    background-color: var(--primary-background-color);
-    box-shadow: var(--primary-box-shadow);
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  /* 与下方元素的间距 */
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  background-color: var(--primary-background-color);
+  box-shadow: var(--primary-box-shadow);
 }
 
 .message-content {
-    flex-grow: 1;
-    margin-right: 10px;
-    /* 为关闭按钮留出空间 */
-}
-
-.message-success {
-    color: var(--primary-success-color);
-}
-
-.message-error {
-    color: var(--primary-danger-color);
-}
-
-.message-warning {
-    color: var(--primary-warning-color);
-}
-
-.message-info {
-    color: var(--primary-text-color);
+  flex-grow: 1;
+  margin-right: 10px;
+  /* 为关闭按钮留出空间 */
 }
 
 /* 关闭按钮样式 */
 .message-close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0 5px;
-    margin-left: auto;
-    /* 将按钮推到最右边 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-    color: inherit;
-    /* 继承父级颜色 */
-    font-size: 1.1em;
-    line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 5px;
+  margin-left: auto;
+  /* 将按钮推到最右边 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  color: inherit;
+  /* 继承父级颜色 */
+  font-size: 1.1em;
+  line-height: 1;
 }
 
 .message-close-btn:hover {
-    opacity: 1;
+  opacity: 1;
 }
