@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
 import { showMessage } from '@/components/Message/MessageContainer'
@@ -11,6 +11,8 @@ import {
   SentFriendRequest,
   FriendRequestStatusType,
 } from '@/types/friends.type'
+import ConfirmDialog from '@/components/ConfirmDialog/ConfirmDialog'
+import DeletIcon from '@/assets/icons/delete.svg?react'
 
 // 定义 Props
 interface FriendRequestsPanelProps {
@@ -31,11 +33,19 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
   onRequestHandled,
 }) => {
   const [processingIds, setProcessingIds] = useState<string[]>([])
+  // 删除确认框的状态
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] =
+    useState(false)
+  const [requestToDeleteId, setRequestToDeleteId] = useState<string | null>(
+    null
+  )
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleRequest = async (
     requestId: string,
     action: 'accepted' | 'rejected'
   ) => {
+    console.log(`处理好友请求: ${requestId}, 动作: ${action}`)
     if (processingIds.includes(requestId)) return
     setProcessingIds((prev) => [...prev, requestId])
     try {
@@ -53,6 +63,7 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
     }
   }
 
+  // 格式化时间
   const formatTime = (dateString: string) => {
     try {
       return formatDistanceToNow(new Date(dateString), {
@@ -64,6 +75,7 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
     }
   }
 
+  // 获取请求状态文本
   const getStatusText = (
     status: FriendRequestStatusType,
     type: 'received' | 'sent'
@@ -98,6 +110,46 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
     }
   }
 
+  // 打开删除确认对话框
+  const openDeleteConfirmDialog = (requestId: string) => {
+    setRequestToDeleteId(requestId)
+    setIsConfirmDeleteDialogOpen(true)
+  }
+
+  // 关闭删除确认对话框
+  const closeDeleteConfirmDialog = () => {
+    setRequestToDeleteId(null)
+    setIsConfirmDeleteDialogOpen(false)
+  }
+
+  // 处理删除确认
+  const handleDeleteConfirmed = async () => {
+    if (!requestToDeleteId) return
+
+    setIsDeleting(true)
+    try {
+      await axios.delete(`/friends/requests/${requestToDeleteId}`)
+      showMessage.success('好友请求记录已删除')
+      onRequestHandled()
+      closeDeleteConfirmDialog()
+    } catch (error: any) {
+      console.error('删除好友请求记录失败:', error)
+      const errorMsg = error.response?.data?.message || '删除失败'
+      showMessage.error(errorMsg)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  useEffect(() => {
+    console.log(
+      'FriendRequestsPanel: receivedRequests prop updated',
+      receivedRequests
+    )
+    // 仔细检查这里的数据，特别是 WebSocket 推送后新增的数据
+  }, [receivedRequests])
+
+  // 渲染收到的请求列表
   const renderReceivedRequests = () => (
     <div className="request-list">
       {receivedRequests.length === 0 && !isLoading && (
@@ -154,11 +206,24 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
               </Button>
             </div>
           )}
+          {request.status !== 'pending' && (
+            <div className="request-actions request-actions-delete">
+              <Button
+                theme="danger"
+                onClick={() => openDeleteConfirmDialog(request._id)}
+                disabled={processingIds.includes(request._id) || isDeleting}
+                title="删除此记录"
+              >
+                <DeletIcon></DeletIcon>删除
+              </Button>
+            </div>
+          )}
         </div>
       ))}
     </div>
   )
 
+  // 渲染发送的请求
   const renderSentRequests = () => (
     <div className="request-list">
       {sentRequests.length === 0 && !isLoading && (
@@ -199,7 +264,18 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
               <div className="message-content">{request.message}</div>
             </div>
           )}
-          {/* 发送的请求通常没有操作按钮，除非你想实现撤销功能 */}
+          {request.status !== 'pending' && (
+            <div className="request-actions request-actions-delete">
+              <Button
+                theme="danger"
+                onClick={() => openDeleteConfirmDialog(request._id)}
+                disabled={processingIds.includes(request._id) || isDeleting}
+                title="删除此记录"
+              >
+                <DeletIcon></DeletIcon>删除
+              </Button>
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -227,6 +303,16 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
       {isLoading && <div className="loading-placeholder">加载请求中...</div>}
       {!isLoading && activeTab === 'received' && renderReceivedRequests()}
       {!isLoading && activeTab === 'sent' && renderSentRequests()}
+
+      <ConfirmDialog
+        isOpen={isConfirmDeleteDialogOpen}
+        title="确认删除"
+        message="确定要删除这条好友请求记录吗？此操作不可撤销。"
+        onConfirm={handleDeleteConfirmed}
+        onCancel={closeDeleteConfirmDialog}
+        confirmText="删除"
+        isConfirming={isDeleting}
+      />
     </div>
   )
 }

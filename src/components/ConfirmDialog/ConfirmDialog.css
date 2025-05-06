@@ -1,0 +1,64 @@
+.confirm-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent backdrop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it's above other content, adjust if needed */
+  opacity: 0;
+  visibility: hidden; /* Hidden by default */
+  transition: opacity 0.25s ease-in-out, visibility 0.25s ease-in-out; /* Transition for appearing/disappearing */
+}
+
+.confirm-dialog-overlay.open {
+  opacity: 1;
+  visibility: visible; /* Visible when open */
+}
+
+.confirm-dialog {
+  background-color: var(--secondary-background-color);
+  padding: 25px 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px; /* Max width of the dialog */
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.95); /* Start slightly smaller for a pop-in effect */
+  transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
+  /* Optional: add a slight delay for the dialog to appear after the overlay fades in */
+  /* transition-delay: 0.05s; */
+}
+
+.confirm-dialog-overlay.open .confirm-dialog {
+  opacity: 1;
+  transform: scale(1); /* Animate to full size */
+}
+
+.confirm-dialog-title {
+  font-size: 1.3em;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.confirm-dialog-message {
+  font-size: 1em;
+  margin-bottom: 25px;
+  color: var(--secondary-text-color); /* Or your message text color */
+  line-height: 1.6;
+}
+
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: center; /* Center buttons */
+  gap: 15px; /* Space between buttons */
+}
+
+.confirm-dialog-actions .button {
+  padding: 10px 20px;
+  font-size: 0.95em;
+}
