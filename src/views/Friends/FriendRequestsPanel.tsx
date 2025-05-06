@@ -13,6 +13,7 @@ import {
 } from '@/types/friends.type'
 import ConfirmDialog from '@/components/ConfirmDialog/ConfirmDialog'
 import DeletIcon from '@/assets/icons/delete.svg?react'
+import { formatTimeAgo } from '@/utils/dateUtils'
 
 // 定义 Props
 interface FriendRequestsPanelProps {
@@ -60,18 +61,6 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
       showMessage.error(errorMsg)
     } finally {
       setProcessingIds((prev) => prev.filter((id) => id !== requestId))
-    }
-  }
-
-  // 格式化时间
-  const formatTime = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), {
-        addSuffix: true,
-        locale: zhCN,
-      })
-    } catch (error) {
-      return '未知时间'
     }
   }
 
@@ -175,7 +164,7 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
               </div>
               <div className="sender-username">@{request.sender.username}</div>
               <div className="request-time">
-                {formatTime(request.createdAt)}
+                {formatTimeAgo(request.createdAt)}
               </div>
             </div>
             <div className="request-status-badge">
@@ -251,7 +240,7 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
                 @{request.receiver.username}
               </div>
               <div className="request-time">
-                {formatTime(request.createdAt)}
+                {formatTimeAgo(request.createdAt)}
               </div>
             </div>
             <div className="request-status-badge">
