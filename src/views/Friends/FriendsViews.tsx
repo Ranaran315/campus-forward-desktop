@@ -44,20 +44,21 @@ function FriendsViews() {
   const [sentRequests, setSentRequests] = useState<SentFriendRequest[]>([])
   const [isLoadingRequests, setIsLoadingRequests] = useState(false) // 用于请求列表的加载状态
 
-  const [isConfirmDeleteFriendOpen, setIsConfirmDeleteFriendOpen] = useState(false);
+  const [isConfirmDeleteFriendOpen, setIsConfirmDeleteFriendOpen] =
+    useState(false)
   // friendToDelete 存储好友的 userId 和 name
   const [friendToDelete, setFriendToDelete] = useState<{
-    userId: string; // <--- 确保这里是 userId
-    name: string;
-  } | null>(null);
-  const [isDeletingFriend, setIsDeletingFriend] = useState(false);
+    userId: string // <--- 确保这里是 userId
+    name: string
+  } | null>(null)
+  const [isDeletingFriend, setIsDeletingFriend] = useState(false)
 
-  const [isEditRemarkOpen, setIsEditRemarkOpen] = useState(false);
+  const [isEditRemarkOpen, setIsEditRemarkOpen] = useState(false)
   // friendToEditRemark 存储好友的 userId 和 currentRemark
   const [friendToEditRemark, setFriendToEditRemark] = useState<{
-    userId: string; // <--- 确保这里是 userId
-    currentRemark?: string;
-  } | null>(null);
+    userId: string // <--- 确保这里是 userId
+    currentRemark?: string
+  } | null>(null)
   const [newRemark, setNewRemark] = useState('')
   const [isSavingRemark, setIsSavingRemark] = useState(false)
 
@@ -212,14 +213,19 @@ function FriendsViews() {
 
   // --- 好友详情操作回调 ---
   // 发送消息给好友
-  const handleSendMessage = (friendUserId: string) => { // parameter name updated for clarity
-    showMessage.info(`准备向好友 ${friendUserId} 发送消息 (功能待实现)`);
-    console.log(`Send message to friend: ${friendUserId}`);
-  };
+  const handleSendMessage = (friendUserId: string) => {
+    // parameter name updated for clarity
+    showMessage.info(`准备向好友 ${friendUserId} 发送消息 (功能待实现)`)
+    console.log(`Send message to friend: ${friendUserId}`)
+  }
 
   // 打开备注编辑弹窗
-  const handleOpenEditRemark = (friendUserId: string, currentRemark?: string) => { // <--- 接收 friendUserId
-    setFriendToEditRemark({ userId: friendUserId, currentRemark }); // <--- 存储 userId
+  const handleOpenEditRemark = (
+    friendUserId: string,
+    currentRemark?: string
+  ) => {
+    // <--- 接收 friendUserId
+    setFriendToEditRemark({ userId: friendUserId, currentRemark }) // <--- 存储 userId
     setNewRemark(currentRemark || '')
     setIsEditRemarkOpen(true)
   }
@@ -231,28 +237,41 @@ function FriendsViews() {
   }
   // 保存备注
   const handleSaveRemark = async () => {
-    if (!friendToEditRemark || !friendToEditRemark.userId) return; // Check userId
-    setIsSavingRemark(true);
+    if (!friendToEditRemark || !friendToEditRemark.userId) return // Check userId
+    const { userId } = friendToEditRemark;
+    const remarkToSave = newRemark.trim();
+    setIsSavingRemark(true)
     try {
       // API 期望 :friendId 是 userId
       await axios.patch(`/friends/${friendToEditRemark.userId}/remark`, {
         remark: newRemark.trim(),
+      })
+      showMessage.success('备注已更新')
+      fetchFriends() // 重新获取好友列表以更新备注
+      setSelectedFriend(prevFriend => {
+        if (prevFriend && prevFriend.friend._id === userId) {
+          return {
+            ...prevFriend,
+            remark: remarkToSave, // 直接更新备注
+          };
+        }
+        return prevFriend;
       });
-      showMessage.success('备注已更新');
-      fetchFriends(); // 重新获取好友列表以更新备注
-      // 如果 FriendProfile 内部也获取最新数据，可以考虑是否还需要在这里 fetchFriends
-      // 但为了列表的 displayName (如果受备注影响) 更新，通常需要
-      handleCloseEditRemark();
+      handleCloseEditRemark()
     } catch (error) {
-      console.error('更新备注失败:', error);
-      showMessage.error('更新备注失败');
+      console.error('更新备注失败:', error)
+      showMessage.error('更新备注失败')
     } finally {
-      setIsSavingRemark(false);
+      setIsSavingRemark(false)
     }
   }
   // 打开删除好友确认弹窗
-  const handleOpenDeleteFriendConfirm = (friendUserId: string, friendName: string) => { // <--- 接收 friendUserId
-    setFriendToDelete({ userId: friendUserId, name: friendName }); // <--- 存储 userId
+  const handleOpenDeleteFriendConfirm = (
+    friendUserId: string,
+    friendName: string
+  ) => {
+    // <--- 接收 friendUserId
+    setFriendToDelete({ userId: friendUserId, name: friendName }) // <--- 存储 userId
     setIsConfirmDeleteFriendOpen(true)
   }
   // 关闭删除好友确认弹窗
@@ -262,21 +281,21 @@ function FriendsViews() {
   }
   // 删除好友
   const handleDeleteFriendConfirmed = async () => {
-    if (!friendToDelete || !friendToDelete.userId) return; // Check userId
-    setIsDeletingFriend(true);
+    if (!friendToDelete || !friendToDelete.userId) return // Check userId
+    setIsDeletingFriend(true)
     try {
       // API 期望 :friendId 是 userId
-      await axios.delete(`/friends/${friendToDelete.userId}`);
-      showMessage.success(`已删除好友 ${friendToDelete.name}`);
-      setSelectedFriend(null);
-      fetchFriends();
-      refreshGlobalPendingCount();
-      handleCloseDeleteFriendConfirm();
+      await axios.delete(`/friends/${friendToDelete.userId}`)
+      showMessage.success(`已删除好友 ${friendToDelete.name}`)
+      setSelectedFriend(null)
+      fetchFriends()
+      refreshGlobalPendingCount()
+      handleCloseDeleteFriendConfirm()
     } catch (error) {
-      console.error('删除好友失败:', error);
-      showMessage.error('删除好友失败');
+      console.error('删除好友失败:', error)
+      showMessage.error('删除好友失败')
     } finally {
-      setIsDeletingFriend(false);
+      setIsDeletingFriend(false)
     }
   }
 
@@ -492,7 +511,7 @@ function FriendsViews() {
           selectedTab !== 'requests' && (
             <div className="no-friend-selected">
               <div className="placeholder-icon">🤝</div>
-              <div className="placeholder-message">选择一个联系人查看详情</div>
+              <div className="placeholder-message">选择一个好友查看详情</div>
             </div>
           )}
       </main>

@@ -31,29 +31,35 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (friendInitial && friendInitial._id) {
-      // friendInitial._id 是 relationId
+    const relationId = friendInitial?._id // 获取 relationId
+    if (relationId) {
       const fetchLatestFriendInfo = async () => {
+        console.log(
+          'FriendProfile: Fetching latest info for relationId:',
+          relationId
+        )
         setIsLoading(true)
         try {
           const response = await axios.get<Friend>(
-            `/friends/relation/${friendInitial._id}`
+            `/friends/relation/${relationId}`
           )
           setCurrentFriendData(response.data)
         } catch (error) {
           console.error('Failed to fetch latest friend info:', error)
           showMessage.error('无法加载最新的好友信息')
-          // 失败时，仍然使用 friendInitial (或置空以显示错误)
-          setCurrentFriendData(friendInitial) // 或者 setCurrentFriendData(null)
+          // 如果 friendInitial 仍然是有效的，可以考虑用它作为回退
+          // 但如果 relationId 变了，friendInitial 可能也过时了
+          setCurrentFriendData((prevData) => prevData || friendInitial) // 尝试保留之前的数据或用初始数据
         } finally {
           setIsLoading(false)
         }
       }
       fetchLatestFriendInfo()
     } else {
+      // 如果没有 relationId，则直接使用 friendInitial (可能是 null 或未选中的情况)
       setCurrentFriendData(friendInitial)
     }
-  }, [friendInitial])
+  }, [friendInitial?._id, friendInitial]) // 主要依赖 relationId，friendInitial 作为次要依赖以处理其为 null 的情况
 
   if (isLoading && !currentFriendData) {
     return (
