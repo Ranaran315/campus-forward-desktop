@@ -3,8 +3,6 @@ import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
 import { showMessage } from '@/components/Message/MessageContainer'
 import axios from '@/lib/axios'
-import { formatDistanceToNow } from 'date-fns'
-import { zhCN } from 'date-fns/locale'
 import './FriendRequestsPanel.css'
 import {
   ReceivedFriendRequest,

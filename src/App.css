@@ -10,54 +10,60 @@
   flex: 1;
   display: flex;
   height: calc(100vh - 60px); /* Adjust height to fit header */
-}
+  .sidebar {
+    width: 150px;
+    height: 100%;
+    background-color: var(--secondary-background-color);
+    padding: 20px 8px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    .sidebar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      .sidebar-button {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        color: var(--primary-text-color);
+        &:hover {
+          color: var(--primary-color);
+        }
 
-.sidebar {
-  width: 150px;
-  height: 100%;
-  background-color: var(--secondary-background-color);
-  padding: 20px 8px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
+        &.active {
+          background-color: var(--primary-color);
+          color: var(--primary-background-color);
+        }
 
-.sidebar-item {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.sidebar-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  color: var(--primary-text-color);
-}
-
-.sidebar-button:hover {
-  color: var(--primary-color);
-}
-
-.sidebar-button.active {
-  background-color: var(--primary-color);
-  color: var(--primary-background-color);
-}
-
-.sidebar-button:not(.active):hover {
-  background-color: var(--third-background-color);
-}
-
-.sidebar-icon {
-  width: 18px;
-  aspect-ratio: 1;
-  color: currentColor;
-}
-
-.content {
-  flex: 1;
-  margin: 10px;
+        &:not(.active):hover {
+          background-color: var(--third-background-color);
+        }
+      }
+      .sidebar-icon {
+        width: 18px;
+        aspect-ratio: 1;
+        color: currentColor;
+      }
+      .sidebar-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background-color: var(--primary-danger-color);
+        color: var(--primary-background-color);
+        font-size: 12px;
+        margin-left: auto;
+      }
+    }
+  }
+  .content {
+    flex: 1;
+    margin: 10px;
+  }
 }

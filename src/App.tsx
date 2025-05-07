@@ -31,6 +31,10 @@ import SettingIcon from '@/assets/icons/setting.svg?react'
 // 全局组件
 import MessageContainer from '@/components/Message/MessageContainer'
 import { WebSocketProvider } from './contexts/WebSocketProvider'
+import {
+  AppNotificationsProvider,
+  useAppNotificationsContext,
+} from './contexts/AppNotificationsContext'
 
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
@@ -53,6 +57,7 @@ function AppLayout() {
   // 获取当前路由路径
   const location = useLocation()
   const currentPath = location.pathname
+  const { pendingReceivedRequestsCount } = useAppNotificationsContext()
 
   return (
     <div>
@@ -95,6 +100,11 @@ function AppLayout() {
             >
               <FriendIcon className="sidebar-icon" />
               <span>好友</span>
+              {pendingReceivedRequestsCount > 0 && (
+                <span className="sidebar-badge">
+                  {pendingReceivedRequestsCount}
+                </span>
+              )}
             </Link>
           </div>
           <div className="sidebar-item sidebar-bottom">
@@ -104,7 +114,7 @@ function AppLayout() {
                 currentPath === '/profile' ? 'active' : ''
               }`}
             >
-              <SkinIcon className="sidebar-icon" />
+              <ProfileIcon className="sidebar-icon" />
               <span>个人资料</span>
             </Link>
             <Link
@@ -113,7 +123,7 @@ function AppLayout() {
                 currentPath === '/skin' ? 'active' : ''
               }`}
             >
-              <ProfileIcon className="sidebar-icon" />
+              <SkinIcon className="sidebar-icon" />
               <span>调色盘</span>
             </Link>
             <Link
@@ -151,7 +161,9 @@ function App() {
             path="/"
             element={
               <WebSocketProvider>
-                <AppLayout />
+                <AppNotificationsProvider>
+                  <AppLayout />
+                </AppNotificationsProvider>
               </WebSocketProvider>
             }
           >
