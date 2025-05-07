@@ -9,7 +9,7 @@ import {
   SentFriendRequest,
   FriendRequestStatusType,
 } from '@/types/friends.type'
-import ConfirmDialog from '@/components/ConfirmDialog/ConfirmDialog'
+import ConfirmDialog from '@/components/Modal/ConfirmDialog/ConfirmDialog'
 import DeletIcon from '@/assets/icons/delete.svg?react'
 import { formatTimeAgo } from '@/utils/dateUtils'
 

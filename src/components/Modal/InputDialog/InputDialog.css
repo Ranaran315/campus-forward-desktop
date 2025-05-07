@@ -1,0 +1,50 @@
+/* src/components/Modal/InputDialog.css */
+.input-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--dialog-z-index);
+  .input-dialog {
+    background-color: var(--secondary-background-color);
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 450px; /* 可以比 ConfirmDialog 稍宽 */
+    .input-dialog-title {
+      font-size: var(--large-font-size);
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .input-dialog-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+      color: var(--color-text-secondary);
+    }
+    .input-dialog-field {
+      /* 针对 InputField 组件的容器或 InputField 本身 */
+      width: 100%;
+      margin-bottom: 25px;
+      input {
+        border: 1px solid var(--third-background-color) !important; /* 让输入框的边框颜色和背景色一致 */
+      }
+    }
+    .input-dialog-actions {
+      display: flex;
+      justify-content: flex-end; /* 按钮靠右 */
+      gap: 15px;
+      .button {
+        padding: 10px 20px;
+        font-size: 0.95em;
+      }
+    }
+  }
+}

@@ -22,6 +22,7 @@ const Form: React.FC<FormProps> = ({ children, className, onSubmit }) => {
 
 // --- InputField 组件 ---
 interface InputFieldProps {
+  id?: string // 可选的 id 属性
   name: string // Input 的 name 属性
   label?: string // Input 的标签
   type?: React.HTMLInputTypeAttribute // Input 类型 (text, password, etc.)
@@ -35,11 +36,13 @@ interface InputFieldProps {
   pattern?: string // 正则表达式模式
   max?: string // 最大值 (适用于日期等类型)
   theme?: 'default' | 'search'
+  autoFocus?: boolean // 是否自动获取焦点
   // !! 关键：onChange 由父组件提供，用于更新父组件的状态 !!
   onChange: (name: string, value: string) => void
 }
 const InputField: React.FC<InputFieldProps> = React.memo(
   ({
+    id,
     name,
     label,
     type = 'text',
@@ -52,6 +55,7 @@ const InputField: React.FC<InputFieldProps> = React.memo(
     pattern,
     max,
     theme,
+    autoFocus,
     ...rest
   }) => {
     // 处理原生 input 的 onChange 事件
@@ -80,7 +84,7 @@ const InputField: React.FC<InputFieldProps> = React.memo(
           {theme === 'search' && <SearchIcon className="search-icon" />}
           <input
             type={inputType}
-            id={name} // id 用于 label 关联
+            id={id ?? name} // id 用于 label 关联
             name={name} // name 属性
             value={value} // !! input 的值完全由父组件的 prop 控制 !!
             onChange={handleChange} // !! input 的改变事件触发父组件的更新 !!
@@ -90,6 +94,7 @@ const InputField: React.FC<InputFieldProps> = React.memo(
             className="input-inner" // 你可以添加更多样式控制
             pattern={pattern} // 允许传递正则表达式模式
             max={max}
+            autoFocus={autoFocus} // 是否自动获取焦点
             {...rest} // 允许传递其他属性，如 maxLength, minLength 等
           />
           {type === 'password' && (
@@ -200,6 +205,7 @@ const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(({
 
 // --- SelectField 组件 (下拉选择框) ---
 interface SelectFieldProps {
+  id?: string // 可选的 id 属性
   name: string
   label?: string
   options: Array<{ value: string | number; label: string }> // 选项数组
@@ -213,6 +219,7 @@ interface SelectFieldProps {
 }
 const SelectField: React.FC<SelectFieldProps> = React.memo(
   ({
+    id,
     name,
     label,
     options,
@@ -248,7 +255,7 @@ const SelectField: React.FC<SelectFieldProps> = React.memo(
       <div className={`input-group select-group ${className || ''}`}>
         {label && <label htmlFor={name}>{label}</label>}
         <select
-          id={name}
+          id={id ?? name}
           name={name}
           value={value} // 绑定父组件的值
           onChange={handleChange}

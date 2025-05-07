@@ -1,42 +1,11 @@
 import Avatar from '@/components/Avatar/Avatar'
 import { InputField } from '@/components/Form/Form'
-import AddFriendIcon from "@/assets/icons/add_friend.svg?react"
-import RemindIcon from "@/assets/icons/remind.svg?react"
-import ArrowDownIcon from "@/assets/icons/arrow_down.svg?react"
-import ArrowRightIcon from "@/assets/icons/arrow_right.svg?react"
-import "./FriendsSidebar.css"
-
-// 定义类型
-interface Friend {
-  _id: string
-  friend: {
-    _id: string
-    username: string
-    nickname: string
-    avatar?: string
-    gender?: string
-  }
-  remark?: string
-  category: string
-}
-
-interface CategoryGroup {
-  category: string
-  friends: Friend[]
-  isExpanded: boolean
-}
-
-interface FriendRequest {
-  _id: string
-  sender: {
-    _id: string
-    username: string
-    nickname: string
-    avatar?: string
-  }
-  message?: string
-  createdAt: string
-}
+import AddFriendIcon from '@/assets/icons/add_friend.svg?react'
+import RemindIcon from '@/assets/icons/remind.svg?react'
+import ArrowDownIcon from '@/assets/icons/arrow_down.svg?react'
+import ArrowRightIcon from '@/assets/icons/arrow_right.svg?react'
+import './FriendsSidebar.css'
+import { CategoryGroup, Friend } from '@/types/friends.type'
 
 interface FriendsSidebarProps {
   categoryGroups: CategoryGroup[]
@@ -47,7 +16,7 @@ interface FriendsSidebarProps {
   searchQuery: string
   isAddingCategory: boolean
   newCategoryName: string
-  
+
   // 回调函数
   onFriendClick: (friend: Friend) => void
   onViewFriendRequests: () => void
@@ -77,31 +46,33 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
   onAddCategory,
   onCancelAddCategory,
   onNewCategoryNameChange,
-  onCreateCategory
+  onCreateCategory,
 }) => {
-  
   // 处理搜索输入
   const handleSearch = (name: string, query: string) => {
-    onSearch(name, query);
-  };
-  
+    onSearch(name, query)
+  }
+
   // 获取过滤后的分组
   const getFilteredGroups = () => {
-    if (!searchQuery) return categoryGroups;
+    if (!searchQuery) return categoryGroups
 
-    return categoryGroups.map(group => ({
-      ...group,
-      friends: group.friends.filter(friend => {
-        const displayName = friend.remark || friend.friend.nickname || friend.friend.username;
-        return displayName.toLowerCase().includes(searchQuery.toLowerCase());
-      })
-    })).filter(group => group.friends.length > 0);
-  };
-  
+    return categoryGroups
+      .map((group) => ({
+        ...group,
+        friends: group.friends.filter((friend) => {
+          const displayName =
+            friend.remark || friend.friend.nickname || friend.friend.username
+          return displayName.toLowerCase().includes(searchQuery.toLowerCase())
+        }),
+      }))
+      .filter((group) => group.friends.length > 0)
+  }
+
   // 获取显示名称
   const getDisplayName = (friend: Friend) => {
-    return friend.remark || friend.friend.nickname || friend.friend.username;
-  };
+    return friend.remark || friend.friend.nickname || friend.friend.username
+  }
 
   return (
     <aside className="friends-sidebar">
@@ -109,7 +80,7 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
       <div className="friends-header">
         <div className="search-box">
           <InputField
-            name='search'
+            name="search"
             theme="search"
             type="text"
             placeholder="搜索好友"
@@ -117,8 +88,10 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
             onChange={handleSearch}
           />
         </div>
-        <button 
-          className={`add-friend-btn ${selectedTab === 'addFriend' ? 'active' : ''}`} 
+        <button
+          className={`add-friend-btn ${
+            selectedTab === 'addFriend' ? 'active' : ''
+          }`}
           onClick={onViewAddFriend}
         >
           <AddFriendIcon />
@@ -128,7 +101,9 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
       {/* 功能区域：好友通知 */}
       <div className="friends-functions">
         <div
-          className={`function-item ${selectedTab === 'requests' ? 'active' : ''} ${pendingRequestsCount > 0 ? 'has-badge' : ''}`}
+          className={`function-item ${
+            selectedTab === 'requests' ? 'active' : ''
+          } ${pendingRequestsCount > 0 ? 'has-badge' : ''}`}
           onClick={onViewFriendRequests}
         >
           <RemindIcon />
@@ -145,10 +120,7 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
       {/* 好友分类操作区 */}
       <div className="category-controls">
         <h3 className="section-title">我的好友</h3>
-        <button
-          className="category-add-btn"
-          onClick={onAddCategory}
-        >
+        <button className="category-add-btn" onClick={onAddCategory}>
           {/* 可以添加一个添加分类的图标 */}
         </button>
       </div>
@@ -159,12 +131,16 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
             type="text"
             placeholder="新分类名称"
             value={newCategoryName}
-            onChange={e => onNewCategoryNameChange(e.target.value)}
+            onChange={(e) => onNewCategoryNameChange(e.target.value)}
             autoFocus
           />
           <div className="form-actions">
-            <button className="confirm-btn" onClick={onCreateCategory}>确定</button>
-            <button className="cancel-btn" onClick={onCancelAddCategory}>取消</button>
+            <button className="confirm-btn" onClick={onCreateCategory}>
+              确定
+            </button>
+            <button className="cancel-btn" onClick={onCancelAddCategory}>
+              取消
+            </button>
           </div>
         </div>
       )}
@@ -181,23 +157,30 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
               {searchQuery ? '没有找到匹配的好友' : '暂无好友'}
             </div>
           ) : (
-            getFilteredGroups().map(group => (
+            getFilteredGroups().map((group) => (
               <div key={group.category} className="category-group">
                 <div
                   className="category-header"
                   onClick={() => onToggleCategory(group.category)}
                 >
                   {group.isExpanded ? <ArrowDownIcon /> : <ArrowRightIcon />}
-                  <span className="category-name">{group.category}</span>
+                  <span className="category-name">
+                    {group.category === 'default' ? '我的好友' : group.category}
+                  </span>
                   <span className="friend-count">{group.friends.length}</span>
                 </div>
 
                 {group.isExpanded && (
                   <ul className="friend-list">
-                    {group.friends.map(friend => (
+                    {group.friends.map((friend) => (
                       <li
                         key={friend._id}
-                        className={`friend-item ${selectedFriend?._id === friend._id && selectedTab === 'details' ? 'active' : ''}`}
+                        className={`friend-item ${
+                          selectedFriend?._id === friend._id &&
+                          selectedTab === 'details'
+                            ? 'active'
+                            : ''
+                        }`}
                         onClick={() => onFriendClick(friend)}
                       >
                         <Avatar
@@ -206,7 +189,9 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
                           size={40}
                         />
                         <div className="friend-info">
-                          <span className="friend-name">{getDisplayName(friend)}</span>
+                          <span className="friend-name">
+                            {getDisplayName(friend)}
+                          </span>
                         </div>
                       </li>
                     ))}
@@ -218,7 +203,7 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
         </div>
       )}
     </aside>
-  );
-};
+  )
+}
 
-export default FriendsSidebar;
+export default FriendsSidebar

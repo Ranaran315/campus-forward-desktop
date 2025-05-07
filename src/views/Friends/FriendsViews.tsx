@@ -6,11 +6,13 @@ import './FriendsViews.css'
 import AddFriendPanel from './AddFriendPanel'
 import FriendsSidebar from './FriendsSidebar'
 import FriendRequestsPanel from './FriendRequestsPanel'
+import FriendProfile from './FriendProfile' // <--- 导入 FriendProfile
+import ConfirmDialog from '@/components/Modal/ConfirmDialog/ConfirmDialog' // 假设你已经有了这个
+import InputDialog from '@/components/Modal/InputDialog/InputDialog' // 我们需要一个新的 InputDialog
 // import { useWebSocketContext } from '@/contexts/WebSocketProvider'
 import {
   CategoryGroup,
   Friend,
-  FriendRequestStatusType,
   ReceivedFriendRequest,
   SentFriendRequest,
 } from '@/types/friends.type'
@@ -27,7 +29,7 @@ function FriendsViews() {
     pendingReceivedRequestsCount,
     fetchAndUpdatePendingCount: refreshGlobalPendingCount,
   } = useAppNotificationsContext() // 使用全局计数和刷新方法
-  const [isAddingCategory, setIsAddingCategory] = useState(false)
+  const [isAddingCategory, setIsAddingCategory] = useState(true)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [selectedTab, setSelectedTab] = useState<
     'details' | 'requests' | 'addFriend'
@@ -42,6 +44,23 @@ function FriendsViews() {
   const [sentRequests, setSentRequests] = useState<SentFriendRequest[]>([])
   const [isLoadingRequests, setIsLoadingRequests] = useState(false) // 用于请求列表的加载状态
 
+  const [isConfirmDeleteFriendOpen, setIsConfirmDeleteFriendOpen] = useState(false);
+  // friendToDelete 存储好友的 userId 和 name
+  const [friendToDelete, setFriendToDelete] = useState<{
+    userId: string; // <--- 确保这里是 userId
+    name: string;
+  } | null>(null);
+  const [isDeletingFriend, setIsDeletingFriend] = useState(false);
+
+  const [isEditRemarkOpen, setIsEditRemarkOpen] = useState(false);
+  // friendToEditRemark 存储好友的 userId 和 currentRemark
+  const [friendToEditRemark, setFriendToEditRemark] = useState<{
+    userId: string; // <--- 确保这里是 userId
+    currentRemark?: string;
+  } | null>(null);
+  const [newRemark, setNewRemark] = useState('')
+  const [isSavingRemark, setIsSavingRemark] = useState(false)
+
   // --- 使用 WebSocket Hook ---
   // const { on: socketOn } = useWebSocketContext()
 
@@ -51,12 +70,12 @@ function FriendsViews() {
     setSelectedFriend(null)
   }
 
+  // --- 好友请求 ---
   // 查看好友请求
   const viewFriendRequests = () => {
     setSelectedTab('requests')
     setSelectedFriend(null)
   }
-
   // 获取好友列表(按分类)
   const fetchFriends = useCallback(async () => {
     try {
@@ -88,7 +107,6 @@ function FriendsViews() {
       setIsLoading(false)
     }
   }, [])
-
   // 获取收到的好友请求
   const fetchReceivedRequests = useCallback(async () => {
     console.log('Fetching received requests...')
@@ -109,7 +127,6 @@ function FriendsViews() {
       setIsLoadingRequests(false)
     }
   }, [])
-
   // --- 获取发送的好友请求 ---
   const fetchSentRequests = useCallback(async () => {
     console.log('Fetching sent requests...')
@@ -126,7 +143,6 @@ function FriendsViews() {
       setIsLoadingRequests(false)
     }
   }, [])
-
   // 好友请求发送后的处理
   const handleRequestSent = useCallback(() => {
     console.log('handleRequestSent triggered')
@@ -138,7 +154,6 @@ function FriendsViews() {
       setRequestPanelActiveTab('sent') // 这会触发下面的useEffect来加载数据
     }
   }, [fetchSentRequests, selectedTab, setSelectedTab, setRequestPanelActiveTab]) // 添加依赖
-
   // 处理好友请求后的回调
   const handleRequestHandled = useCallback(() => {
     if (requestPanelActiveTab === 'received') {
@@ -156,6 +171,7 @@ function FriendsViews() {
     setSearchQuery(query)
   }, 300)
 
+  // --- 好友分类 ---
   // 切换分类展开/折叠
   const toggleCategory = (category: string) => {
     setCategoryGroups((prev) =>
@@ -166,13 +182,11 @@ function FriendsViews() {
       )
     )
   }
-
   // 处理好友点击
   const handleFriendClick = (friend: Friend) => {
     setSelectedFriend(friend)
     setSelectedTab('details')
   }
-
   // 创建新分类
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
@@ -196,7 +210,77 @@ function FriendsViews() {
     }
   }
 
-  // --- WebSocket 事件处理 ---
+  // --- 好友详情操作回调 ---
+  // 发送消息给好友
+  const handleSendMessage = (friendUserId: string) => { // parameter name updated for clarity
+    showMessage.info(`准备向好友 ${friendUserId} 发送消息 (功能待实现)`);
+    console.log(`Send message to friend: ${friendUserId}`);
+  };
+
+  // 打开备注编辑弹窗
+  const handleOpenEditRemark = (friendUserId: string, currentRemark?: string) => { // <--- 接收 friendUserId
+    setFriendToEditRemark({ userId: friendUserId, currentRemark }); // <--- 存储 userId
+    setNewRemark(currentRemark || '')
+    setIsEditRemarkOpen(true)
+  }
+  // 关闭备注编辑弹窗
+  const handleCloseEditRemark = () => {
+    setIsEditRemarkOpen(false)
+    setFriendToEditRemark(null)
+    setNewRemark('')
+  }
+  // 保存备注
+  const handleSaveRemark = async () => {
+    if (!friendToEditRemark || !friendToEditRemark.userId) return; // Check userId
+    setIsSavingRemark(true);
+    try {
+      // API 期望 :friendId 是 userId
+      await axios.patch(`/friends/${friendToEditRemark.userId}/remark`, {
+        remark: newRemark.trim(),
+      });
+      showMessage.success('备注已更新');
+      fetchFriends(); // 重新获取好友列表以更新备注
+      // 如果 FriendProfile 内部也获取最新数据，可以考虑是否还需要在这里 fetchFriends
+      // 但为了列表的 displayName (如果受备注影响) 更新，通常需要
+      handleCloseEditRemark();
+    } catch (error) {
+      console.error('更新备注失败:', error);
+      showMessage.error('更新备注失败');
+    } finally {
+      setIsSavingRemark(false);
+    }
+  }
+  // 打开删除好友确认弹窗
+  const handleOpenDeleteFriendConfirm = (friendUserId: string, friendName: string) => { // <--- 接收 friendUserId
+    setFriendToDelete({ userId: friendUserId, name: friendName }); // <--- 存储 userId
+    setIsConfirmDeleteFriendOpen(true)
+  }
+  // 关闭删除好友确认弹窗
+  const handleCloseDeleteFriendConfirm = () => {
+    setIsConfirmDeleteFriendOpen(false)
+    setFriendToDelete(null)
+  }
+  // 删除好友
+  const handleDeleteFriendConfirmed = async () => {
+    if (!friendToDelete || !friendToDelete.userId) return; // Check userId
+    setIsDeletingFriend(true);
+    try {
+      // API 期望 :friendId 是 userId
+      await axios.delete(`/friends/${friendToDelete.userId}`);
+      showMessage.success(`已删除好友 ${friendToDelete.name}`);
+      setSelectedFriend(null);
+      fetchFriends();
+      refreshGlobalPendingCount();
+      handleCloseDeleteFriendConfirm();
+    } catch (error) {
+      console.error('删除好友失败:', error);
+      showMessage.error('删除好友失败');
+    } finally {
+      setIsDeletingFriend(false);
+    }
+  }
+
+  // --- 使用 WebSocket 处理实时数据 ---
   // useEffect(() => {
   //   if (!socketOn) return
 
@@ -378,7 +462,12 @@ function FriendsViews() {
 
       <main className="friends-layout">
         {selectedTab === 'details' && selectedFriend && (
-          <div className="friend-profile">{/* 现有的好友详情内容 */}</div>
+          <FriendProfile
+            friendInitial={selectedFriend} // selectedFriend is of type Friend
+            onSendMessage={handleSendMessage}
+            onEditRemark={handleOpenEditRemark} // Pass the correct handler
+            onDeleteFriend={handleOpenDeleteFriendConfirm} // Pass the correct handler
+          />
         )}
 
         {selectedTab === 'requests' && (
@@ -402,10 +491,40 @@ function FriendsViews() {
           !selectedFriend &&
           selectedTab !== 'requests' && (
             <div className="no-friend-selected">
+              <div className="placeholder-icon">🤝</div>
               <div className="placeholder-message">选择一个联系人查看详情</div>
             </div>
           )}
       </main>
+
+      {/* 删除好友确认弹窗 */}
+      <ConfirmDialog
+        isOpen={isConfirmDeleteFriendOpen}
+        title="删除好友"
+        message={`确定要删除好友 "${
+          friendToDelete?.name || ''
+        }" 吗？此操作会解除双方的好友关系。`}
+        onConfirm={handleDeleteFriendConfirmed}
+        onCancel={handleCloseDeleteFriendConfirm}
+        confirmText="删除"
+        isConfirming={isDeletingFriend}
+      />
+
+      {/* 修改备注弹窗 (需要 InputDialog 组件) */}
+      {isEditRemarkOpen && friendToEditRemark && (
+        <InputDialog
+          isOpen={isEditRemarkOpen}
+          title="修改备注"
+          label="好友备注："
+          // initialValue prop is not in InputDialogProps if controlled externally
+          onSave={handleSaveRemark}
+          onCancel={handleCloseEditRemark}
+          confirmText="保存"
+          isConfirming={isSavingRemark}
+          inputValue={newRemark}
+          onInputChange={setNewRemark}
+        />
+      )}
     </div>
   )
 }

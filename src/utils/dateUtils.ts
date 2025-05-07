@@ -43,13 +43,13 @@ export const formatDateTime = (
   formatString: string = 'yyyy-MM-dd HH:mm:ss'
 ): string => {
   if (!dateInput) {
-    return '无效日期'
+    return '未知'
   }
 
   const date = typeof dateInput === 'string' ? parseISO(dateInput) : dateInput
 
   if (!isValid(date)) {
-    return '无效日期'
+    return '未知'
   }
 
   try {
@@ -58,7 +58,7 @@ export const formatDateTime = (
     })
   } catch (error) {
     console.error('Error formatting date time:', error)
-    return '无效日期'
+    return '未知'
   }
 }
 

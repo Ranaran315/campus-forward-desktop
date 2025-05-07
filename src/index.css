@@ -56,6 +56,10 @@
   --normal-font-size: 14px;
   --medium-font-size: 16px;
   --large-font-size: 18px;
+
+  /* z-index */
+  --dialog-z-index: 1000;
+  --modal-z-index: 2000;
 }
 
 a {
