@@ -6,8 +6,11 @@ import ArrowDownIcon from '@/assets/icons/arrow_down.svg?react'
 import ArrowRightIcon from '@/assets/icons/arrow_right.svg?react'
 import AddIcon from '@/assets/icons/add.svg?react'
 import EditIcon from '@/assets/icons/edit.svg?react'
+import DelteIcon from '@/assets/icons/delete.svg?react'
 import './FriendsSidebar.css'
 import { CategoryGroup, Friend } from '@/types/friends.type'
+import ContextMenu, { ContextMenuItem } from '@/components/ContextMenu/ContextMenu'
+import React, { useCallback, useState } from 'react'
 
 interface FriendsSidebarProps {
   categoryGroups: CategoryGroup[]
@@ -24,6 +27,9 @@ interface FriendsSidebarProps {
   onToggleCategory: (category: string) => void
   onSearch: (name: string, query: string) => void
   onAddCategory: () => void
+  onOpenAddCategoryDialog: () => void; // Renamed from onAddCategory for clarity
+  onOpenRenameCategoryDialog: (categoryId: string, currentName: string) => void;
+  onOpenDeleteCategoryDialog: (categoryId: string, categoryName: string) => void;
 }
 
 const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
@@ -39,7 +45,88 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
   onToggleCategory,
   onSearch,
   onAddCategory,
+  onOpenAddCategoryDialog,
+  onOpenRenameCategoryDialog,
+  onOpenDeleteCategoryDialog,
 }) => {
+
+   // 状态定义
+   const [contextMenuVisible, setContextMenuVisible] = useState(false);
+   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+   const [contextMenuTarget, setContextMenuTarget] = useState<CategoryGroup | Friend | null>(null);
+   const [contextMenuType, setContextMenuType] = useState<'category' | 'friend' | null>(null);
+
+   // 处理右键菜单的打开
+   const handleOpenContextMenu = (
+    event: React.MouseEvent,
+    target: CategoryGroup | Friend,
+    type: 'category' | 'friend'
+  ) => {
+    event.preventDefault();
+    event.stopPropagation(); // Important to prevent other context menus or default browser behavior
+    setContextMenuPosition({ x: event.clientX, y: event.clientY });
+    setContextMenuTarget(target);
+    setContextMenuType(type);
+    setContextMenuVisible(true);
+  };
+
+  // 处理右键菜单的关闭
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenuVisible(false);
+    setContextMenuTarget(null);
+    setContextMenuType(null);
+  }, []);
+
+  // 生成不同的右键菜单项
+  const getContextMenuItems = (): ContextMenuItem[] => {
+    if (!contextMenuTarget) return [];
+
+    if (contextMenuType === 'category' && contextMenuTarget) {
+      const category = contextMenuTarget as CategoryGroup;
+      return [
+        {
+          label: '新增好友分组',
+          icon: <AddIcon></AddIcon>,
+          onClick: onOpenAddCategoryDialog,
+        },
+        {
+          label: '重命名分组',
+          icon: <EditIcon></EditIcon>,
+          onClick: () => {
+            if (category.categoryId) {
+              onOpenRenameCategoryDialog(category.categoryId, category.categoryName);
+            }
+          },
+          disabled: !category.categoryId, // Disable for "我的好友" or similar
+        },
+        {
+          label: '删除好友分组',
+          icon: <DelteIcon></DelteIcon>,
+          onClick: () => {
+            if (category.categoryId) {
+              onOpenDeleteCategoryDialog(category.categoryId, category.categoryName);
+            }
+          },
+          disabled: !category.categoryId, // Disable for "我的好友"
+        },
+      ];
+    } else if (contextMenuType === 'friend' && contextMenuTarget) {
+      // const friend = contextMenuTarget as Friend;
+      // Future: Define friend-specific context menu items here
+      // Example:
+      // return [
+      //   { label: '发送消息', onClick: () => console.log('Send message to', friend.friend.username) },
+      //   { label: '查看资料', onClick: () => onFriendClick(friend) },
+      //   { label: '修改备注', onClick: () => { /* call prop to open remark dialog */ } },
+      //   { isSeparator: true },
+      //   { label: '移至分组...', onClick: () => { /* open move to group dialog */ } },
+      //   { label: '删除好友', onClick: () => { /* call prop to open delete friend confirm */ } },
+      // ];
+      return []; // Placeholder for now
+    }
+    return [];
+  };
+
   // 处理搜索输入
   const handleSearch = (name: string, query: string) => {
     onSearch(name, query)
@@ -65,21 +152,6 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
   const getDisplayName = (friend: Friend) => {
     return friend.remark || friend.friend.nickname || friend.friend.username
   }
-
-  // 点击编辑分类按钮
-  const handleEditCategoryClick = (
-    event: React.MouseEvent, // 接收事件对象
-    categoryId: string | null, // 分类ID，可能为 null (例如 "我的好友" 分类)
-    categoryName: string
-  ) => {
-    event.stopPropagation(); // 阻止事件冒泡到父元素 (category-header)
-    if (categoryId) { // 通常只允许编辑用户创建的真实分类
-      // onEditCategory(categoryId, categoryName);
-    } else {
-      // 可以选择提示用户 "我的好友" 分组不可编辑，或不显示编辑按钮
-      console.log("默认分类不可编辑");
-    }
-  };
 
   return (
     <aside className="friends-sidebar">
@@ -149,15 +221,13 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
                 <div
                   className="category-header"
                   onClick={() => onToggleCategory(group.categoryName)}
+                  onContextMenu={(e) => handleOpenContextMenu(e, group, 'category')}
                 >
                   {group.isExpanded ? <ArrowDownIcon /> : <ArrowRightIcon />}
                   <span className="category-name">
                     {group.categoryName}
                   </span>
                   <span className="friend-count">({group.friends.length})</span>
-                  {group.categoryId && (
-                    <EditIcon aria-label={`编辑分类 ${group.categoryName}`} className="edit-icon"></EditIcon>
-                  )}
                 </div>
 
                 {group.isExpanded && (
@@ -192,6 +262,13 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
           )}
         </div>
       )}
+       <ContextMenu
+        x={contextMenuPosition.x}
+        y={contextMenuPosition.y}
+        visible={contextMenuVisible}
+        items={getContextMenuItems()}
+        onClose={handleCloseContextMenu}
+      />
     </aside>
   )
 }
