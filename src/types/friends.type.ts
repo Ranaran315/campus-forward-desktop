@@ -8,7 +8,8 @@ export interface Friend {
 }
 
 export interface CategoryGroup {
-  category: string
+  categoryId: string
+  categoryName: string
   friends: Friend[]
   isExpanded: boolean
 }

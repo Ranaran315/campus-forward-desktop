@@ -1,96 +1,152 @@
 /* 左侧边栏 */
 .friends-sidebar {
-    width: 280px;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-right: 1px solid var(--third-background-color);
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-right: 1px solid var(--third-background-color);
 
-    /* 头部区域：搜索和添加好友 */
-    .friends-header {
-        padding: 12px;
+  /* 头部区域：搜索和添加好友 */
+  .friends-header {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex: 1;
+      margin-right: 8px;
+      input {
+        padding: 8px 8px 8px 32px;
+      }
+    }
+
+    .add-friend-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background-color: var(--primary-background-color);
+      color: var(--primary-text-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background-color: var(--third-background-color);
+        color: var(--primary-color);
+      }
+
+      &.active {
+        background-color: var(--primary-color);
+        color: var(--secondary-background-color);
+      }
+    }
+  }
+
+  /* 功能区域 */
+  .friends-functions {
+    background-color: var(--secondary-background-color);
+    border-bottom: 1px solid var(--primary-background-color);
+
+    .function-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      gap: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      position: relative;
+
+      &:hover {
+        background-color: var(--primary-background-color);
+      }
+
+      &.active {
+        background-color: var(--primary-color);
+        color: var(--secondary-background-color);
+      }
+
+      .function-item-right {
+        margin-left: auto;
         display: flex;
         align-items: center;
-
-        .search-box {
-            position: relative;
-            display: flex;
-            align-items: center;
-            flex: 1;
-            margin-right: 8px;
-            input {
-                padding: 8px 8px 8px 32px;
-            }
+        gap: 5px;
+        .badge {
+          background-color: var(--primary-danger-color);
+          color: #fff;
+          width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9px;
+          font-size: var(--mini-font-size);
+          padding: 0 5px;
+          box-sizing: border-box;
         }
-
-        .add-friend-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background-color: var(--primary-background-color);
-            color: var(--primary-text-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-
-            &:hover {
-                background-color: var(--third-background-color);
-                color: var(--primary-color);
-            }
-
-            &.active {
-                background-color: var(--primary-color);
-                color: var(--secondary-background-color);
-            }
-        }
-
+      }
     }
+  }
 
-    /* 功能区域 */
-    .friends-functions {
-        background-color: var(--secondary-background-color);
-        border-bottom: 1px solid var(--primary-background-color);
-
-        .function-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 16px;
-            gap: 5px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            position: relative;
-
-            &:hover {
-                background-color: var(--primary-background-color);
-            }
-
-            &.active {
-                background-color: var(--primary-color);
-                color: var(--secondary-background-color);
-            }
-
-            .function-item-right {
-                margin-left: auto;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                .badge {
-                    background-color: var(--primary-danger-color);
-                    color: #fff;
-                    width: 18px;
-                    height: 18px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 9px;
-                    font-size: var(--mini-font-size);
-                    padding: 0 5px;
-                    box-sizing: border-box;
-                }
-            }
-        }
+  /* 分类控制区域 */
+  .category-controls {
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .section-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
     }
+    .category-add-btn {
+      background-color: var(--primary-background-color);
+      border: none;
+      cursor: pointer;
+      width: 28px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      &:hover {
+        background-color: var(--third-background-color);
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  /* 好友列表容器 */
+  .friends-list-container {
+    flex: 1;
+    overflow-y: auto;
+    .category-group {
+      margin-bottom: 1px;
+      .category-header {
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+        &:hover {
+          background-color: var(--primary-background-color);
+        }
+        .category-name {
+          margin-left: 5px;
+        }
+        .friend-count {
+          font-size: var(--small-font-size);
+        }
+        .edit-icon {
+          margin-left: auto;
+        }
+      }
+    }
+  }
 }

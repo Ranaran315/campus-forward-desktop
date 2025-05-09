@@ -4,6 +4,8 @@ import AddFriendIcon from '@/assets/icons/add_friend.svg?react'
 import RemindIcon from '@/assets/icons/remind.svg?react'
 import ArrowDownIcon from '@/assets/icons/arrow_down.svg?react'
 import ArrowRightIcon from '@/assets/icons/arrow_right.svg?react'
+import AddIcon from '@/assets/icons/add.svg?react'
+import EditIcon from '@/assets/icons/edit.svg?react'
 import './FriendsSidebar.css'
 import { CategoryGroup, Friend } from '@/types/friends.type'
 
@@ -14,8 +16,6 @@ interface FriendsSidebarProps {
   pendingRequestsCount: number
   isLoading: boolean
   searchQuery: string
-  isAddingCategory: boolean
-  newCategoryName: string
 
   // 回调函数
   onFriendClick: (friend: Friend) => void
@@ -24,9 +24,6 @@ interface FriendsSidebarProps {
   onToggleCategory: (category: string) => void
   onSearch: (name: string, query: string) => void
   onAddCategory: () => void
-  onCancelAddCategory: () => void
-  onNewCategoryNameChange: (name: string) => void
-  onCreateCategory: () => void
 }
 
 const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
@@ -36,17 +33,12 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
   pendingRequestsCount,
   isLoading,
   searchQuery,
-  isAddingCategory,
-  newCategoryName,
   onFriendClick,
   onViewFriendRequests,
   onViewAddFriend,
   onToggleCategory,
   onSearch,
   onAddCategory,
-  onCancelAddCategory,
-  onNewCategoryNameChange,
-  onCreateCategory,
 }) => {
   // 处理搜索输入
   const handleSearch = (name: string, query: string) => {
@@ -73,6 +65,21 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
   const getDisplayName = (friend: Friend) => {
     return friend.remark || friend.friend.nickname || friend.friend.username
   }
+
+  // 点击编辑分类按钮
+  const handleEditCategoryClick = (
+    event: React.MouseEvent, // 接收事件对象
+    categoryId: string | null, // 分类ID，可能为 null (例如 "我的好友" 分类)
+    categoryName: string
+  ) => {
+    event.stopPropagation(); // 阻止事件冒泡到父元素 (category-header)
+    if (categoryId) { // 通常只允许编辑用户创建的真实分类
+      // onEditCategory(categoryId, categoryName);
+    } else {
+      // 可以选择提示用户 "我的好友" 分组不可编辑，或不显示编辑按钮
+      console.log("默认分类不可编辑");
+    }
+  };
 
   return (
     <aside className="friends-sidebar">
@@ -121,29 +128,9 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
       <div className="category-controls">
         <h3 className="section-title">我的好友</h3>
         <button className="category-add-btn" onClick={onAddCategory}>
-          {/* 可以添加一个添加分类的图标 */}
+          <AddIcon></AddIcon>
         </button>
       </div>
-
-      {isAddingCategory && (
-        <div className="add-category-form">
-          <input
-            type="text"
-            placeholder="新分类名称"
-            value={newCategoryName}
-            onChange={(e) => onNewCategoryNameChange(e.target.value)}
-            autoFocus
-          />
-          <div className="form-actions">
-            <button className="confirm-btn" onClick={onCreateCategory}>
-              确定
-            </button>
-            <button className="cancel-btn" onClick={onCancelAddCategory}>
-              取消
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* 好友列表区域 */}
       {isLoading ? (
@@ -158,16 +145,19 @@ const FriendsSidebar: React.FC<FriendsSidebarProps> = ({
             </div>
           ) : (
             getFilteredGroups().map((group) => (
-              <div key={group.category} className="category-group">
+              <div key={group.categoryId ?? 'friend_category_default_1'} className="category-group">
                 <div
                   className="category-header"
-                  onClick={() => onToggleCategory(group.category)}
+                  onClick={() => onToggleCategory(group.categoryName)}
                 >
                   {group.isExpanded ? <ArrowDownIcon /> : <ArrowRightIcon />}
                   <span className="category-name">
-                    {group.category === 'default' ? '我的好友' : group.category}
+                    {group.categoryName}
                   </span>
-                  <span className="friend-count">{group.friends.length}</span>
+                  <span className="friend-count">({group.friends.length})</span>
+                  {group.categoryId && (
+                    <EditIcon aria-label={`编辑分类 ${group.categoryName}`} className="edit-icon"></EditIcon>
+                  )}
                 </div>
 
                 {group.isExpanded && (

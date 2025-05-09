@@ -29,7 +29,6 @@ function FriendsViews() {
     pendingReceivedRequestsCount,
     fetchAndUpdatePendingCount: refreshGlobalPendingCount,
   } = useAppNotificationsContext() // 使用全局计数和刷新方法
-  const [isAddingCategory, setIsAddingCategory] = useState(true)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [selectedTab, setSelectedTab] = useState<
     'details' | 'requests' | 'addFriend'
@@ -61,6 +60,10 @@ function FriendsViews() {
   } | null>(null)
   const [newRemark, setNewRemark] = useState('')
   const [isSavingRemark, setIsSavingRemark] = useState(false)
+  // 添加分类 Dialog 的状态
+  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false)
+  const [newCategoryNameInput, setNewCategoryNameInput] = useState('') // InputDialog 的输入值
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false) // 用于 InputDialog 的确认按钮加载状态
 
   // --- 使用 WebSocket Hook ---
   // const { on: socketOn } = useWebSocketContext()
@@ -81,29 +84,19 @@ function FriendsViews() {
   const fetchFriends = useCallback(async () => {
     try {
       setIsLoading(true)
-      const response = await axios.get('/friends')
-
-      // 处理好友数据，按分类分组
-      const friendsByCategory: Record<string, Friend[]> = {}
-      response.data.forEach((friend: Friend) => {
-        const category: string = friend.category || '我的好友'
-        if (!friendsByCategory[category]) {
-          friendsByCategory[category] = [] as Friend[]
-        }
-        friendsByCategory[category].push(friend)
-      })
+      const response = await axios.get('/friends/by-category')
 
       // 转换为组件需要的数据格式
-      const groups = Object.keys(friendsByCategory).map((category) => ({
-        category,
-        friends: friendsByCategory[category],
-        isExpanded: true, // 默认展开
-      }))
+      const groupsWithExpansionState = response.data.map((group: any) => ({
+        ...group,
+        isExpanded: true, // 默认展开，或者根据之前的状态恢复
+      }));
 
-      setCategoryGroups(groups)
+      setCategoryGroups(groupsWithExpansionState)
     } catch (error) {
       console.error('获取好友列表失败:', error)
       showMessage.error('获取好友列表失败')
+      setCategoryGroups([]); // 出错时清空或设置为一个表示错误的状态
     } finally {
       setIsLoading(false)
     }
@@ -173,52 +166,63 @@ function FriendsViews() {
   }, 300)
 
   // --- 好友分类 ---
+  // 打开添加分类对话框
+  const handleOpenAddCategoryDialog = () => {
+    setNewCategoryNameInput('') // 清空上次输入
+    setIsAddCategoryDialogOpen(true)
+    // setIsAddingCategory(true); // 如果 FriendsSidebar 依赖这个来显示某些 UI，可能需要保留或调整
+  }
+  // 关闭添加分类对话框
+  const handleCloseAddCategoryDialog = () => {
+    setIsAddCategoryDialogOpen(false)
+    // setIsAddingCategory(false);
+  }
+  // 确定创建分类
+  const handleCreateCategoryConfirm = async (name: string) => {
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      showMessage.error('分类名称不能为空')
+      return
+    }
+    setIsCreatingCategory(true)
+    try {
+      // 假设 API 端点是 /friends/categories
+      // 你的后端可能需要一个 categoryName 字段
+      await axios.post('/friends/categories', { name: trimmedName })
+      showMessage.success(`分类 "${trimmedName}" 创建成功`)
+      fetchFriends() // 重新获取好友列表和分类
+      handleCloseAddCategoryDialog()
+    } catch (error: any) {
+      console.error('创建分类失败:', error)
+      const errorMsg = error.response?.data?.message || '创建分类失败'
+      showMessage.error(errorMsg)
+    } finally {
+      setIsCreatingCategory(false)
+    }
+  }
   // 切换分类展开/折叠
-  const toggleCategory = (category: string) => {
+  const toggleCategory = (categoryName: string) => {
     setCategoryGroups((prev) =>
       prev.map((group) =>
-        group.category === category
+        group.categoryName === categoryName
           ? { ...group, isExpanded: !group.isExpanded }
           : group
       )
     )
   }
+
+  // --- 好友详情---
   // 处理好友点击
   const handleFriendClick = (friend: Friend) => {
     setSelectedFriend(friend)
     setSelectedTab('details')
   }
-  // 创建新分类
-  const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) {
-      showMessage.error('分类名称不能为空')
-      return
-    }
-
-    try {
-      await axios.post('/friends/categories', {
-        category: newCategoryName,
-        friendIds: [],
-      })
-
-      showMessage.success(`已创建分类 "${newCategoryName}"`)
-      setIsAddingCategory(false)
-      setNewCategoryName('')
-      fetchFriends()
-    } catch (error) {
-      console.error('创建分类失败:', error)
-      showMessage.error('创建分类失败')
-    }
-  }
-
-  // --- 好友详情操作回调 ---
   // 发送消息给好友
   const handleSendMessage = (friendUserId: string) => {
     // parameter name updated for clarity
     showMessage.info(`准备向好友 ${friendUserId} 发送消息 (功能待实现)`)
     console.log(`Send message to friend: ${friendUserId}`)
   }
-
   // 打开备注编辑弹窗
   const handleOpenEditRemark = (
     friendUserId: string,
@@ -238,8 +242,6 @@ function FriendsViews() {
   // 保存备注
   const handleSaveRemark = async () => {
     if (!friendToEditRemark || !friendToEditRemark.userId) return // Check userId
-    const { userId } = friendToEditRemark;
-    const remarkToSave = newRemark.trim();
     setIsSavingRemark(true)
     try {
       // API 期望 :friendId 是 userId
@@ -248,15 +250,8 @@ function FriendsViews() {
       })
       showMessage.success('备注已更新')
       fetchFriends() // 重新获取好友列表以更新备注
-      setSelectedFriend(prevFriend => {
-        if (prevFriend && prevFriend.friend._id === userId) {
-          return {
-            ...prevFriend,
-            remark: remarkToSave, // 直接更新备注
-          };
-        }
-        return prevFriend;
-      });
+      // 如果 FriendProfile 内部也获取最新数据，可以考虑是否还需要在这里 fetchFriends
+      // 但为了列表的 displayName (如果受备注影响) 更新，通常需要
       handleCloseEditRemark()
     } catch (error) {
       console.error('更新备注失败:', error)
@@ -466,17 +461,12 @@ function FriendsViews() {
         pendingRequestsCount={pendingReceivedRequestsCount}
         isLoading={isLoading}
         searchQuery={searchQuery}
-        isAddingCategory={isAddingCategory}
-        newCategoryName={newCategoryName}
         onFriendClick={handleFriendClick}
         onViewFriendRequests={viewFriendRequests}
         onViewAddFriend={viewAddFriend}
         onToggleCategory={toggleCategory}
         onSearch={handleSearch}
-        onAddCategory={() => setIsAddingCategory(true)}
-        onCancelAddCategory={() => setIsAddingCategory(false)}
-        onNewCategoryNameChange={setNewCategoryName}
-        onCreateCategory={handleCreateCategory}
+        onAddCategory={handleOpenAddCategoryDialog}
       />
 
       <main className="friends-layout">
@@ -544,6 +534,20 @@ function FriendsViews() {
           onInputChange={setNewRemark}
         />
       )}
+
+      {/* 添加分类弹窗 */}
+      <InputDialog
+        isOpen={isAddCategoryDialogOpen}
+        title="新建好友分组"
+        label="分组名称"
+        placeholder="请输入分组名称"
+        inputValue={newCategoryNameInput}
+        onInputChange={setNewCategoryNameInput}
+        onSave={handleCreateCategoryConfirm} // 确认时调用
+        onCancel={handleCloseAddCategoryDialog}
+        confirmText="创建"
+        isConfirming={isCreatingCategory}
+      />
     </div>
   )
 }
