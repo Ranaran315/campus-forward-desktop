@@ -18,6 +18,7 @@
       align-items: center;
       flex: 1;
       margin-right: 8px;
+
       input {
         padding: 8px 8px 8px 32px;
       }
@@ -76,6 +77,7 @@
         display: flex;
         align-items: center;
         gap: 5px;
+
         .badge {
           background-color: var(--primary-danger-color);
           color: #fff;
@@ -99,11 +101,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     .section-title {
       margin: 0;
       font-size: 14px;
       font-weight: 500;
     }
+
     .category-add-btn {
       background-color: var(--primary-background-color);
       border: none;
@@ -114,6 +118,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
+
       &:hover {
         background-color: var(--third-background-color);
         color: var(--primary-color);
@@ -125,8 +130,10 @@
   .friends-list-container {
     flex: 1;
     overflow-y: auto;
+
     .category-group {
       margin-bottom: 1px;
+
       .category-header {
         padding: 8px 16px;
         display: flex;
@@ -134,17 +141,59 @@
         cursor: pointer;
         user-select: none;
         transition: background-color 0.2s;
+
         &:hover {
           background-color: var(--primary-background-color);
         }
+
         .category-name {
           margin-left: 5px;
         }
+
         .friend-count {
           font-size: var(--small-font-size);
         }
+
         .edit-icon {
           margin-left: auto;
+        }
+      }
+
+      .friend-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        .friend-item {
+          display: flex;
+          align-items: center;
+          padding: 10px 16px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: var(--primary-background-color);
+          }
+
+          &.active {
+            background-color: var(--secondary-color);
+          }
+
+          .friend-info {
+            width: calc(100% - 60px);
+            margin-left: 10px;
+            flex: 1;
+            display: flex;
+
+            .friend-name {
+              display: inline-block;
+              width: 100%;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              font-size: 14px;
+            }
+          }
         }
       }
     }
