@@ -1,10 +1,22 @@
 import { UserProfile } from './user.types'
 
+export interface FriendCategory {
+  _id: string
+  name: string
+  user?: string
+  isDefault: boolean
+}
+
 export interface Friend {
   _id: string
   friend: UserProfile
   remark?: string
-  category: string
+  category: FriendCategory
+}
+
+export interface FriendCategoryInfo {
+  _id: string;
+  name: string;
 }
 
 export interface CategoryGroup {

@@ -40,6 +40,7 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
   )
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // 处理好友请求
   const handleRequest = async (
     requestId: string,
     action: 'accepted' | 'rejected'

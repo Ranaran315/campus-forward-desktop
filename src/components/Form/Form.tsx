@@ -5,6 +5,8 @@ import EyeOffIcon from '@/assets/icons/eye_off.svg?react'
 import SearchIcon from '@/assets/icons/search.svg?react'
 import './Form.css' // 引入 CSS 文件
 
+import AntdSelectField from '@/components/Form/AntdSelectField'
+
 // --- Form 组件  ---
 interface FormProps {
   children?: ReactNode
@@ -73,12 +75,15 @@ const InputField: React.FC<InputFieldProps> = React.memo(
       setShowPassword((prev) => !prev)
     }
 
-    const inputType = type === 'password'
-      ? isShowPassword ? 'text' : 'password'
-      : type;
+    const inputType =
+      type === 'password' ? (isShowPassword ? 'text' : 'password') : type
 
     return (
-      <div className={`input-group ${className || ''} ${theme ? `theme-${theme}` : ''}`}>
+      <div
+        className={`input-group ${className || ''} ${
+          theme ? `theme-${theme}` : ''
+        }`}
+      >
         {label && <label htmlFor={name}>{label}</label>}
         <div className="input-wrapper">
           {theme === 'search' && <SearchIcon className="search-icon" />}
@@ -115,173 +120,214 @@ const InputField: React.FC<InputFieldProps> = React.memo(
 
 // --- TextAreaField 组件 ---
 interface TextAreaFieldProps {
-  name: string              // textarea 的 name 属性
-  label?: string            // 标签文本
-  value: string             // 文本值
+  name: string // textarea 的 name 属性
+  label?: string // 标签文本
+  value: string // 文本值
   onChange: (name: string, value: string) => void // 值变化回调
-  className?: string        // 自定义CSS类名
-  placeholder?: string      // 占位符
-  rows?: number             // 默认行数
-  minRows?: number          // 最小行数
-  maxRows?: number          // 最大行数
-  maxLength?: number        // 最大字符数
-  required?: boolean        // 是否必填
-  disabled?: boolean        // 是否禁用
+  className?: string // 自定义CSS类名
+  placeholder?: string // 占位符
+  rows?: number // 默认行数
+  minRows?: number // 最小行数
+  maxRows?: number // 最大行数
+  maxLength?: number // 最大字符数
+  required?: boolean // 是否必填
+  disabled?: boolean // 是否禁用
   resizable?: 'both' | 'horizontal' | 'vertical' | 'none' // 调整大小方向
-  minWidth?: string         // 最小宽度
-  minHeight?: string        // 最小高度
-  maxWidth?: string         // 最大宽度
-  maxHeight?: string        // 最大高度
-  showCount?: boolean       // 是否显示字数统计
+  minWidth?: string // 最小宽度
+  minHeight?: string // 最小高度
+  maxWidth?: string // 最大宽度
+  maxHeight?: string // 最大高度
+  showCount?: boolean // 是否显示字数统计
 }
-const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(({
-  name,
-  label,
-  value,
-  onChange,
-  className,
-  placeholder,
-  rows = 3,
-  minRows,
-  maxRows,
-  maxLength,
-  required,
-  disabled,
-  resizable = 'both',
-  minWidth,
-  minHeight,
-  maxWidth,
-  maxHeight,
-  showCount = false
-}) => {
-  // 处理文本变化
-  const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const newValue = event.target.value;
-      onChange(name, newValue);
-    },
-    [name, onChange]
-  );
-
-  // 计算样式
-  const textareaStyle: React.CSSProperties = {
-    resize: resizable,
+const TextAreaField: React.FC<TextAreaFieldProps> = React.memo(
+  ({
+    name,
+    label,
+    value,
+    onChange,
+    className,
+    placeholder,
+    rows = 3,
+    minRows,
+    maxRows,
+    maxLength,
+    required,
+    disabled,
+    resizable = 'both',
     minWidth,
     minHeight,
     maxWidth,
     maxHeight,
-  };
-
-  // 计算当前字符和最大字符数显示
-  const charCount = value ? value.length : 0;
-  const countDisplay = maxLength ? `${charCount}/${maxLength}` : `${charCount}字`;
-
-  return (
-    <div className={`textarea-group ${className || ''}`}>
-      {label && <label htmlFor={name}>{label}</label>}
-      <div className="textarea-wrapper">
-        <textarea
-          id={name}
-          name={name}
-          value={value}
-          onChange={handleChange}
-          placeholder={placeholder}
-          rows={rows}
-          maxLength={maxLength}
-          required={required}
-          disabled={disabled}
-          style={textareaStyle}
-          className="textarea-inner"
-        />
-        {showCount && (
-          <div className={`char-count ${maxLength && charCount >= maxLength ? 'limit-reached' : ''}`}>
-            {countDisplay}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-});
-
-// --- SelectField 组件 (下拉选择框) ---
-interface SelectFieldProps {
-  id?: string // 可选的 id 属性
-  name: string
-  label?: string
-  options: Array<{ value: string | number; label: string }> // 选项数组
-  value: string | number | ReadonlyArray<string> // 当前选中的值(单选)或值数组(多选)
-  onChange: (name: string, value: string | string[] | number | number[]) => void // 更新父组件状态的回调
-  multiple?: boolean // 是否允许多选
-  required?: boolean
-  disabled?: boolean
-  placeholder?: string // 未选择时的占位符
-  className?: string // 自定义 CSS 类
-}
-const SelectField: React.FC<SelectFieldProps> = React.memo(
-  ({
-    id,
-    name,
-    label,
-    options,
-    value,
-    onChange,
-    multiple = false, // 默认单选
-    required,
-    disabled,
-    placeholder,
-    className,
+    showCount = false,
   }) => {
+    // 处理文本变化
     const handleChange = useCallback(
-      (event: ChangeEvent<HTMLSelectElement>) => {
-        let newValue: string | string[] | number | number[]
-        if (multiple) {
-          // 处理多选：获取所有选中项的值
-          newValue = Array.from(event.target.selectedOptions).map(
-            (option) => option.value
-          )
-          // 如果选项值是数字，可能需要转换
-          // newValue = Array.from(event.target.selectedOptions).map(option => Number.isNaN(Number(option.value)) ? option.value : Number(option.value));
-        } else {
-          // 处理单选
-          newValue = event.target.value
-          // newValue = Number.isNaN(Number(event.target.value)) ? event.target.value : Number(event.target.value);
-        }
-        onChange(name, newValue) // 通知父组件
+      (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newValue = event.target.value
+        onChange(name, newValue)
       },
-      [name, multiple, onChange]
+      [name, onChange]
     )
 
-    return (
-      <div className={`input-group select-group ${className || ''}`}>
-        {label && <label htmlFor={name}>{label}</label>}
-        <select
-          id={id ?? name}
-          name={name}
-          value={value} // 绑定父组件的值
-          onChange={handleChange}
-          multiple={multiple}
-          required={required}
-          disabled={disabled}
-          className="select-inner" // 应用样式
-        >
-          {/* 添加占位符选项（如果提供了 placeholder 且是单选） */}
-          {placeholder && !multiple && (
-            <option value="" disabled={required}>
-              {placeholder}
-            </option>
-          )}
+    // 计算样式
+    const textareaStyle: React.CSSProperties = {
+      resize: resizable,
+      minWidth,
+      minHeight,
+      maxWidth,
+      maxHeight,
+    }
 
-          {/* 渲染选项 */}
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+    // 计算当前字符和最大字符数显示
+    const charCount = value ? value.length : 0
+    const countDisplay = maxLength
+      ? `${charCount}/${maxLength}`
+      : `${charCount}字`
+
+    return (
+      <div className={`textarea-group ${className || ''}`}>
+        {label && <label htmlFor={name}>{label}</label>}
+        <div className="textarea-wrapper">
+          <textarea
+            id={name}
+            name={name}
+            value={value}
+            onChange={handleChange}
+            placeholder={placeholder}
+            rows={rows}
+            maxLength={maxLength}
+            required={required}
+            disabled={disabled}
+            style={textareaStyle}
+            className="textarea-inner"
+          />
+          {showCount && (
+            <div
+              className={`char-count ${
+                maxLength && charCount >= maxLength ? 'limit-reached' : ''
+              }`}
+            >
+              {countDisplay}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
 )
+
+// --- SelectField 组件 (下拉选择框) ---
+// interface SelectFieldProps {
+//   id?: string; // 可选的 id 属性
+//   name: string;
+//   label?: string;
+//   options: Array<{ value: string | number; label: string }>; // 选项数组
+//   value: string | number | ReadonlyArray<string | number>; // 当前选中的值(单选)或值数组(多选)
+//   onChange: (name: string, value: string | string[] | number | number[]) => void; // 更新父组件状态的回调
+//   multiple?: boolean; // 是否允许多选
+//   required?: boolean;
+//   disabled?: boolean;
+//   placeholder?: string; // 未选择时的占位符
+//   className?: string; // 自定义 CSS 类
+// }
+// const SelectField: React.FC<SelectFieldProps> = React.memo(
+//   ({
+//     id,
+//     name,
+//     label,
+//     options,
+//     value,
+//     onChange,
+//     multiple = false,
+//     required,
+//     disabled,
+//     placeholder,
+//     className,
+//   }) => {
+//     const handleChange = useCallback(
+//       (event: ChangeEvent<HTMLSelectElement>) => {
+//         let processedNewValue: string | string[] | number | number[];
+
+//         if (multiple) {
+//           const selectedOptionValues = Array.from(
+//             event.target.selectedOptions
+//           ).map((option) => option.value); // HTMLOptionElement.value is always string
+
+//           processedNewValue = selectedOptionValues.map((selectedValueString) => {
+//             const originalOption = options.find(
+//               (opt) => opt.value.toString() === selectedValueString
+//             );
+//             if (originalOption && typeof originalOption.value === 'number') {
+//               return Number(selectedValueString);
+//             }
+//             return selectedValueString;
+//           }) as string[] | number[];
+//         } else {
+//           const selectedValueString = event.target.value; // HTMLSelectElement.value is always string
+//           const originalOption = options.find(
+//             (opt) => opt.value.toString() === selectedValueString
+//           );
+//           if (originalOption && typeof originalOption.value === 'number') {
+//             processedNewValue = Number(selectedValueString);
+//           } else {
+//             processedNewValue = selectedValueString;
+//           }
+//         }
+//         onChange(name, processedNewValue);
+//       },
+//       [name, multiple, onChange, options] // `options` is needed for type conversion
+//     );
+
+//     // Prepare the value for the <select> element.
+//     // HTMLSelectElement's `value` (for single select) or `selectedOptions` (for multi-select)
+//     // work with string values.
+//     let selectElementValue: string | string[];
+//     if (multiple) {
+//       // Ensure `value` is an array and all its elements are strings for the select element
+//       selectElementValue = Array.isArray(value)
+//         ? value.map((v) => v.toString())
+//         : []; // Default to empty array if `value` is not an array in multiple mode
+//     } else {
+//       // Ensure `value` is a string for the select element
+//       selectElementValue =
+//         value !== undefined && value !== null ? value.toString() : "";
+//     }
+
+//     return (
+//       <div className={`input-group select-group ${className || ""}`}>
+//         {label && <label htmlFor={id ?? name}>{label}</label>}
+//         <select
+//           id={id ?? name}
+//           name={name}
+//           value={selectElementValue} // Use the processed string value(s)
+//           onChange={handleChange}
+//           multiple={multiple}
+//           required={required}
+//           disabled={disabled}
+//           className="select-inner"
+//         >
+//           {/* Placeholder option for single select mode */}
+//           {placeholder && !multiple && (
+//             <option value="" disabled={required}> {/* Placeholder value is typically empty string */}
+//               {placeholder}
+//             </option>
+//           )}
+
+//           {/* Render actual options */}
+//           {options.map((option) => (
+//             // The `value` attribute of an <option> element must be a string.
+//             <option
+//               key={option.value.toString()} // Key should be unique and string
+//               value={option.value.toString()} // Option value must be string
+//             >
+//               {option.label}
+//             </option>
+//           ))}
+//         </select>
+//       </div>
+//     );
+//   }
+// );
 
 // --- Radio 组件 ---
 interface RadioOption {
@@ -377,4 +423,10 @@ const RadioGroup: React.FC<RadioGroupProps> = React.memo(
   }
 )
 
-export { Form, InputField, TextAreaField, SelectField, RadioGroup }
+export {
+  Form,
+  InputField,
+  TextAreaField,
+  AntdSelectField as SelectField,
+  RadioGroup,
+}

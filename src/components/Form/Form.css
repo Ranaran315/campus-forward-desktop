@@ -141,46 +141,40 @@
 }
 
 /* 下拉选择框 */
-.select-group select {
-  /* 基础样式，可以继承 .input-inner 的部分样式 */
-  width: 100%;
-  padding: 10px 8px;
-  /* 调整 padding 以适应箭头 */
-  border-radius: 8px;
-  font-size: 16px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  /* Select 通常需要边框 */
-  background-color: white;
-  cursor: pointer;
-  /* 可以添加外观属性来美化，或去除默认箭头 */
-  appearance: none;
-  /* 隐藏默认箭头 (可能需要 -webkit- -moz-) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
-  /* 自定义箭头 */
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-  padding-right: 30px;
-  /* 为箭头留出空间 */
-}
-
-.select-group select:focus {
-  border-color: var(--primary-color, #007bff);
-  /* 使用变量或默认色 */
-  outline: none;
-  /* 移除默认 outline */
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-  /* 添加 focus 效果 */
-}
-
-.select-group select:disabled {
-  background-color: var(--disabled-background-color, #e9ecef);
-  color: var(--disabled-text-color, #6c757d);
-  cursor: not-allowed;
-  border-color: #ced4da;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23aaa'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
-  /* 禁用的箭头颜色 */
+.select-group {
+  select {
+    /* 基础样式，可以继承 .input-inner 的部分样式 */
+    width: 100%;
+    padding: 5px 8px;
+    /* 调整 padding 以适应箭头 */
+    border-radius: 4px;
+    font-size: var(--normal-font-size);
+    box-sizing: border-box;
+    border: 1px solid var(--primary-border-color);
+    /* Select 通常需要边框 */
+    background-color: var(--secondary-background-color);
+    cursor: pointer;
+    appearance: none;
+    &:focus {
+      border-color: var(--primary-color);
+      /* 使用变量或默认色 */
+      outline: none;
+      /* 移除默认 outline */
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      /* 添加 focus 效果 */
+    }
+    &:disabled {
+      background-color: var(--disabled-background-color, #e9ecef);
+      color: var(--disabled-text-color, #6c757d);
+      cursor: not-allowed;
+      border-color: #ced4da;
+    }
+    option {
+      appearance: none;
+      display: inline-block;
+      padding: 5px;
+    }
+  }
 }
 
 /* 多选样式（可选，默认样式可能够用） */
@@ -301,16 +295,16 @@
 }
 
 /* 选中状态的样式 */
-.radio-group-standard .radio-input-hidden:checked+.standard-label::before {
+.radio-group-standard .radio-input-hidden:checked + .standard-label::before {
   border-color: var(--primary-color, #007bff);
 }
 
-.radio-group-standard .radio-input-hidden:checked+.standard-label::after {
+.radio-group-standard .radio-input-hidden:checked + .standard-label::after {
   transform: scale(1);
   /* 显示选中点 */
 }
 
-.radio-group-standard .radio-input-hidden:focus+.standard-label::before {
+.radio-group-standard .radio-input-hidden:focus + .standard-label::before {
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
   /* Focus 效果 */
 }
@@ -353,7 +347,7 @@
 }
 
 /* 按钮选中时的样式 */
-.radio-group-button .radio-input-hidden:checked+.button-label {
+.radio-group-button .radio-input-hidden:checked + .button-label {
   background-color: var(--primary-color, #007bff);
   color: white;
 }

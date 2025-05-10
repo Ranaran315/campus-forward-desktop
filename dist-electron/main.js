@@ -2866,7 +2866,7 @@ const keyword_1 = keyword;
 const subschema_1 = subschema;
 const codegen_1$r = codegen;
 const names_1$6 = names$1;
-const resolve_1$1 = resolve$2;
+const resolve_1$2 = resolve$2;
 const util_1$p = util;
 const errors_1 = errors;
 function validateFunctionCode(it) {
@@ -2993,7 +2993,7 @@ function checkNoDefault(it) {
 function updateContext(it) {
   const schId = it.schema[it.opts.schemaId];
   if (schId)
-    it.baseId = (0, resolve_1$1.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
+    it.baseId = (0, resolve_1$2.resolveUrl)(it.opts.uriResolver, it.baseId, schId);
 }
 function checkAsyncSchema(it) {
   if (it.schema.$async && !it.schemaEnv.$async)
@@ -3366,22 +3366,16 @@ class ValidationError extends Error {
 }
 validation_error.default = ValidationError;
 var ref_error = {};
-var hasRequiredRef_error;
-function requireRef_error() {
-  if (hasRequiredRef_error) return ref_error;
-  hasRequiredRef_error = 1;
-  Object.defineProperty(ref_error, "__esModule", { value: true });
-  const resolve_12 = resolve$2;
-  class MissingRefError extends Error {
-    constructor(resolver, baseId, ref2, msg) {
-      super(msg || `can't resolve reference ${ref2} from id ${baseId}`);
-      this.missingRef = (0, resolve_12.resolveUrl)(resolver, baseId, ref2);
-      this.missingSchema = (0, resolve_12.normalizeId)((0, resolve_12.getFullPath)(resolver, this.missingRef));
-    }
+Object.defineProperty(ref_error, "__esModule", { value: true });
+const resolve_1$1 = resolve$2;
+class MissingRefError extends Error {
+  constructor(resolver, baseId, ref2, msg) {
+    super(msg || `can't resolve reference ${ref2} from id ${baseId}`);
+    this.missingRef = (0, resolve_1$1.resolveUrl)(resolver, baseId, ref2);
+    this.missingSchema = (0, resolve_1$1.normalizeId)((0, resolve_1$1.getFullPath)(resolver, this.missingRef));
   }
-  ref_error.default = MissingRefError;
-  return ref_error;
 }
+ref_error.default = MissingRefError;
 var compile = {};
 Object.defineProperty(compile, "__esModule", { value: true });
 compile.resolveSchema = compile.getCompilingSchema = compile.resolveRef = compile.compileSchema = compile.SchemaEnv = void 0;
@@ -4301,7 +4295,7 @@ uri$1.default = uri;
     return codegen_12.CodeGen;
   } });
   const validation_error_12 = validation_error;
-  const ref_error_12 = requireRef_error();
+  const ref_error_12 = ref_error;
   const rules_12 = rules;
   const compile_12 = compile;
   const codegen_2 = codegen;
@@ -4894,7 +4888,7 @@ id.default = def$B;
 var ref = {};
 Object.defineProperty(ref, "__esModule", { value: true });
 ref.callRef = ref.getValidate = void 0;
-const ref_error_1$1 = requireRef_error();
+const ref_error_1$1 = ref_error;
 const code_1$8 = code;
 const codegen_1$p = codegen;
 const names_1$4 = names$1;
@@ -6609,7 +6603,7 @@ Object.defineProperty(discriminator, "__esModule", { value: true });
 const codegen_1 = codegen;
 const types_1 = types;
 const compile_1 = compile;
-const ref_error_1 = requireRef_error();
+const ref_error_1 = ref_error;
 const util_1 = util;
 const error = {
   message: ({ params: { discrError, tagName } }) => discrError === types_1.DiscrError.Tag ? `tag "${tagName}" must be string` : `value of tag "${tagName}" must be in oneOf`,
@@ -7313,7 +7307,7 @@ jsonSchema202012.default = addMetaSchema2020;
   Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function() {
     return validation_error_12.default;
   } });
-  var ref_error_12 = requireRef_error();
+  var ref_error_12 = ref_error;
   Object.defineProperty(exports, "MissingRefError", { enumerable: true, get: function() {
     return ref_error_12.default;
   } });
@@ -7844,7 +7838,7 @@ const require$$3 = {
   Object.defineProperty(exports, "ValidationError", { enumerable: true, get: function() {
     return validation_error_12.default;
   } });
-  var ref_error_12 = requireRef_error();
+  var ref_error_12 = ref_error;
   Object.defineProperty(exports, "MissingRefError", { enumerable: true, get: function() {
     return ref_error_12.default;
   } });

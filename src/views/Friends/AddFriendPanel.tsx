@@ -90,7 +90,7 @@ const AddFriendPanel: React.FC<AddFriendPanelProps> = ({ onRequestSent }) => {
             }
         } catch (error) {
             console.error('发送好友请求失败:', error)
-            showMessage.error('发送好友请求失败')
+            showMessage.error((error as any).response?.data?.message || '发送好友请求失败')
         }
     }
 
