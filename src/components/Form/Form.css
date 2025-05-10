@@ -44,6 +44,15 @@
       }
     }
 
+    .input-count {
+      padding: 5px 10px;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      font-size: var(--mini-font-size);
+      color: var(--secondary-text-color);
+    }
+
     .toggle-password-visibility {
       position: absolute;
       right: 10px;

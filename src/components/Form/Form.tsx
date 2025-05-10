@@ -23,7 +23,7 @@ const Form: React.FC<FormProps> = ({ children, className, onSubmit }) => {
 }
 
 // --- InputField 组件 ---
-interface InputFieldProps {
+export interface InputFieldProps {
   id?: string // 可选的 id 属性
   name: string // Input 的 name 属性
   label?: string // Input 的标签
@@ -102,6 +102,12 @@ const InputField: React.FC<InputFieldProps> = React.memo(
             autoFocus={autoFocus} // 是否自动获取焦点
             {...rest} // 允许传递其他属性，如 maxLength, minLength 等
           />
+          {rest.maxLength && (
+            <span className="input-count">
+              {value.length}
+              {rest.maxLength ? `/${rest.maxLength}` : ''}
+            </span>
+          )}
           {type === 'password' && (
             <button
               type="button"

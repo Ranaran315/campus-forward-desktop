@@ -63,13 +63,21 @@ function FriendsViews() {
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false)
   const [newCategoryNameInput, setNewCategoryNameInput] = useState('') // InputDialog 的输入值
   const [isCreatingCategory, setIsCreatingCategory] = useState(false) // 用于 InputDialog 的确认按钮加载状态
-  const [isEditCategoryNameDialogOpen, setIsEditCategoryNameDialogOpen] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<{ id: string; currentName: string } | null>(null);
-  const [newCategoryNameForEdit, setNewCategoryNameForEdit] = useState('');
-  const [isSavingCategoryName, setIsSavingCategoryName] = useState(false);
-  const [isConfirmDeleteCategoryOpen, setIsConfirmDeleteCategoryOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  const [isEditCategoryNameDialogOpen, setIsEditCategoryNameDialogOpen] =
+    useState(false)
+  const [categoryToEdit, setCategoryToEdit] = useState<{
+    id: string
+    currentName: string
+  } | null>(null)
+  const [newCategoryNameForEdit, setNewCategoryNameForEdit] = useState('')
+  const [isSavingCategoryName, setIsSavingCategoryName] = useState(false)
+  const [isConfirmDeleteCategoryOpen, setIsConfirmDeleteCategoryOpen] =
+    useState(false)
+  const [categoryToDelete, setCategoryToDelete] = useState<{
+    id: string
+    name: string
+  } | null>(null)
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false)
 
   // --- 使用 WebSocket Hook ---
   // const { on: socketOn } = useWebSocketContext()
@@ -96,13 +104,13 @@ function FriendsViews() {
       const groupsWithExpansionState = response.data.map((group: any) => ({
         ...group,
         isExpanded: true, // 默认展开，或者根据之前的状态恢复
-      }));
+      }))
 
       setCategoryGroups(groupsWithExpansionState)
     } catch (error) {
       console.error('获取好友列表失败:', error)
       showMessage.error('获取好友列表失败')
-      setCategoryGroups([]); // 出错时清空或设置为一个表示错误的状态
+      setCategoryGroups([]) // 出错时清空或设置为一个表示错误的状态
     } finally {
       setIsLoading(false)
     }
@@ -216,59 +224,72 @@ function FriendsViews() {
     )
   }
   // 打开重命名分类对话框
-  const handleOpenRenameCategoryDialogCallback = useCallback((categoryId: string, currentName: string) => {
-    setCategoryToEdit({
-      id: categoryId,
-      currentName: currentName,
-    });
-    setNewCategoryNameForEdit(currentName);
-    setIsEditCategoryNameDialogOpen(true);
-  }, []);
+  const handleOpenRenameCategoryDialogCallback = useCallback(
+    (categoryId: string, currentName: string) => {
+      console.log('打开重命名分类对话框:', categoryId, currentName)
+      setCategoryToEdit({
+        id: categoryId,
+        currentName: currentName,
+      })
+      setNewCategoryNameForEdit(currentName)
+      setIsEditCategoryNameDialogOpen(true)
+    },
+    []
+  )
   // 保存分类名称
   const handleSaveCategoryName = async () => {
     if (!categoryToEdit || !newCategoryNameForEdit.trim()) {
-      showMessage.error('分类名称不能为空');
-      return;
+      showMessage.error('分类名称不能为空')
+      return
     }
-    setIsSavingCategoryName(true);
+    setIsSavingCategoryName(true)
     try {
-      await axios.put(`/friends/categories/${categoryToEdit.id}`, { name: newCategoryNameForEdit.trim() });
-      showMessage.success('分类名称已更新');
-      fetchFriends();
-      setIsEditCategoryNameDialogOpen(false);
-      setCategoryToEdit(null);
+      await axios.put(`/friends/categories/${categoryToEdit.id}`, {
+        name: newCategoryNameForEdit.trim(),
+      })
+      showMessage.success('分类名称已更新')
+      fetchFriends()
+      setIsEditCategoryNameDialogOpen(false)
+      setCategoryToEdit(null)
     } catch (error: any) {
-      console.error('更新分类名称失败:', error);
-      showMessage.error(error.response?.data?.message || '更新分类名称失败');
+      console.error('更新分类名称失败:', error)
+      showMessage.error(error.response?.data?.message || '更新分类名称失败')
     } finally {
-      setIsSavingCategoryName(false);
+      setIsSavingCategoryName(false)
     }
-  };
+  }
   // 打开删除分类确认对话框
-  const handleOpenDeleteCategoryDialogCallback = useCallback((categoryId: string, categoryName: string) => {
-    setCategoryToDelete({
-      id: categoryId,
-      name: categoryName,
-    });
-    setIsConfirmDeleteCategoryOpen(true);
-  }, []);
+  const handleOpenDeleteCategoryDialogCallback = useCallback(
+    (categoryId: string, categoryName: string) => {
+      setCategoryToDelete({
+        id: categoryId,
+        name: categoryName,
+      })
+      setIsConfirmDeleteCategoryOpen(true)
+    },
+    []
+  )
   // 确认删除分类名称
   const handleDeleteCategoryConfirmed = async () => {
-    if (!categoryToDelete) return;
-    setIsDeletingCategory(true);
+    if (!categoryToDelete) return
+    setIsDeletingCategory(true)
     try {
-      await axios.delete(`/friends/categories/${categoryToDelete.id}`);
-      showMessage.success(`分类 "${categoryToDelete.name}" 已删除`);
-      fetchFriends();
-      setIsConfirmDeleteCategoryOpen(false);
-      setCategoryToDelete(null);
+      await axios.delete(`/friends/categories/${categoryToDelete.id}`)
+      showMessage.success(`分类 "${categoryToDelete.name}" 已删除`)
+      fetchFriends()
+      setIsConfirmDeleteCategoryOpen(false)
+      setCategoryToDelete(null)
     } catch (error: any) {
-      console.error('删除分类失败:', error);
-      showMessage.error(error.response?.data?.message || '删除分类失败');
+      console.error('删除分类失败:', error)
+      showMessage.error(error.response?.data?.message || '删除分类失败')
     } finally {
-      setIsDeletingCategory(false);
+      setIsDeletingCategory(false)
     }
-  };
+  }
+  // 更新好友分类
+  const handleFriendCategoryUpdated = useCallback(() => {
+    fetchFriends() // 重新获取好友列表
+  }, [fetchFriends])
 
   // --- 好友详情---
   // 处理好友点击
@@ -312,6 +333,17 @@ function FriendsViews() {
       // 如果 FriendProfile 内部也获取最新数据，可以考虑是否还需要在这里 fetchFriends
       // 但为了列表的 displayName (如果受备注影响) 更新，通常需要
       handleCloseEditRemark()
+
+      // 更新selectedFriend的备注
+      setSelectedFriend((prevFriend) => {
+        if (prevFriend && prevFriend.friend._id === friendToEditRemark.userId) {
+          return {
+            ...prevFriend,
+            remark: newRemark.trim(), // 使用新的备注更新
+          }
+        }
+        return prevFriend
+      })
     } catch (error) {
       console.error('更新备注失败:', error)
       showMessage.error('更新备注失败')
@@ -538,6 +570,7 @@ function FriendsViews() {
             onSendMessage={handleSendMessage}
             onEditRemark={handleOpenEditRemark} // Pass the correct handler
             onDeleteFriend={handleOpenDeleteFriendConfirm} // Pass the correct handler
+            onCategoryUpdated={handleFriendCategoryUpdated}
           />
         )}
 
@@ -572,8 +605,9 @@ function FriendsViews() {
       <ConfirmDialog
         isOpen={isConfirmDeleteFriendOpen}
         title="删除好友"
-        message={`确定要删除好友 "${friendToDelete?.name || ''
-          }" 吗？此操作会解除双方的好友关系。`}
+        message={`确定要删除好友 "${
+          friendToDelete?.name || ''
+        }" 吗？此操作会解除双方的好友关系。`}
         onConfirm={handleDeleteFriendConfirmed}
         onCancel={handleCloseDeleteFriendConfirm}
         confirmText="删除"
@@ -608,6 +642,7 @@ function FriendsViews() {
         onCancel={handleCloseAddCategoryDialog}
         confirmText="创建"
         isConfirming={isCreatingCategory}
+        maxLength={10}
       />
 
       {/* 重命名分类确认弹窗 */}
@@ -620,22 +655,25 @@ function FriendsViews() {
           onInputChange={setNewCategoryNameForEdit}
           onSave={handleSaveCategoryName}
           onCancel={() => {
-            setIsEditCategoryNameDialogOpen(false);
-            setCategoryToEdit(null);
+            setIsEditCategoryNameDialogOpen(false)
+            setCategoryToEdit(null)
           }}
           confirmText="保存"
           isConfirming={isSavingCategoryName}
+          maxLength={10}
         />
       )}
       {/* 删除好友分类Dialog */}
       <ConfirmDialog
         isOpen={isConfirmDeleteCategoryOpen}
         title="删除好友分组"
-        message={`确定要删除分组 "${categoryToDelete?.name || ''}" 吗？分组内的好友将移至 "我的好友"。`}
+        message={`确定要删除分组 "${
+          categoryToDelete?.name || ''
+        }" 吗？分组内的好友将移至 "我的好友"。`}
         onConfirm={handleDeleteCategoryConfirmed}
         onCancel={() => {
-          setIsConfirmDeleteCategoryOpen(false);
-          setCategoryToDelete(null);
+          setIsConfirmDeleteCategoryOpen(false)
+          setCategoryToDelete(null)
         }}
         confirmText="删除"
         isConfirming={isDeletingCategory}

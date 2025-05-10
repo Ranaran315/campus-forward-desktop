@@ -19,6 +19,7 @@ interface AntdSelectFieldProps {
   placeholder?: string
   className?: string // 用于外层容器的自定义 class
   selectClassName?: string // 用于 Ant Design Select 组件本身的自定义 class
+  popupClassName?: string // 用于下拉菜单的自定义 class
   loading?: boolean
   allowClear?: boolean
   style?: React.CSSProperties // 用于外层容器的样式
@@ -43,6 +44,7 @@ const AntdSelectField: React.FC<AntdSelectFieldProps> = ({
   placeholder,
   className,
   selectClassName,
+  popupClassName,
   loading,
   allowClear = false,
   style,
@@ -86,6 +88,7 @@ const AntdSelectField: React.FC<AntdSelectFieldProps> = ({
         disabled={disabled}
         placeholder={placeholder}
         className={selectClassName}
+        popupClassName={popupClassName}
         loading={loading}
         allowClear={allowClear}
         filterOption={

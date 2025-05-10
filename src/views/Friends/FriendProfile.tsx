@@ -17,8 +17,9 @@ import { SelectField } from '@/components/Form/Form'
 interface FriendProfileProps {
   friendInitial: Friend
   onSendMessage: (friendUserId: string) => void
-  onEditRemark: (friendUserId: string, currentRemark?: string) => void // <--- 修改为 friendUserId
-  onDeleteFriend: (friendUserId: string, friendName: string) => void // <--- 修改为 friendUserId
+  onEditRemark: (friendUserId: string, currentRemark?: string) => void
+  onDeleteFriend: (friendUserId: string, friendName: string) => void
+  onCategoryUpdated: () => void // 分类更新后的回调函数
 }
 
 const FriendProfile: React.FC<FriendProfileProps> = ({
@@ -26,6 +27,7 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
   onSendMessage,
   onEditRemark,
   onDeleteFriend,
+  onCategoryUpdated,
 }) => {
   const [currentFriendData, setCurrentFriendData] = useState<Friend | null>(
     friendInitial
@@ -38,6 +40,7 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false)
   const [isUpdatingCategory, setIsUpdatingCategory] = useState(false)
 
+  // 获取最新好友信息
   const fetchLatestFriendInfo = useCallback(
     async (relationId: string) => {
       console.log(
@@ -123,6 +126,7 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
         // currentFriendData._id is relationId
         fetchLatestFriendInfo(currentFriendData._id)
       }
+      onCategoryUpdated()
     } catch (error: any) {
       console.error('Failed to update friend category:', error)
       showMessage.error(error.response?.data?.message || '更新好友分组失败')
@@ -201,17 +205,19 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
             <GroupIcon />
             分组
           </div>
-          <SelectField
-            name="friendCategory"
-            options={categoryOptions}
-            value={friendCategory?._id || ''} // 如果没有分类，给一个空字符串或特定值
-            onChange={handleCategoryChange}
-            disabled={isUpdatingCategory || categoryOptions.length === 0}
-            placeholder="选择分组"
-            className="friend-category-select" // 可以添加自定义样式
-            loading={isCategoriesLoading || isUpdatingCategory}
-            size="small"
-          />
+          <div className="profile-detail-item-right">
+            <SelectField
+              name="friendCategory"
+              options={categoryOptions}
+              value={friendCategory?._id || ''} // 如果没有分类，给一个空字符串或特定值
+              onChange={handleCategoryChange}
+              disabled={isUpdatingCategory || categoryOptions.length === 0}
+              placeholder="选择分组"
+              className="friend-category-select" // 可以添加自定义样式
+              loading={isCategoriesLoading || isUpdatingCategory}
+              size="small"
+            />
+          </div>
         </div>
         {/* 你可以添加显示好友分组的逻辑，如果 currentFriendData.category 存在 */}
       </div>

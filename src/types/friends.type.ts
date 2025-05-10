@@ -15,13 +15,14 @@ export interface Friend {
 }
 
 export interface FriendCategoryInfo {
-  _id: string;
-  name: string;
+  _id: string
+  name: string
 }
 
 export interface CategoryGroup {
-  categoryId: string
+  category: string // categoryId
   categoryName: string
+  isDefault: boolean
   friends: Friend[]
   isExpanded: boolean
 }
