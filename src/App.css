@@ -4,9 +4,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  div {
-    box-sizing: content-box;
-  }
 }
 
 .app-layout {

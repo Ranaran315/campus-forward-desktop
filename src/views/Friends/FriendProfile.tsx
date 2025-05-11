@@ -6,7 +6,7 @@ import { Friend, FriendCategoryInfo } from '@/types/friends.type' // 确保 Frie
 import './FriendProfile.css'
 import MessageIcon from '@/assets/icons/message.svg?react'
 import EditIcon from '@/assets/icons/edit.svg?react'
-import DeleteIcon from '@/assets/icons/delete.svg?react'
+import RemoveUserIcon from '@/assets/icons/remove_user.svg?react'
 import RemarkIcon from '@/assets/icons/remark.svg?react'
 import GroupIcon from '@/assets/icons/group.svg?react'
 import { showMessage } from '@/components/Message/MessageContainer'
@@ -242,7 +242,7 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
           onClick={() => onDeleteFriend(friendDetails._id, displayName)} // <--- 传递 friendDetails._id (userId)
           className="action-button"
         >
-          <DeleteIcon /> 删除好友
+          <RemoveUserIcon /> 删除好友
         </Button>
       </div>
     </div>

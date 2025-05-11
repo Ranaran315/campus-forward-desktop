@@ -6,7 +6,7 @@
   background-color: var(--header-background); /* 设置你想要的背景色 */
   color: var(--header-text); /* 设置文字颜色 */
   padding: 15px 15px;
-  height: 30px; /* 设置头部高度 */
+  height: 60px; /* 设置头部高度 */
   -webkit-app-region: drag; /* 允许拖动窗口 */
 }
 

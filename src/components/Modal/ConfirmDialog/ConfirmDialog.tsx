@@ -53,7 +53,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             theme="danger"
             onClick={onConfirm}
             disabled={isConfirming}
-            isLoading={isConfirming}
+            // isLoading={isConfirming}
           >
             {isConfirming ? '处理中...' : confirmText}
           </Button>

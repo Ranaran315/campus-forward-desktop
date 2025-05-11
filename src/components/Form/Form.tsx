@@ -1,5 +1,13 @@
 // src/components/Form/Form.tsx (修改后的完整代码)
-import React, { useCallback, ReactNode, ChangeEvent } from 'react'
+import React, {
+  useCallback,
+  ReactNode,
+  ChangeEvent,
+  FocusEventHandler,
+  useRef,
+  useEffect,
+  forwardRef,
+} from 'react'
 import EyeOnIcon from '@/assets/icons/eye_on.svg?react'
 import EyeOffIcon from '@/assets/icons/eye_off.svg?react'
 import SearchIcon from '@/assets/icons/search.svg?react'
@@ -39,89 +47,110 @@ export interface InputFieldProps {
   max?: string // 最大值 (适用于日期等类型)
   theme?: 'default' | 'search'
   autoFocus?: boolean // 是否自动获取焦点
+  dropdownContent?: React.ReactNode
+  isDropdownVisible?: boolean
   // !! 关键：onChange 由父组件提供，用于更新父组件的状态 !!
   onChange: (name: string, value: string) => void
+  onFocus?: FocusEventHandler
+  onBlur?: FocusEventHandler
 }
-const InputField: React.FC<InputFieldProps> = React.memo(
-  ({
-    id,
-    name,
-    label,
-    type = 'text',
-    className,
-    required,
-    disabled,
-    placeholder,
-    value, // 直接使用父组件传入的 value
-    onChange, // 直接使用父组件传入的 onChange
-    pattern,
-    max,
-    theme,
-    autoFocus,
-    ...rest
-  }) => {
-    // 处理原生 input 的 onChange 事件
-    const handleChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const newValue = event.target.value
-        // 调用从父组件传入的 onChange 方法，传递 name 和新的 value
-        onChange(name, newValue)
+const InputField = React.memo(
+  forwardRef<HTMLInputElement, InputFieldProps>( // 使用 forwardRef
+    (
+      {
+        id,
+        name,
+        label,
+        type = 'text',
+        className,
+        required,
+        disabled,
+        placeholder,
+        pattern,
+        max,
+        theme,
+        autoFocus,
+        value,
+        dropdownContent,
+        isDropdownVisible,
+        onChange,
+        onFocus,
+        onBlur,
+        // onOutsideClick, // 从 props 解构，但 InputField 内部不再需要 useEffect 来处理它
+        ...rest
       },
-      [name, onChange] // 依赖项是 name 和父组件传入的 onChange 函数
-    )
+      ref // 第二个参数是 ref
+    ) => {
+      const handleChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+          const newValue = event.target.value
+          onChange(name, newValue)
+        },
+        [name, onChange]
+      )
 
-    const [isShowPassword, setShowPassword] = React.useState(false)
-    const togglePasswordVisibility = () => {
-      setShowPassword((prev) => !prev)
-    }
+      const [isShowPassword, setShowPassword] = React.useState(false)
+      const togglePasswordVisibility = () => {
+        setShowPassword((prev) => !prev)
+      }
 
-    const inputType =
-      type === 'password' ? (isShowPassword ? 'text' : 'password') : type
+      const inputType =
+        type === 'password' ? (isShowPassword ? 'text' : 'password') : type
 
-    return (
-      <div
-        className={`input-group ${className || ''} ${
-          theme ? `theme-${theme}` : ''
-        }`}
-      >
-        {label && <label htmlFor={name}>{label}</label>}
-        <div className="input-wrapper">
-          {theme === 'search' && <SearchIcon className="search-icon" />}
-          <input
-            type={inputType}
-            id={id ?? name} // id 用于 label 关联
-            name={name} // name 属性
-            value={value} // !! input 的值完全由父组件的 prop 控制 !!
-            onChange={handleChange} // !! input 的改变事件触发父组件的更新 !!
-            required={required}
-            disabled={disabled}
-            placeholder={placeholder}
-            className="input-inner" // 你可以添加更多样式控制
-            pattern={pattern} // 允许传递正则表达式模式
-            max={max}
-            autoFocus={autoFocus} // 是否自动获取焦点
-            {...rest} // 允许传递其他属性，如 maxLength, minLength 等
-          />
-          {rest.maxLength && (
-            <span className="input-count">
-              {value.length}
-              {rest.maxLength ? `/${rest.maxLength}` : ''}
-            </span>
-          )}
-          {type === 'password' && (
-            <button
-              type="button"
-              className="toggle-password-visibility"
-              onClick={togglePasswordVisibility}
-              aria-label={isShowPassword ? 'Hide password' : 'Show password'}
-            >
-              {isShowPassword ? <EyeOnIcon /> : <EyeOffIcon />}
-            </button>
-          )}
+      // InputField 内部不再需要自己的 handleClickOutside useEffect，
+      // 因为这个逻辑现在由 Login.tsx 在其作用域内处理。
+
+      return (
+        <div
+          className={`input-group ${className || ''} ${
+            theme ? `theme-${theme}` : ''
+          }`}
+          // wrapperRef 如果 InputField 内部需要引用其根 div，可以保留
+          // 但对于父组件的 ref，我们使用 forwardRef 传递的 ref
+        >
+          {label && <label htmlFor={id ?? name}>{label}</label>}
+          <div className="input-wrapper">
+            {theme === 'search' && <SearchIcon className="search-icon" />}
+            <input
+              ref={ref} // 将转发的 ref 应用于实际的 input 元素
+              type={inputType}
+              id={id ?? name}
+              name={name}
+              value={value}
+              required={required}
+              disabled={disabled}
+              placeholder={placeholder}
+              className="input-inner"
+              pattern={pattern}
+              max={max}
+              autoFocus={autoFocus}
+              onChange={handleChange}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              {...rest}
+            />
+            {rest.maxLength && value && ( // 确保 value 存在再计算 length
+              <span className="input-count">
+                {value.length}
+                {rest.maxLength ? `/${rest.maxLength}` : ''}
+              </span>
+            )}
+            {type === 'password' && (
+              <button
+                type="button"
+                className="toggle-password-visibility"
+                onClick={togglePasswordVisibility}
+                aria-label={isShowPassword ? 'Hide password' : 'Show password'}
+              >
+                {isShowPassword ? <EyeOnIcon /> : <EyeOffIcon />}
+              </button>
+            )}
+          </div>
+          {isDropdownVisible && dropdownContent}
         </div>
-      </div>
-    )
-  }
+      )
+    }
+  )
 )
 
 // --- TextAreaField 组件 ---
