@@ -33,6 +33,8 @@
     }
   }
   .admin-site-layout {
+    display: flex;
+    flex-direction: column;
     .admin-layout-header {
       background-color: var(--primary-color);
       padding: 0 24px;
@@ -41,13 +43,53 @@
       align-items: center;
       -webkit-app-region: drag;
     }
-    .ant-layout-content {
+    .admin-layout-content {
+      flex: 1;
       .admin-layout-content-background {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
         padding: 24px;
         background: var(--secondary-background-color);
-        min-height: calc(
+        height: calc(
           100vh - 64px - 48px - 69px
         ); /* Header - Breadcrumb - Footer */
+      }
+    }
+  }
+}
+
+/* ant-design table 高度自适应 */
+.ant-table-wrapper {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  .ant-spin-nested-loading {
+    height: 100%;
+    .ant-spin-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      .ant-table {
+        height: 100%;
+        overflow: hidden;
+        .ant-table-content {
+          height: 100%;
+          overflow: auto;
+        }
+        .ant-table-container {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          overflow: hidden;
+          .ant-table-body {
+            flex: 1;
+            overflow: auto !important;
+          }
+        }
       }
     }
   }

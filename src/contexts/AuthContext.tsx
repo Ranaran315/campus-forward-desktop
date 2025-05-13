@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode'; // 用于解码JWT获取用户信息
 import { showMessage } from '@/components/Message/MessageContainer';
+import { PermissionString } from '@/constants/permissions'
 
 // 假设解码后的JWT包含以下结构，或者您通过 /users/me 获取此类信息
 interface DecodedToken {
-  userId: string;
+  sub: string;
   username: string;
   roles: string[]; // 角色名称列表
   permissions: string[]; // 权限字符串列表
@@ -20,7 +21,7 @@ interface AuthContextType {
   login: (token: string) => Promise<void>; // 登录后，应从token解码或请求/users/me获取权限
   logout: () => void;
   isLoading: boolean; // 用于处理初始加载用户状态
-  checkPermission: (permission: string) => boolean;
+  checkPermission: (permission: PermissionString) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

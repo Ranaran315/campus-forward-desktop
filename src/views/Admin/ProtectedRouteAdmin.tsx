@@ -22,7 +22,7 @@ const ProtectedRouteAdmin: React.FC = () => {
   const location = useLocation()
 
   if (isLoading) {
-    // 可以在这里显示一个全局加载指示器或骨架屏
+    // @TODO 可以在这里显示一个全局加载指示器或骨架屏
     return null
   }
 
