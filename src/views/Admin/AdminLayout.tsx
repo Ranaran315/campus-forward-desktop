@@ -120,7 +120,7 @@ const AdminLayout: React.FC = () => {
           </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
-          Campus Admin Panel ©{new Date().getFullYear()} Created by YourName
+          Campus Admin Panel ©{new Date().getFullYear()} Created by Ranaran
         </Footer>
       </Layout>
     </Layout>
