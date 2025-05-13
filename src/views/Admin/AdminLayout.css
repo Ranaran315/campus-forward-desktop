@@ -39,7 +39,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      --webkit-app-region: drag;
+      -webkit-app-region: drag;
     }
     .ant-layout-content {
       .admin-layout-content-background {

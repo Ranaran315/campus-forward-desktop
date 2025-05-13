@@ -1,6 +1,6 @@
 // src/views/LoginPage/LoginPage.tsx
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import apiClient from '../../lib/axios' // 导入封装好的 axios 实例
 import './Login.css'
 import { Form, InputField } from '@/components/Form/Form'
@@ -10,6 +10,7 @@ import Avatar from '@/components/Avatar/Avatar'
 import { LoginResponse } from '@/types/auth.types'
 import { Checkbox } from 'antd'
 import RemoveIcon from '@/assets/icons/remove.svg?react'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface SavedAccountInfo {
   username: string // 学号/工号
@@ -31,6 +32,10 @@ function LoginPage() {
   const [rememberAccount, setRememberAccount] = useState(true) // 是否保存账号信息的状态
   const [isUsernameDropdownVisible, setIsUsernameDropdownVisible] =
     useState(false) // 控制用户名下拉列表的显示
+
+  const auth = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   // --- 辅助函数：根据账户信息填充字段 ---
   const populateFieldsFromAccount = (account: SavedAccountInfo | undefined) => {
@@ -161,8 +166,8 @@ function LoginPage() {
       const { access_token, user: userInfo } = response.data
 
       if (access_token && userInfo) {
-        localStorage.setItem('authToken', access_token)
-        console.log('登录成功，Token 已存储。')
+        console.log('登录成功：', userInfo)
+        await auth.login(access_token);
 
         if (rememberAccount) {
           try {
@@ -194,6 +199,12 @@ function LoginPage() {
           console.log('用户未选择保存账号信息。')
         }
 
+        // 登录成功后，跳转到之前的页面或默认页面
+        const from = location.state?.from?.pathname || "/";
+        navigate(from, { replace: true });
+        console.log(`Navigating to ${from}`);
+
+        // 通知主进程登录成功
         if (window.ipcRenderer?.send) {
           window.ipcRenderer.send('login-success', access_token)
           console.log('已通知主进程登录成功。')

@@ -88,6 +88,7 @@ const RoleManagementPage: React.FC = () => {
           添加角色
         </Button>
       </Space>
+      {/* @ts-ignore */}
       <Table dataSource={rolesDataSource} columns={rolesColumns} rowKey="key" />
     </div>
   );

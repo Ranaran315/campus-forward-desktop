@@ -43,19 +43,26 @@ import DashboardPage from './views/Admin/DashboardPage'
 import UserManagementPage from './views/Admin/UserManagementPage'
 import RoleManagementPage from './views/Admin/RoleManagementPage'
 
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
 const ProtectedRoute: React.FC = () => {
-  const token = localStorage.getItem('authToken') // 简单地从 localStorage 检查 token
+  const {isAuthenticated, isLoading} = useAuth()
+  const location = useLocation()
 
-  if (!token) {
+  if (isLoading) {
+    return null // 或者可以返回一个加载指示器
+  }
+
+  if (!isAuthenticated) {
     // 如果没有 token，则重定向到登录页面
     // replace 属性可以防止用户通过浏览器后退回到受保护页面
     console.log('ProtectedRoute: 未检测到 token，重定向到 /login')
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" state={{ from: location }}  replace />
   }
 
-  // 如果有 token，则渲染其子路由（通过 <Outlet />）
+  // 已认证（通过 <Outlet />）
   return <Outlet />
 }
 
@@ -65,9 +72,11 @@ function AppLayout() {
   const location = useLocation()
   const currentPath = location.pathname
   const { pendingReceivedRequestsCount } = useAppNotificationsContext()
+  const { checkPermission, isLoading: authLoading, user } = useAuth();
 
-  
-  const canAccessAdminPanel = true; 
+  // 只有在 authLoading 完成后才进行权限检查
+  console.log("AppLayout: checkPermission", checkPermission('admin_panel:access'));
+  const canAccessAdminPanel = !authLoading && checkPermission('admin_panel:access');
 
   return (
     <div>
@@ -169,7 +178,7 @@ function AppLayout() {
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <MessageContainer></MessageContainer>
       <Routes>
         <Route path="/login" element={<LoginViews></LoginViews>}></Route>
@@ -211,7 +220,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
-    </>
+    </AuthProvider>
   )
 }
 
