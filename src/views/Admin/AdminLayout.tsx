@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { Layout, Menu, Typography, Breadcrumb, Button } from 'antd'
+import { Layout, Menu, Typography, Breadcrumb, Button, Space, Tooltip } from 'antd'
 import {
   UserOutlined,
   SettingOutlined,
   DashboardOutlined,
   HomeOutlined,
+  ReloadOutlined
 } from '@ant-design/icons'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import './AdminLayout.css' // 您可以创建一个 CSS 文件来添加自定义样式
@@ -43,6 +44,13 @@ const AdminLayout: React.FC = () => {
   const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
 
+  const handleRefreshPage = () => {
+    navigate(0);
+    // 或者，如果您想通过 React Router 的方式（可能会重新运行 loader 等）:
+    // navigate(0);
+  };
+
+  // 生成面包屑
   const pathSnippets = location.pathname.split('/').filter((i) => i)
   const extraBreadcrumbItems = pathSnippets.map((_, index) => {
     const url = `/${pathSnippets.slice(0, index + 1).join('/')}`
@@ -103,13 +111,23 @@ const AdminLayout: React.FC = () => {
           >
             管理控制台
           </Title>
-          <Button
-            type="link"
-            onClick={handleGoToMainApp}
-            style={{ color: 'white' }}
-          >
-            返回主应用
-          </Button>
+           <Space align="center"> {/* <--- 3. 使用 Space 组件包裹按钮 */}
+            <Tooltip title="刷新页面"> {/* <--- 4. 添加 Tooltip 提示 */}
+              <Button
+                type="text" // 使用 text 类型按钮以适应头部样式
+                icon={<ReloadOutlined style={{ color: 'white', fontSize: '18px' }} />} // 设置图标颜色和大小
+                onClick={handleRefreshPage}
+                style={{ color: 'white' }} // 确保按钮文字（如果有）也是白色
+              />
+            </Tooltip>
+            <Button
+              type="link"
+              onClick={handleGoToMainApp}
+              style={{ color: 'white' }}
+            >
+              返回主应用
+            </Button>
+          </Space>
         </Header>
         <Content className="admin-layout-content" style={{ margin: '0 16px' }}>
           <Breadcrumb style={{ margin: '16px 0' }}>
