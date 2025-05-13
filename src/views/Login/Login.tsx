@@ -246,7 +246,7 @@ function LoginPage() {
                   <li
                     key={acc.username}
                     onMouseDown={(e) => {
-                      handleSavedAccountClick(acc, e)
+                      handleSavedAccountClick(acc, e as unknown as MouseEvent)
                     }}
                   >
                     <Avatar src={acc.avatar} size="20px" />

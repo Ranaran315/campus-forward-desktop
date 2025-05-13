@@ -28,6 +28,7 @@ import NotificationIcon from '@/assets/icons/notification.svg?react'
 import ProfileIcon from '@/assets/icons/profile.svg?react'
 import SkinIcon from '@/assets/icons/skin.svg?react'
 import SettingIcon from '@/assets/icons/setting.svg?react'
+import AdminIcon from '@/assets/icons/admin.svg?react'
 // 全局组件
 import MessageContainer from '@/components/Message/MessageContainer'
 import { WebSocketProvider } from './contexts/WebSocketProvider'
@@ -35,6 +36,12 @@ import {
   AppNotificationsProvider,
   useAppNotificationsContext,
 } from './contexts/AppNotificationsContext'
+// 后台管理系统
+import ProtectedRouteAdmin from './views/Admin/ProtectedRouteAdmin'
+import AdminLayout from './views/Admin/AdminLayout'
+import DashboardPage from './views/Admin/DashboardPage'
+import UserManagementPage from './views/Admin/UserManagementPage'
+import RoleManagementPage from './views/Admin/RoleManagementPage'
 
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
@@ -58,6 +65,9 @@ function AppLayout() {
   const location = useLocation()
   const currentPath = location.pathname
   const { pendingReceivedRequestsCount } = useAppNotificationsContext()
+
+  
+  const canAccessAdminPanel = true; 
 
   return (
     <div>
@@ -108,6 +118,18 @@ function AppLayout() {
             </Link>
           </div>
           <div className="sidebar-item sidebar-bottom">
+             {canAccessAdminPanel && (
+              <Link
+                to="/admin" // 指向后台管理系统的根路径
+                className={`sidebar-button ${
+                  location.pathname.startsWith('/admin') ? 'active' : ''
+                }`}
+              >
+                {/* 您可以使用 SettingIcon 或其他合适的图标 */}
+                <AdminIcon className="sidebar-icon" />
+                <span>后台管理</span>
+              </Link>
+            )}
             <Link
               to="/profile"
               className={`sidebar-button ${
@@ -156,6 +178,7 @@ function App() {
           element={<RegisterViews></RegisterViews>}
         ></Route>
 
+        {/* 主应用路由 */}
         <Route element={<ProtectedRoute></ProtectedRoute>}>
           <Route
             path="/"
@@ -174,6 +197,17 @@ function App() {
             <Route path="profile" element={<ProfileViwes />} />
             <Route path="skin" element={<SkinViews />} />
             <Route path="setting" element={<SettingViews />} />
+          </Route>
+        </Route>
+
+        {/* 后台管理应用路由 */}
+        <Route element={<ProtectedRouteAdmin />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<DashboardPage />} /> {/* /admin 默认显示仪表盘 */}
+            <Route path="users" element={<UserManagementPage />} />
+            <Route path="roles" element={<RoleManagementPage />} />
+            {/* 在这里添加更多后台管理的子路由 */}
+            <Route path="*" element={<Navigate to="/admin" replace />} /> {/* 后台管理区域内的未匹配路径重定向到仪表盘 */}
           </Route>
         </Route>
       </Routes>

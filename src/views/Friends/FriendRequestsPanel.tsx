@@ -153,15 +153,15 @@ const FriendRequestsPanel: React.FC<FriendRequestsPanelProps> = ({
         >
           <div className="request-header">
             <Avatar
-              src={request.sender.avatar}
-              alt={request.sender.nickname || request.sender.username}
+              src={request.sender?.avatar}
+              alt={request.sender?.nickname || request.sender?.username}
               size={56}
             />
             <div className="request-sender-info">
               <div className="sender-name">
-                {request.sender.nickname || request.sender.username}
+                {request.sender?.nickname || request.sender?.username}
               </div>
-              <div className="sender-username">@{request.sender.username}</div>
+              <div className="sender-username">@{request.sender?.username}</div>
               <div className="request-time">
                 {formatTimeAgo(request.createdAt)}
               </div>

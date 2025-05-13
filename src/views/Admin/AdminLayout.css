@@ -1,0 +1,54 @@
+.ant-layout {
+  .admin-logo-vertical {
+    height: 32px;
+    margin: 16px;
+    background: var(--primary-color);
+    border-radius: 6px;
+    text-align: center;
+    line-height: 32px;
+    font-size: 16px;
+    color: white;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ant-layout-sider {
+    background: var(--primary-color);
+    .ant-layout-sider-trigger {
+      background: var(--primary-color);
+      border-right: 1px solid var(--border-color);
+    }
+    .ant-menu {
+      background: var(--primary-color);
+      border-right: 0;
+      .ant-menu-item {
+        color: var(--secondary-background-color) !important;
+        .ant-menu-item-selected {
+          background: var(--secondary-color);
+          color: var(--secondary-background-color);
+          .ant-menu-submenu-title {
+            color: var(--secondary-background-color);
+          }
+        }
+      }
+    }
+  }
+  .admin-site-layout {
+    .admin-layout-header {
+      background-color: var(--primary-color);
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      --webkit-app-region: drag;
+    }
+    .ant-layout-content {
+      .admin-layout-content-background {
+        padding: 24px;
+        background: var(--secondary-background-color);
+        min-height: calc(
+          100vh - 64px - 48px - 69px
+        ); /* Header - Breadcrumb - Footer */
+      }
+    }
+  }
+}
