@@ -44,6 +44,9 @@ import UserManagementPage from './views/Admin/UserManagementPage'
 import RoleManagementPage from './views/Admin/RoleManagementPage'
 
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import CollegeManagementPage from './views/Admin/CollegeManagementPage'
+import MajorManagementPage from './views/Admin/MajorManagementPage'
+import AcademicClassManagementPage from './views/Admin/AcademicClassManagementPage'
 
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
@@ -215,6 +218,9 @@ function App() {
             <Route index element={<DashboardPage />} /> {/* /admin 默认显示仪表盘 */}
             <Route path="users" element={<UserManagementPage />} />
             <Route path="roles" element={<RoleManagementPage />} />
+            <Route path='colleges' element={<CollegeManagementPage />} />
+            <Route path='majors' element={<MajorManagementPage />} />
+            <Route path='academic-classes' element={<AcademicClassManagementPage />} />
             {/* 在这里添加更多后台管理的子路由 */}
             <Route path="*" element={<Navigate to="/admin" replace />} /> {/* 后台管理区域内的未匹配路径重定向到仪表盘 */}
           </Route>

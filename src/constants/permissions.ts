@@ -12,8 +12,6 @@ export const ALL_PERMISSION_STRINGS = [
   'user:assign_roles_to_any', // (管理员) 为任意用户分配角色
   'user:search_directory', // (所有用户) 搜索用户通讯录/目录
   // 作用域查看权限 (Scoped Views)
-  'user:view_managed_class_students', // (辅导员) 查看所管理班级的学生列表和基本信息
-  'user:view_department_members', // (院系管理员) 查看本院系的师生列表和基本信息
   'user:view_course_participants', // (课程教师) 查看所授课程的选课学生列表
 
   // --- 角色与权限管理 (Role & Permission Management) ---
@@ -42,13 +40,41 @@ export const ALL_PERMISSION_STRINGS = [
   'notification:approve_pending', // (特定审批角色) 审批待发布的通知 (如果需要审批流程)
   'notification:manage_templates', // (管理员) 管理通知模板 (如果系统支持)
 
-  // --- 学术结构管理 (Academic Structure Management - 学院/专业/班级) ---
-  'academic_structure:manage_departments', // (教务管理员/超级管理员) 管理学院信息 (CRUD)
-  'academic_structure:manage_majors', // (教务管理员/超级管理员/院系管理员) 管理专业信息 (CRUD)
-  'academic_structure:manage_classes', // (教务管理员/超级管理员/院系管理员/辅导员) 管理班级信息 (CRUD)
-  'academic_structure:view_departments_list', // (通用) 查看学院列表
-  'academic_structure:view_majors_list', // (通用) 查看专业列表
-  'academic_structure:view_classes_list', // (通用或有范围限制) 查看班级列表
+  // --- 学院管理 (College Management) ---
+  'college:create',
+  'college:read_list', // 可用于管理员后台
+  'college:read_detail', // 可用于管理员后台
+  'college:update',
+  'college:delete',
+  'college:assign_head',
+  'college:view_list', // 通用查看列表权限
+  'college:view_detail', // 通用查看详情权限 (公开信息)
+  'college:view_members', // (可选) 查看学院下的师生，替代 user:view_department_members
+
+  // --- 专业管理 (Major Management) ---
+  'major:create', // 通常需要指定所属学院
+  'major:read_list_all', // 管理员后台查看所有
+  'major:read_list_by_college', // 按学院筛选查看
+  'major:read_detail',
+  'major:update',
+  'major:delete',
+  'major:assign_head',
+  'major:view_list', // 通用查看列表权限
+  'major:view_detail', // 通用查看详情权限 (公开信息)
+
+  // --- 班级管理 (Academic Class Management) ---
+  'academic_class:create', // 通常需要指定所属专业
+  'academic_class:read_list_all', // 管理员后台查看所有
+  'academic_class:read_list_by_major', // 按专业筛选查看
+  'academic_class:read_list_by_college', // 按学院筛选查看
+  'academic_class:read_detail',
+  'academic_class:update',
+  'academic_class:delete',
+  'academic_class:assign_counselor',
+  'academic_class:manage_students', // 管理员或辅导员管理班级学生
+  'academic_class:view_list', // 通用查看列表权限
+  'academic_class:view_detail_own_member', // 学生/教师查看自己班级信息
+  'academic_class:view_students_own_managed', // (辅导员) 查看自己管理班级的学生 (与 user:view_managed_class_students 类似)
 
   // --- 课程管理 (Course Management) ---
   'course:create_definition', // (教务管理员/院系管理员) 创建新的课程定义（课程库中的课程）

@@ -66,6 +66,7 @@ const RoleManagementPage: React.FC = () => {
   const [tablePagination, setTablePagination] = useState({
     current: 1,
     pageSize: 10,
+    total: 0, // Added total for server-side pagination
   });
 
   // Permissions
@@ -75,19 +76,29 @@ const RoleManagementPage: React.FC = () => {
   // const canViewPermissionsList = checkPermission('permission:list_all_available'); // For populating selector
 
   // Fetch Roles
-  const fetchRoles = async (query?: string) => {
+  const fetchRoles = async (page = tablePagination.current, size = tablePagination.pageSize, query = searchTerm) => {
     setLoading(true);
     setError(null);
     try {
-      // Assuming backend supports search via query param 'q' or 'name' or 'displayName'
-      // Adjust endpoint if backend search is different
-      const endpoint = query ? `/roles?q=${encodeURIComponent(query)}` : '/roles';
-      const response = await apiClient.get(endpoint);
-      const fetchedRoles: BackendRole[] = response.data;
-      if (fetchedRoles) {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', size.toString());
+      if (query) {
+        params.append('q', encodeURIComponent(query));
+      }
+
+      const response = await apiClient.get(`/roles?${params.toString()}`);
+      // Adjust data and totalCount extraction based on your backend's actual response structure
+      const fetchedRolesResult = response.data?.data || response.data;
+      const fetchedRoles: BackendRole[] = Array.isArray(fetchedRolesResult) ? fetchedRolesResult : (fetchedRolesResult?.roles || []);
+      const totalCount = response.data?.totalCount || fetchedRolesResult?.totalCount || (Array.isArray(fetchedRoles) ? fetchedRoles.length : 0);
+
+      if (Array.isArray(fetchedRoles)) {
         setRoles(fetchedRoles.map(transformRoleForTable));
+        setTablePagination(prev => ({ ...prev, total: totalCount, current: page, pageSize: size }));
       } else {
         setRoles([]);
+        setTablePagination(prev => ({ ...prev, total: 0, current: 1 }));
       }
     } catch (err: any) {
       console.error('Failed to fetch roles:', err);
@@ -100,13 +111,14 @@ const RoleManagementPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchRoles();
+    fetchRoles(); // Initial fetch will use default pagination state
     // fetchAllPermissions(); // If permissions are fetched from backend
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    fetchRoles(value);
+    fetchRoles(1, tablePagination.pageSize, value); // Reset to first page on search
   };
 
   const handleAddRole = () => {
@@ -147,10 +159,13 @@ const RoleManagementPage: React.FC = () => {
       cancelText: '取消',
       onOk: async () => {
         try {
-          setLoading(true);
+          // setLoading(true); // fetchRoles will handle loading
           await apiClient.delete(`/roles/${roleId}`);
           message.success('角色删除成功');
-          fetchRoles(searchTerm);
+          // Refresh current page or go to first if current page becomes empty
+          const newTotal = tablePagination.total - 1;
+          const newCurrent = (roles.length === 1 && tablePagination.current > 1) ? tablePagination.current - 1 : tablePagination.current;
+          fetchRoles(newCurrent, tablePagination.pageSize, searchTerm);
         } catch (err: any) {
           console.error('Failed to delete role:', err);
           message.error(err.backendMessage || err.message || '删除角色失败');
@@ -205,13 +220,18 @@ const RoleManagementPage: React.FC = () => {
         message.success('角色创建成功');
       }
       setIsModalVisible(false);
-      fetchRoles(searchTerm);
+      // Refresh current page if editing, or go to first page if adding
+      fetchRoles(editingRole ? tablePagination.current : 1, tablePagination.pageSize, searchTerm);
     } catch (err: any) {
       console.error('Modal submit error:', err);
       message.error(err.backendMessage || err.message || '操作失败');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTableChange = (pagination: any) => {
+    fetchRoles(pagination.current, pagination.pageSize, searchTerm);
   };
 
   const columns = [
@@ -330,18 +350,15 @@ const RoleManagementPage: React.FC = () => {
         columns={columns}
         rowKey="key"
         loading={loading}
-        scroll={{ x: 1000 }} // Adjust x-scroll as needed
+        scroll={{ x: 1000 }}
         pagination={{
           current: tablePagination.current,
           pageSize: tablePagination.pageSize,
-          total: roles.length, // Replace with backend total count if server-side pagination is implemented
+          total: tablePagination.total,
+          showSizeChanger: true,
+          showTotal: (total, range) => `${range[0]}-${range[1]} 共 ${total} 条`,
         }}
-        onChange={(pagination) => {
-          setTablePagination({
-            current: pagination.current || 1,
-            pageSize: pagination.pageSize || 10,
-          });
-        }}
+        onChange={handleTableChange} // Use the new handler
         sticky
       />
       <Modal

@@ -28,7 +28,7 @@
           list-style-type: none;
           padding: 10px 0;
           z-index: 1000; /* Ensure it's above other elements */
-          max-height: 150px; /* Optional: limit height and make it scrollable */
+          max-height: 100px; /* Optional: limit height and make it scrollable */
           overflow-y: auto;
           box-shadow: var(--primary-box-shadow);
           li {

@@ -5,7 +5,10 @@ import {
   SettingOutlined,
   DashboardOutlined,
   HomeOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  BankOutlined,
+  BookOutlined,
+  TeamOutlined
 } from '@ant-design/icons'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import './AdminLayout.css' // 您可以创建一个 CSS 文件来添加自定义样式
@@ -29,6 +32,21 @@ const menuItems = [
     icon: <SettingOutlined />,
     label: <Link to="/admin/roles">角色与权限</Link>,
   },
+  {
+    key: 'colleges',
+    icon: <BankOutlined />,
+    label: <Link to="/admin/colleges">学院管理</Link>,
+  },
+   {
+    key: 'majors', // 新增专业管理菜单项
+    icon: <BookOutlined />, // 使用 BookOutlined 图标
+    label: <Link to="/admin/majors">专业管理</Link>,
+  },
+  {
+    key: 'academic-classes', // 新增班级管理菜单项
+    icon: <TeamOutlined />, // 使用 TeamOutlined 图标
+    label: <Link to="/admin/academic-classes">班级管理</Link>,
+  }
   // 在这里添加其他后台管理菜单项
 ]
 
@@ -37,6 +55,9 @@ const breadcrumbNameMap: Record<string, string> = {
   '/admin': '仪表盘',
   '/admin/users': '用户管理',
   '/admin/roles': '角色与权限',
+  '/admin/colleges': '学院管理',
+  '/admin/majors': '专业管理',
+  '/admin/academic-classes': '班级管理',
 }
 
 const AdminLayout: React.FC = () => {
@@ -74,6 +95,9 @@ const AdminLayout: React.FC = () => {
     const currentPath = location.pathname
     if (currentPath.startsWith('/admin/users')) return ['users']
     if (currentPath.startsWith('/admin/roles')) return ['roles']
+    if (currentPath.startsWith('/admin/colleges')) return ['colleges']
+    if (currentPath.startsWith('/admin/majors')) return ['majors']
+    if (currentPath.startsWith('/admin/academic-classes')) return ['academic-classes']
     if (currentPath === '/admin' || currentPath === '/admin/')
       return ['dashboard']
     // 可以为其他路径添加更多判断

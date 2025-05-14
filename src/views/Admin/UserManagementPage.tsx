@@ -49,9 +49,9 @@ const UserManagementPage: React.FC = () => {
   const [form] = Form.useForm()
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [tablePagination, setTablePagination] = useState({
-    // 新增分页状态
     current: 1,
     pageSize: 10,
+    total: 0, // Added total for server-side pagination
   })
 
   // checkPermission
@@ -61,21 +61,32 @@ const UserManagementPage: React.FC = () => {
   const canAssignRoles = checkPermission('user:assign_roles_to_any')
 
   // 获取用户信息
-  const fetchUsers = async (query?: string) => {
+  const fetchUsers = async (page = tablePagination.current, size = tablePagination.pageSize, query = searchTerm) => {
     setLoading(true)
     setError(null)
     try {
-      const endpoint = query
-        ? `/users/search?q=${encodeURIComponent(query)}`
-        : '/users'
-      // apiClient 直接返回后端响应的 data 部分
-      const response = await apiClient.get(endpoint)
-      const fetchedUsers: BackendUser[] = response.data
+      const params = new URLSearchParams()
+      params.append('page', page.toString())
+      params.append('limit', size.toString())
+      if (query) {
+        // Assuming backend /users endpoint supports 'q' for search along with pagination
+        // If search is a different endpoint like /users/search, logic needs adjustment
+        // For consistency with MajorManagement, let's assume /users supports 'q'
+        params.append('q', encodeURIComponent(query))
+      }
+
+      const response = await apiClient.get(`/users?${params.toString()}`)
+      // Adjust data and totalCount extraction based on your backend's actual response structure
+      const fetchedUsers: BackendUser[] = response.data?.data || response.data?.users || response.data || []
+      const totalCount = response.data?.totalCount || response.data?.total || (Array.isArray(fetchedUsers) ? fetchedUsers.length : 0)
+      
       console.log('Fetched users:', fetchedUsers) // Debugging line
-      if (fetchedUsers) {
+      if (Array.isArray(fetchedUsers)) {
         setUsers(fetchedUsers.map(transformUserForTable))
+        setTablePagination(prev => ({ ...prev, total: totalCount, current: page, pageSize: size }))
       } else {
-        setUsers([]) // 如果返回 null 或 undefined
+        setUsers([]) 
+        setTablePagination(prev => ({ ...prev, total: 0, current: 1 }))
       }
     } catch (err: any) {
       console.error('Failed to fetch users:', err)
@@ -107,14 +118,15 @@ const UserManagementPage: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchUsers()
+    fetchUsers() // Initial fetch will use default pagination state
     fetchAllRoles()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // 搜索
   const handleSearch = (value: string) => {
     setSearchTerm(value)
-    fetchUsers(value)
+    fetchUsers(1, tablePagination.pageSize, value) // Reset to first page on search
   }
 
   // 添加用户
@@ -172,7 +184,10 @@ const UserManagementPage: React.FC = () => {
           setLoading(true)
           await apiClient.delete(`/users/${userId}`) // delete 通常不返回 data，或者返回一个确认消息
           message.success('用户删除成功')
-          fetchUsers(searchTerm)
+          // Refresh current page or go to first if current page becomes empty
+          const newTotal = tablePagination.total - 1;
+          const newCurrent = (users.length === 1 && tablePagination.current > 1) ? tablePagination.current - 1 : tablePagination.current;
+          fetchUsers(newCurrent, tablePagination.pageSize, searchTerm)
         } catch (err: any) {
           console.error('Failed to delete user:', err)
           message.error(err.backendMessage || err.message || '删除用户失败')
@@ -250,7 +265,8 @@ const UserManagementPage: React.FC = () => {
         message.success('用户创建成功')
       }
       setIsModalVisible(false)
-      fetchUsers(searchTerm)
+      // Refresh current page if editing, or go to first page if adding
+      fetchUsers(editingUser ? tablePagination.current : 1, tablePagination.pageSize, searchTerm)
     } catch (err: any) {
       console.error('Modal submit error:', err)
       message.error(err.backendMessage || err.message || '操作失败')
@@ -258,6 +274,12 @@ const UserManagementPage: React.FC = () => {
       setLoading(false)
     }
   }
+
+  const handleTableChange = (pagination: any) => {
+    // Called when pagination (page, pageSize) or sorters/filters change
+    // For now, only handling pagination change
+    fetchUsers(pagination.current, pagination.pageSize, searchTerm);
+  };
 
   // 渲染表格
   const columns = [
@@ -440,16 +462,11 @@ const UserManagementPage: React.FC = () => {
         pagination={{
           current: tablePagination.current,
           pageSize: tablePagination.pageSize,
-          total: users.length, // 假设 users 是当前搜索/过滤后的完整列表，如果后端分页则这里是 total count
-          // 如果是后端分页，total 应该从后端获取
+          total: tablePagination.total,
+          showSizeChanger: true,
+          showTotal: (total, range) => `${range[0]}-${range[1]} 共 ${total} 条`,
         }}
-        onChange={(pagination) => {
-          // 处理分页变化
-          setTablePagination({
-            current: pagination.current || 1,
-            pageSize: pagination.pageSize || 10,
-          })
-        }}
+        onChange={handleTableChange} // Use the new handler
         sticky
       />
       <Modal
