@@ -22,8 +22,8 @@
       border-right: 0;
       .ant-menu-item {
         color: var(--secondary-background-color) !important;
-        .ant-menu-item-selected {
-          background: var(--secondary-color);
+        &.ant-menu-item-selected {
+          background-color: var(--secondary-color) !important;
           color: var(--secondary-background-color);
           .ant-menu-submenu-title {
             color: var(--secondary-background-color);

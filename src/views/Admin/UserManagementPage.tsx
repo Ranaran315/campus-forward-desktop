@@ -185,7 +185,6 @@ const UserManagementPage: React.FC = () => {
           await apiClient.delete(`/users/${userId}`) // delete 通常不返回 data，或者返回一个确认消息
           message.success('用户删除成功')
           // Refresh current page or go to first if current page becomes empty
-          const newTotal = tablePagination.total - 1;
           const newCurrent = (users.length === 1 && tablePagination.current > 1) ? tablePagination.current - 1 : tablePagination.current;
           fetchUsers(newCurrent, tablePagination.pageSize, searchTerm)
         } catch (err: any) {

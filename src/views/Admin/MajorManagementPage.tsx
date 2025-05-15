@@ -20,7 +20,6 @@ import {
   DeleteOutlined,
   SearchOutlined,
   BookOutlined, // Icon for Major
-  BankOutlined,   // Icon for College (used in select)
   InfoCircleOutlined,
   IdcardOutlined, // Icon for Major ID
   ReadOutlined, // Icon for Degree

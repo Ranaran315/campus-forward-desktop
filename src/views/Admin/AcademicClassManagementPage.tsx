@@ -12,7 +12,6 @@ import {
   Spin,
   Alert,
   Tooltip,
-  InputNumber,
 } from 'antd';
 import {
   PlusOutlined,
@@ -22,7 +21,6 @@ import {
   TeamOutlined, // Icon for Academic Class
   InfoCircleOutlined,
   IdcardOutlined, // Icon for Class ID
-  UserOutlined, // Icon for Counselor/Monitor
   CalendarOutlined, // Icon for Year
 } from '@ant-design/icons';
 import apiClient from '@/lib/axios';

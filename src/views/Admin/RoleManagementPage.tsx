@@ -163,7 +163,6 @@ const RoleManagementPage: React.FC = () => {
           await apiClient.delete(`/roles/${roleId}`);
           message.success('角色删除成功');
           // Refresh current page or go to first if current page becomes empty
-          const newTotal = tablePagination.total - 1;
           const newCurrent = (roles.length === 1 && tablePagination.current > 1) ? tablePagination.current - 1 : tablePagination.current;
           fetchRoles(newCurrent, tablePagination.pageSize, searchTerm);
         } catch (err: any) {
