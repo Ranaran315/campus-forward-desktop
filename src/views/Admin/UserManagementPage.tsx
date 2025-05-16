@@ -35,6 +35,21 @@ const { Option } = Select
 const transformUserForTable = (user: BackendUser): UserForTable => ({
   ...user,
   key: user._id,
+  college: typeof user.college === 'object' && user.college !== null
+    ? user.college
+    : user.college
+      ? { _id: user.college, name: '' } // id但无name，防止渲染报错
+      : null,
+  major: typeof user.major === 'object' && user.major !== null
+    ? user.major
+    : user.major
+      ? { _id: user.major, name: '' }
+      : null,
+  academicClass: typeof user.academicClass === 'object' && user.academicClass !== null
+    ? user.academicClass
+    : user.academicClass
+      ? { _id: user.academicClass, name: '' }
+      : null,
 })
 
 const UserManagementPage: React.FC = () => {
@@ -53,6 +68,11 @@ const UserManagementPage: React.FC = () => {
     pageSize: 10,
     total: 0, // Added total for server-side pagination
   })
+  const [colleges, setColleges] = useState<CollegeItem[]>([])
+  const [majors, setMajors] = useState<MajorItem[]>([])
+  const [classes, setClasses] = useState<AcademicClassItem[]>([])
+  const [selectedCollege, setSelectedCollege] = useState<string | null>(null)
+  const [selectedMajor, setSelectedMajor] = useState<string | null>(null)
 
   // checkPermission
   const canCreateUser = checkPermission('user:create')
@@ -75,7 +95,7 @@ const UserManagementPage: React.FC = () => {
         params.append('q', encodeURIComponent(query))
       }
 
-      const response = await apiClient.get(`/users?${params.toString()}`)
+      const response = await apiClient.get(`/admin/users?${params.toString()}`)
       // Adjust data and totalCount extraction based on your backend's actual response structure
       const fetchedUsers: BackendUser[] = response.data?.data || response.data?.users || response.data || []
       const totalCount = response.data?.totalCount || response.data?.total || (Array.isArray(fetchedUsers) ? fetchedUsers.length : 0)
@@ -117,11 +137,50 @@ const UserManagementPage: React.FC = () => {
     }
   }
 
+  // 获取学院信息
+  const fetchColleges = async () => {
+    try {
+      const response = await apiClient.get('/colleges');
+      setColleges(response.data);
+    } catch (err) {
+      message.error('加载学院列表失败');
+    }
+  };
+
+  // 获取专业信息
+  const fetchMajors = async (collegeId: string) => {
+    try {
+      const response = await apiClient.get(`/majors?collegeId=${collegeId}`);
+      setMajors(response.data);
+    } catch (err) {
+      message.error('加载专业列表失败');
+    }
+  };
+
+  // 获取班级信息
+  const fetchClasses = async (majorId: string) => {
+    try {
+      const response = await apiClient.get(`/academic-classes?majorId=${majorId}`);
+      setClasses(response.data);
+    } catch (err) {
+      message.error('加载班级列表失败');
+    }
+  };
+
   useEffect(() => {
     fetchUsers() // Initial fetch will use default pagination state
     fetchAllRoles()
+    fetchColleges();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (selectedCollege) fetchMajors(selectedCollege);
+  }, [selectedCollege]);
+
+  useEffect(() => {
+    if (selectedMajor) fetchClasses(selectedMajor);
+  }, [selectedMajor]);
 
   // 搜索
   const handleSearch = (value: string) => {
@@ -134,7 +193,8 @@ const UserManagementPage: React.FC = () => {
     setEditingUser(null)
     form.resetFields()
     form.setFieldsValue({ roles: [], isActive: true })
-    setIsModalVisible(true)
+    setIsModalVisible(true
+    )
   }
 
   // 编辑用户
@@ -158,7 +218,13 @@ const UserManagementPage: React.FC = () => {
       email: userToEdit.email,
       roles: roleIds,
       isActive: userToEdit.isActive !== undefined ? userToEdit.isActive : true,
+      college: userToEdit.college?._id,
+      major: userToEdit.major?._id,
+      academicClass: userToEdit.academicClass?._id,
     })
+    // 编辑用户时，设置下拉选中项
+    setSelectedCollege(userToEdit.college?._id ?? null)
+    setSelectedMajor(userToEdit.major?._id ?? null)
     setIsModalVisible(true)
   }
 
@@ -204,13 +270,15 @@ const UserManagementPage: React.FC = () => {
       setLoading(true)
 
       if (editingUser) {
-        const updateDto: Partial<BackendUser> = {
+        const updateDto = {
           nickname: values.nickname,
           email: values.email,
-          // isActive: values.isActive, // 确保后端 UpdateUserDto 支持此字段
+          collegeId: values.college, // 只传递 collegeId
+          majorId: values.major,     // 只传递 majorId
+          academicClassId: values.academicClass, // 只传递 academicClassId
+          // isActive: values.isActive, // 如需支持可加
         }
-        // apiClient.patch 直接返回后端响应的 data 部分 (可能是更新后的用户对象或成功消息)
-        await apiClient.patch(`/users/${editingUser._id}`, updateDto)
+        await apiClient.patch(`/admin/users/${editingUser._id}`, updateDto)
 
         if (canAssignRoles && values.roles) {
           const originalRoleIds = editingUser.roles?.map((roleNameOrId) => {
@@ -248,6 +316,9 @@ const UserManagementPage: React.FC = () => {
           password: values.password,
           nickname: values.nickname,
           email: values.email,
+          college: values.college,
+          major: values.major,
+          academicClass: values.academicClass,
           // roles: values.roles, // 如果 CreateUserDto 接受角色 ID
         }
         // apiClient.post 直接返回后端响应的 data 部分 (新创建的用户对象)
@@ -346,6 +417,28 @@ const UserManagementPage: React.FC = () => {
             })}
         </>
       ),
+    },
+    {
+      title: '学院',
+      dataIndex: 'college',
+      key: 'college',
+      width: 200,
+      render: (college: { name: string }) => college?.name || '-',
+    },
+    {
+      title: '专业',
+      dataIndex: 'major',
+      key: 'major',
+      width: 200,
+      render: (major: { name: string }) => major?.name || '-',
+    },
+    {
+      title: '班级',
+      dataIndex: 'academicClass',
+      key: 'academicClass',
+      width: 200,
+      render: (academicClass: any, record: UserForTable) =>
+        academicClass?.name || record['academicClass']?.name || '-',
     },
     // {
     //   title: '状态', // Assuming your BackendUser has an 'isActive' field
@@ -537,6 +630,28 @@ const UserManagementPage: React.FC = () => {
               />
             </Form.Item>
           )}
+          <Form.Item name="college" label="学院" rules={[{ required: true, message: '请选择学院!' }]}>
+            <Select
+              placeholder="选择学院"
+              options={colleges.map((college) => ({ label: college.name, value: college._id }))}
+              onChange={(value) => setSelectedCollege(value)}
+            />
+          </Form.Item>
+          <Form.Item name="major" label="专业" rules={[{ required: true, message: '请选择专业!' }]}>
+            <Select
+              placeholder="选择专业"
+              options={majors.map((major) => ({ label: major.name, value: major._id }))}
+              onChange={(value) => setSelectedMajor(value)}
+              disabled={!selectedCollege}
+            />
+          </Form.Item>
+          <Form.Item name="academicClass" label="班级" rules={[{ required: true, message: '请选择班级!' }]}>
+            <Select
+              placeholder="选择班级"
+              options={classes.map((academicClass) => ({ label: academicClass.name, value: academicClass._id }))}
+              disabled={!selectedMajor}
+            />
+          </Form.Item>
           <Form.Item name="isActive" label="账户状态" valuePropName="checked">
             <Select placeholder="选择账户状态">
               <Option value={true}>激活</Option>
@@ -550,3 +665,24 @@ const UserManagementPage: React.FC = () => {
 }
 
 export default UserManagementPage
+
+// 类型定义补充
+interface CollegeItem { _id: string; name: string }
+interface MajorItem { _id: string; name: string }
+interface AcademicClassItem { _id: string; name: string }
+
+// 扩展 UserForTable/BackendUser 类型（如有必要，也可在 types/admin.types.ts 里补充）
+// 这里只做运行时类型断言，类型文件建议同步维护
+
+declare module '@/types/admin.types' {
+  interface UserForTable {
+    college?: CollegeItem | null;
+    major?: MajorItem | null;
+    academicClass?: AcademicClassItem | null;
+  }
+  interface BackendUser {
+    college?: CollegeItem | null;
+    major?: MajorItem | null;
+    academicClass?: AcademicClassItem | null;
+  }
+}

@@ -1,5 +1,13 @@
 import React, { useState } from 'react'
-import { Layout, Menu, Typography, Breadcrumb, Button, Space, Tooltip } from 'antd'
+import {
+  Layout,
+  Menu,
+  Typography,
+  Breadcrumb,
+  Button,
+  Space,
+  Tooltip,
+} from 'antd'
 import {
   UserOutlined,
   SettingOutlined,
@@ -8,7 +16,7 @@ import {
   ReloadOutlined,
   BankOutlined,
   BookOutlined,
-  TeamOutlined
+  TeamOutlined,
 } from '@ant-design/icons'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import './AdminLayout.css' // 您可以创建一个 CSS 文件来添加自定义样式
@@ -37,7 +45,7 @@ const menuItems = [
     icon: <BankOutlined />,
     label: <Link to="/admin/colleges">学院管理</Link>,
   },
-   {
+  {
     key: 'majors', // 新增专业管理菜单项
     icon: <BookOutlined />, // 使用 BookOutlined 图标
     label: <Link to="/admin/majors">专业管理</Link>,
@@ -46,7 +54,7 @@ const menuItems = [
     key: 'academic-classes', // 新增班级管理菜单项
     icon: <TeamOutlined />, // 使用 TeamOutlined 图标
     label: <Link to="/admin/academic-classes">班级管理</Link>,
-  }
+  },
   // 在这里添加其他后台管理菜单项
 ]
 
@@ -66,10 +74,10 @@ const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
 
   const handleRefreshPage = () => {
-    navigate(0);
+    navigate(0)
     // 或者，如果您想通过 React Router 的方式（可能会重新运行 loader 等）:
     // navigate(0);
-  };
+  }
 
   // 生成面包屑
   const pathSnippets = location.pathname.split('/').filter((i) => i)
@@ -97,7 +105,8 @@ const AdminLayout: React.FC = () => {
     if (currentPath.startsWith('/admin/roles')) return ['roles']
     if (currentPath.startsWith('/admin/colleges')) return ['colleges']
     if (currentPath.startsWith('/admin/majors')) return ['majors']
-    if (currentPath.startsWith('/admin/academic-classes')) return ['academic-classes']
+    if (currentPath.startsWith('/admin/academic-classes'))
+      return ['academic-classes']
     if (currentPath === '/admin' || currentPath === '/admin/')
       return ['dashboard']
     // 可以为其他路径添加更多判断
@@ -135,11 +144,19 @@ const AdminLayout: React.FC = () => {
           >
             管理控制台
           </Title>
-           <Space align="center"> {/* <--- 3. 使用 Space 组件包裹按钮 */}
-            <Tooltip title="刷新页面"> {/* <--- 4. 添加 Tooltip 提示 */}
+          <Space align="center">
+            {' '}
+            {/* <--- 3. 使用 Space 组件包裹按钮 */}
+            <Tooltip title="刷新页面">
+              {' '}
+              {/* <--- 4. 添加 Tooltip 提示 */}
               <Button
                 type="text" // 使用 text 类型按钮以适应头部样式
-                icon={<ReloadOutlined style={{ color: 'white', fontSize: '18px' }} />} // 设置图标颜色和大小
+                icon={
+                  <ReloadOutlined
+                    style={{ color: 'white', fontSize: '18px' }}
+                  />
+                } // 设置图标颜色和大小
                 onClick={handleRefreshPage}
                 style={{ color: 'white' }} // 确保按钮文字（如果有）也是白色
               />

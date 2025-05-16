@@ -167,7 +167,7 @@ function LoginPage() {
 
       if (access_token && userInfo) {
         console.log('登录成功：', userInfo)
-        await auth.login(access_token);
+        await auth.login(access_token)
 
         if (rememberAccount) {
           try {
@@ -200,9 +200,9 @@ function LoginPage() {
         }
 
         // 登录成功后，跳转到之前的页面或默认页面
-        const from = location.state?.from?.pathname || "/";
-        navigate(from, { replace: true });
-        console.log(`Navigating to ${from}`);
+        const from = location.state?.from?.pathname || '/'
+        navigate(from, { replace: true })
+        console.log(`Navigating to ${from}`)
 
         // 通知主进程登录成功
         if (window.ipcRenderer?.send) {
@@ -231,7 +231,7 @@ function LoginPage() {
       <CustomTitlebar></CustomTitlebar>
       <div className="login-layout">
         <div className="login-title">
-          <span>飞书</span>
+          <span>飞信</span>
         </div>
         <Avatar src={currentAvatar} size="80px"></Avatar>
         <Form className="login-form">

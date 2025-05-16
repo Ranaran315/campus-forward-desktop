@@ -51,7 +51,7 @@ import AcademicClassManagementPage from './views/Admin/AcademicClassManagementPa
 // --- 路由守卫组件 ---
 // 这个组件用于保护需要登录才能访问的路由
 const ProtectedRoute: React.FC = () => {
-  const {isAuthenticated, isLoading} = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -62,7 +62,7 @@ const ProtectedRoute: React.FC = () => {
     // 如果没有 token，则重定向到登录页面
     // replace 属性可以防止用户通过浏览器后退回到受保护页面
     console.log('ProtectedRoute: 未检测到 token，重定向到 /login')
-    return <Navigate to="/login" state={{ from: location }}  replace />
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   // 已认证（通过 <Outlet />）
@@ -75,15 +75,19 @@ function AppLayout() {
   const location = useLocation()
   const currentPath = location.pathname
   const { pendingReceivedRequestsCount } = useAppNotificationsContext()
-  const { checkPermission, isLoading: authLoading, user } = useAuth();
+  const { checkPermission, isLoading: authLoading, user } = useAuth()
 
   // 只有在 authLoading 完成后才进行权限检查
-  console.log("AppLayout: checkPermission", checkPermission('admin_panel:access'));
-  const canAccessAdminPanel = !authLoading && checkPermission('admin_panel:access');
+  console.log(
+    'AppLayout: checkPermission',
+    checkPermission('admin_panel:access')
+  )
+  const canAccessAdminPanel =
+    !authLoading && checkPermission('admin_panel:access')
 
   return (
     <div>
-      <CustomHeader title="飞书" />
+      <CustomHeader title="飞信" />
       <div className="app-layout">
         <aside className="sidebar">
           <div className="sidebar-item sidebar-top">
@@ -130,7 +134,7 @@ function AppLayout() {
             </Link>
           </div>
           <div className="sidebar-item sidebar-bottom">
-             {canAccessAdminPanel && (
+            {canAccessAdminPanel && (
               <Link
                 to="/admin" // 指向后台管理系统的根路径
                 className={`sidebar-button ${
@@ -215,14 +219,19 @@ function App() {
         {/* 后台管理应用路由 */}
         <Route element={<ProtectedRouteAdmin />}>
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<DashboardPage />} /> {/* /admin 默认显示仪表盘 */}
+            <Route index element={<DashboardPage />} />{' '}
+            {/* /admin 默认显示仪表盘 */}
             <Route path="users" element={<UserManagementPage />} />
             <Route path="roles" element={<RoleManagementPage />} />
-            <Route path='colleges' element={<CollegeManagementPage />} />
-            <Route path='majors' element={<MajorManagementPage />} />
-            <Route path='academic-classes' element={<AcademicClassManagementPage />} />
+            <Route path="colleges" element={<CollegeManagementPage />} />
+            <Route path="majors" element={<MajorManagementPage />} />
+            <Route
+              path="academic-classes"
+              element={<AcademicClassManagementPage />}
+            />
             {/* 在这里添加更多后台管理的子路由 */}
-            <Route path="*" element={<Navigate to="/admin" replace />} /> {/* 后台管理区域内的未匹配路径重定向到仪表盘 */}
+            <Route path="*" element={<Navigate to="/admin" replace />} />{' '}
+            {/* 后台管理区域内的未匹配路径重定向到仪表盘 */}
           </Route>
         </Route>
       </Routes>

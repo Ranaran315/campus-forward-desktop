@@ -77,7 +77,7 @@ function createMainWindow() {
     height: 670, // 初始高度
     minWidth: 960, // 最小宽度
     minHeight: 670, // 最小高度
-    title: '飞书', // 标题
+    title: '飞信', // 标题
     frame: false, // 无边框，以自定义标题栏结构
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),

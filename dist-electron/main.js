@@ -10342,7 +10342,7 @@ function createMainWindow() {
     // 最小宽度
     minHeight: 670,
     // 最小高度
-    title: "飞书",
+    title: "飞信",
     // 标题
     frame: false,
     // 无边框，以自定义标题栏结构
