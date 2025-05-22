@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import NotificationSidebar from './NotificationSidebar' // Corrected import path
 import NotificationDetailDisplay from './NotificationDetail'
 import PublishNoticeForm from './PublishNoticeForm' // Import PublishNoticeForm
+import MyPublishedNoticesView from './MyPublishedNoticesView' // Import MyPublishedNoticesView
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import './NotificationViews.css'
 import { Form, message } from 'antd' // Import Form and message from antd
@@ -14,6 +15,8 @@ function NotificationPage() {
   const [selectedNotificationDetail, setSelectedNotificationDetail] =
     useState<NotificationDetailType | null>(null)
   const [isPublishViewActive, setIsPublishViewActive] = useState(false) // State to control publish form visibility
+  const [isMyPublishedNoticesViewActive, setIsMyPublishedNoticesViewActive] =
+    useState(false) // State for "My Published Notices" view
   const [publishForm] = Form.useForm() // Form instance for PublishNoticeForm
   const [isSubmitting, setIsSubmitting] = useState(false) // State for submission loading
   const [isSavingDraft, setIsSavingDraft] = useState(false) // State for save draft loading
@@ -134,11 +137,20 @@ function NotificationPage() {
 
   const handleSelectNotification = useCallback((id: string) => {
     setSelectedNotificationId(id)
+    setIsMyPublishedNoticesViewActive(false) // Hide "My Published Notices" view when a notification is selected
+    setIsPublishViewActive(false) // Also hide publish form view
   }, [])
 
   const handleShowPublishForm = () => {
     setSelectedNotificationId(null) // Deselect any notification
     setIsPublishViewActive(true)
+    setIsMyPublishedNoticesViewActive(false) // Hide "My Published Notices" view
+  }
+
+  const handleShowMyPublishedNotices = () => {
+    setSelectedNotificationId(null) // Deselect any notification
+    setIsPublishViewActive(false) // Hide publish form
+    setIsMyPublishedNoticesViewActive(true) // Show "My Published Notices" view
   }
 
   const handleCancelPublish = () => {
@@ -186,6 +198,7 @@ function NotificationPage() {
         selectedNotificationId={selectedNotificationId}
         onNotificationSelect={handleSelectNotification}
         onPublishNewNoticeClick={handleShowPublishForm} // Pass the handler to the sidebar
+        onShowMyPublishedNoticesClick={handleShowMyPublishedNotices} // Pass the new handler
       />
       <main className="notification-detail-view">
         {isPublishViewActive ? (
@@ -197,6 +210,8 @@ function NotificationPage() {
             isSubmitting={isSubmitting}
             isSavingDraft={isSavingDraft} // Pass the new loading state
           />
+        ) : isMyPublishedNoticesViewActive ? (
+          <MyPublishedNoticesView />
         ) : (
           <NotificationDetailDisplay
             notification={selectedNotificationDetail}

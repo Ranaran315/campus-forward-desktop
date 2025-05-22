@@ -1,0 +1,101 @@
+/* src/views/Notifications/MyPublishedNoticesView.css */
+.my-published-notices-view {
+  /* padding: 20px; */ /* Padding moved to inner containers if needed */
+  background-color: var(--primary-background-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* For positioning pagination */
+
+  .sticky-controls {
+    position: sticky;
+    top: 0;
+    background-color: var(
+      --primary-background-color
+    ); /* Match view background */
+    z-index: 10; /* Ensure it stays on top of scrolling content */
+    padding: 20px 20px 0; /* Add padding, but no bottom padding to connect with list */
+    border-bottom: 1px solid var(--border-color, #f0f0f0); /* Optional: add a separator */
+  }
+
+  .my-notices-controls {
+    /* margin-bottom: 16px; */ /* Margin adjusted by sticky-controls padding */
+    display: flex;
+    justify-content: flex-start; /* Align search to the left */
+    padding-top: 16px; /* Space between tabs and search */
+    padding-bottom: 16px; /* Space below search bar */
+
+    /* Styling for the InputField if needed, assuming it's a div wrapping an input */
+    .input-group {
+      width: 100%;
+    }
+  }
+
+  .my-notices-list-container {
+    flex: 1; /* Allows this container to grow and fill available space */
+    overflow-y: auto; /* Enables scrolling for the list only */
+    padding: 0 20px; /* Horizontal padding for the list content */
+  }
+
+  .my-notices-list {
+    .ant-list-item {
+      padding: 12px 0;
+
+      .ant-list-item-meta-title > a {
+        color: var(--primary-color); /* Use global variable */
+        font-size: var(--medium-font-size); /* Use global variable */
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .ant-list-item-meta-description {
+        color: var(--secondary-text-color); /* Use global variable */
+        font-size: var(--normal-font-size); /* Use global variable */
+        margin-bottom: 8px;
+      }
+
+      .item-tags .ant-tag {
+        margin-bottom: 4px; /* Add some space below tags if they wrap */
+      }
+
+      .last-modified-date {
+        font-size: var(--small-font-size); /* Use global variable */
+        color: var(
+          --placeholder-text-color
+        ); /* Use global variable for lighter text */
+      }
+    }
+  }
+
+  .my-notices-pagination-container {
+    position: sticky;
+    bottom: 0;
+    background-color: var(
+      --primary-background-color
+    ); /* Match view background */
+    padding: 16px 20px; /* Add some padding around the pagination */
+    display: flex; /* For centering */
+    justify-content: center; /* For centering */
+    border-top: 1px solid var(--border-color, #f0f0f0); /* Optional: add a separator */
+    z-index: 10; /* Ensure it stays on top */
+  }
+
+  /* Ensure Ant Design Tabs nav doesn't have excessive bottom margin */
+  .my-published-notices-view .ant-tabs-nav {
+    margin-bottom: 0;
+  }
+
+  .ant-list-item-action {
+    margin-left: 0; /* Reset default margin if needed */
+
+    > li {
+      padding: 0 8px; /* Adjust padding between action buttons */
+
+      &:first-child {
+        padding-left: 0;
+      }
+    }
+  }
+}

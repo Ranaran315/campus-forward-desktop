@@ -82,16 +82,19 @@ interface NotificationsSidebarProps {
   onNotificationSelect: (notificationId: string) => void
   selectedNotificationId: string | null
   onPublishNewNoticeClick: () => void // Added prop for parent to handle form display
+  onShowMyPublishedNoticesClick: () => void // Added prop for "My Published Notices"
 }
 
 const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   onNotificationSelect,
   selectedNotificationId,
   onPublishNewNoticeClick, // Destructure the new prop
+  onShowMyPublishedNoticesClick, // Destructure the new prop
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
 
-  const handleSearchChange = (name: string, value: string) => {
+  const handleSearchChange = (_name: string, value: string) => {
+    // Mark name as unused
     setSearchQuery(value)
   }
 
@@ -123,7 +126,7 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
         <div className="notifications-functions">
           <div
             className="function-item"
-            onClick={() => console.log('查看我发布的通知')} // 替换为实际回调
+            onClick={onShowMyPublishedNoticesClick} // Use the passed prop
           >
             <EditIcon />
             <span className="function-text">我发布的通知</span>
