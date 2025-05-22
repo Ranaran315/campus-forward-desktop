@@ -1,0 +1,170 @@
+/* NotificationPage.css */
+.notification-page-container {
+  display: flex;
+  height: 100%;
+  font-family: sans-serif;
+}
+
+.notification-sidebar {
+  width: 320px; /* Slightly wider for better readability */
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9f9f9;
+}
+
+.notification-sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0; /* Prevent tabs from shrinking */
+}
+
+.notification-sidebar-tabs button {
+  flex-grow: 1;
+  padding: 12px 15px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #555;
+  border-bottom: 3px solid transparent; /* For active indicator */
+  transition: color 0.2s ease, border-bottom-color 0.2s ease;
+}
+
+.notification-sidebar-tabs button:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.notification-sidebar-tabs button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+  font-weight: 600; /* Slightly bolder */
+}
+
+.notification-list {
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.notification-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: #eef5ff; /* Lighter blue hover */
+}
+
+.notification-item.selected {
+  background-color: #d4eaff;
+  border-left: 3px solid #007bff; /* Add a left border for selected item */
+  padding-left: 12px; /* Adjust padding for the border */
+}
+
+.notification-item.unread h4 {
+  font-weight: 600; /* Bolder for unread titles */
+  color: #222;
+}
+.notification-item.unread p,
+.notification-item.unread span {
+  color: #444;
+}
+
+.notification-item h4 {
+  margin: 0 0 6px 0;
+  font-size: 0.9rem;
+  color: #333;
+  line-height: 1.3;
+}
+
+.notification-item p {
+  margin: 0 0 8px 0;
+  font-size: 0.8rem;
+  color: #555; /* Slightly darker for better contrast */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.notification-item span {
+  font-size: 0.75rem;
+  color: #777; /* Slightly darker timestamp */
+}
+
+.no-notifications-message {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+/* Styles for NotificationDetail.tsx elements, assuming they use these class names */
+.notification-detail-view {
+  flex: 1;
+  padding: 25px 30px; /* More padding */
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+.notification-content h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.6rem; /* Larger title */
+  color: #222;
+  line-height: 1.3;
+}
+
+.notification-content .timestamp {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 18px;
+}
+
+.notification-content .type-tag {
+  font-size: 0.8rem;
+  color: #007bff;
+  background-color: #e7f3ff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.notification-content hr {
+  border: 0;
+  border-top: 1px solid #eaeaea;
+  margin: 20px 0;
+}
+
+.notification-content .content-full p {
+  line-height: 1.7; /* Increased line height for readability */
+  margin-bottom: 1.2em;
+  color: #333; /* Darker text for content */
+  font-size: 0.95rem;
+}
+
+.no-notification-selected {
+  display: flex;
+  flex-direction: column; /* Stack icon and text */
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #888;
+  text-align: center;
+}
+
+.no-notification-selected p {
+  font-size: 1.1rem;
+  margin-top: 15px; /* Space between icon and text if you add an icon */
+}
+
+/* Placeholder for an icon if you add one */
+.no-notification-selected::before {
+  /* content: '📧'; /* Example emoji icon */
+  /* font-size: 3rem; */
+  /* color: #ccc; */
+}

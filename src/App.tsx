@@ -14,7 +14,7 @@ import RegisterViews from './views/Register/Register'
 import CustomHeader from '@/components/CustomHeader/CustomHeader'
 // 主应用路由
 import ChatViews from '@/views/Chat/ChatViews'
-import NotificationViews from '@/views/Notifications/Notifications'
+import NotificationViews from '@/views/Notifications/NotificationViews'
 import CalendarViews from '@/views/Calendar/Calendar'
 import FriendsViews from '@/views/Friends/FriendsViews'
 import ProfileViwes from '@/views/Profile/Profile'

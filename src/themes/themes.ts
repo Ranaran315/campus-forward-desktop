@@ -5,7 +5,7 @@ export const themes = {
     '--primary-background-color': '#f0f0f0',
     '--primary-text-color': '#333',
     '--header-background': '#3498db',
-    '--header-text': '#fff',
+    '--active-text-color': '#fff',
     // ... 其他颜色变量
   },
   dark: {
@@ -14,7 +14,7 @@ export const themes = {
     '--primary-background-color': '#333',
     '--primary-text-color': '#ecf0f1',
     '--header-background': '#2c3e50',
-    '--header-text': '#ecf0f1',
+    '--active-text-color': '#ecf0f1',
     // ... 其他颜色变量
   },
   // 可以添加更多主题
@@ -24,7 +24,7 @@ export const themes = {
     '--primary-background-color': '#f9f9f9',
     '--primary-text-color': '#444',
     '--header-background': '#2ecc71',
-    '--header-text': '#fff',
+    '--active-text-color': '#fff',
     // ... 其他颜色变量
   },
 }

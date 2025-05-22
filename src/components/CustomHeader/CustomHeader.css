@@ -4,7 +4,7 @@
   justify-content: space-between;
   align-items: center;
   background-color: var(--header-background); /* 设置你想要的背景色 */
-  color: var(--header-text); /* 设置文字颜色 */
+  color: var(--active-text-color); /* 设置文字颜色 */
   padding: 15px 15px;
   height: 60px; /* 设置头部高度 */
   -webkit-app-region: drag; /* 允许拖动窗口 */
@@ -24,7 +24,7 @@
 }
 
 .window-controls button {
-  color: var(--header-text);
+  color: var(--active-text-color);
   appearance: none;
   background: none;
   border: none;
@@ -39,7 +39,7 @@
 }
 
 .window-controls button:hover {
-  background-color: var(--header-text); /* 鼠标悬停时的背景色 */
+  background-color: var(--active-text-color); /* 鼠标悬停时的背景色 */
   color: var(--header-background); /* 鼠标悬停时的文字颜色 */
 }
 

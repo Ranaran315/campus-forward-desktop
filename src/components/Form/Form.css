@@ -82,6 +82,7 @@
         background-color: var(--primary-background-color);
         border-radius: 100px;
         transition: all 0.3s;
+        padding: 8px 8px 8px 32px;
 
         &:focus {
           outline: none;
