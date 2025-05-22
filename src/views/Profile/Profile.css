@@ -24,7 +24,7 @@
           .user-type {
             padding: 0 10px;
             background-color: var(--primary-color);
-            color: var(--primary-background-color);
+            color: var(--secondary-bg-color);
             border-radius: 8px;
             box-shadow: var(--primary-box-shadow);
           }
@@ -36,7 +36,7 @@
       flex-direction: column;
       gap: 10px;
       .profile-info-section {
-        background-color: var(--secondary-background-color);
+        background-color: var(--primary-background-color);
         padding: 8px 10px;
         border-radius: 8px;
         box-shadow: var(--secondary-box-shadow);

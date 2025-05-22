@@ -21,12 +21,12 @@
       background: var(--primary-color);
       border-right: 0;
       .ant-menu-item {
-        color: var(--secondary-background-color) !important;
+        color: var(--primary-background-color) !important;
         &.ant-menu-item-selected {
           background-color: var(--secondary-color) !important;
-          color: var(--secondary-background-color);
+          color: var(--primary-background-color);
           .ant-menu-submenu-title {
-            color: var(--secondary-background-color);
+            color: var(--primary-background-color);
           }
         }
       }
@@ -50,7 +50,7 @@
         flex-direction: column;
         flex-grow: 1;
         padding: 24px;
-        background: var(--secondary-background-color);
+        background: var(--primary-background-color);
         height: calc(
           100vh - 64px - 48px - 69px
         ); /* Header - Breadcrumb - Footer */

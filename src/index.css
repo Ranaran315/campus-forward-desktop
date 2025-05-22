@@ -13,9 +13,9 @@
   -moz-osx-font-smoothing: grayscale;
 
   /* 主题色 */
-  --primary-color: #133c9a;
-  --secondary-color: #0bb8f3;
-  --third-color: #00d6b9;
+  --primary-color: #1677ff;
+  --secondary-color: #bae0ff;
+  --third-color: #e6f4ff;
 
   /* 辅助色 */
   --primary-danger-color: #ff4d4f;
@@ -26,8 +26,8 @@
   --secondary-warning-color: #ff9800;
 
   /* 背景 */
-  --primary-background-color: #f0f0f0;
-  --secondary-background-color: #fff;
+  --secondary-bg-color: #f0f0f0;
+  --primary-background-color: #fff;
   --third-background-color: #e4e4e8;
   --fill-color: #b9bbbc;
 
@@ -81,7 +81,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--primary-background-color);
+  background-color: var(--secondary-bg-color);
   color: var(--primary-text-color);
   font-size: 14px;
 }

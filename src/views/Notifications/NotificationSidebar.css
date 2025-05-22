@@ -4,7 +4,7 @@
   flex-direction: column;
   height: 100%;
   border-right: 1px solid var(--third-background-color);
-  background-color: var(--secondary-background-color);
+  background-color: var(--primary-background-color);
   position: relative; /* 为了底部按钮的绝对定位 */
 
   .notifications-header {
@@ -143,7 +143,7 @@
         align-items: center;
         .notification-timestamp {
           font-size: var(--small-font-size);
-          color: var(--secondary-text-color);
+          color: var(--placeholder-text-color);
         }
         .notification-sender {
           width: 40%;
@@ -156,7 +156,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             font-size: var(--small-font-size);
-            color: var(--secondary-text-color);
+            color: var(--placeholder-text-color);
           }
         }
       }

@@ -7,6 +7,7 @@ import EditIcon from '@/assets/icons/edit.svg?react'
 import ArrowRight from '@/assets/icons/arrow_right.svg?react'
 import { UserProfile } from '@/types/user.types'
 import Avatar from '@/components/Avatar/Avatar'
+import Button from '@/components/Button/Button'
 
 interface NotificationItem {
   id: string
@@ -175,13 +176,13 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
       </div>
 
       <div className="publish-footer">
-        <button
+        <Button
           className="publish-btn"
           onClick={() => console.log('发布新通知')} // 替换为实际回调
         >
           <AddIcon />
           <span>发布通知</span>
-        </button>
+        </Button>
       </div>
     </aside>
   )
