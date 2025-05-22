@@ -2,8 +2,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import NotificationSidebar from './NotificationSidebar' // Corrected import path
 import NotificationDetailDisplay from './NotificationDetail'
+import PublishNoticeForm from './PublishNoticeForm' // Import PublishNoticeForm
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import './NotificationViews.css'
+import { Form, message } from 'antd' // Import Form and message from antd
 
 function NotificationPage() {
   const [selectedNotificationId, setSelectedNotificationId] = useState<
@@ -11,6 +13,10 @@ function NotificationPage() {
   >(null)
   const [selectedNotificationDetail, setSelectedNotificationDetail] =
     useState<NotificationDetailType | null>(null)
+  const [isPublishViewActive, setIsPublishViewActive] = useState(false) // State to control publish form visibility
+  const [publishForm] = Form.useForm() // Form instance for PublishNoticeForm
+  const [isSubmitting, setIsSubmitting] = useState(false) // State for submission loading
+  const [isSavingDraft, setIsSavingDraft] = useState(false) // State for save draft loading
 
   // Mock data, assuming it might still be used for details, or fetched based on ID
   const mockNotificationDetailsData: { [key: string]: NotificationDetailType } =
@@ -120,6 +126,7 @@ function NotificationPage() {
       setSelectedNotificationDetail(
         mockNotificationDetailsData[selectedNotificationId]
       )
+      setIsPublishViewActive(false) // Ensure publish form is hidden when a notification is selected
     } else {
       setSelectedNotificationDetail(null)
     }
@@ -129,17 +136,73 @@ function NotificationPage() {
     setSelectedNotificationId(id)
   }, [])
 
+  const handleShowPublishForm = () => {
+    setSelectedNotificationId(null) // Deselect any notification
+    setIsPublishViewActive(true)
+  }
+
+  const handleCancelPublish = () => {
+    setIsPublishViewActive(false)
+    publishForm.resetFields()
+  }
+
+  const handlePublishNoticeSubmit = async (values: any) => {
+    setIsSubmitting(true)
+    console.log('Publishing notice with values:', values)
+    // Simulate API call
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      message.success('通知发布成功!')
+      handleCancelPublish() // Close form and reset
+      // Here you might want to refresh the notifications list
+    } catch (error) {
+      console.error('Failed to publish notice:', error)
+      message.error('通知发布失败，请稍后再试。')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSaveDraft = async (values: any) => {
+    setIsSavingDraft(true)
+    console.log('Saving draft with values:', values)
+    // Simulate API call for saving draft
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      message.success('草稿保存成功!')
+      // Optionally, you might want to keep the form open or close it
+      // handleCancelPublish(); // or publishForm.resetFields(); if you want to clear after save
+    } catch (error) {
+      console.error('Failed to save draft:', error)
+      message.error('草稿保存失败，请稍后再试。')
+    } finally {
+      setIsSavingDraft(false)
+    }
+  }
+
   return (
     <div className="notification-page-container">
       <NotificationSidebar
         selectedNotificationId={selectedNotificationId}
         onNotificationSelect={handleSelectNotification}
+        onPublishNewNoticeClick={handleShowPublishForm} // Pass the handler to the sidebar
       />
       <main className="notification-detail-view">
-        <NotificationDetailDisplay
-          notification={selectedNotificationDetail}
-          activeListType={'received'} // 这个值可能需要根据实际情况动态确定
-        />
+        {isPublishViewActive ? (
+          <PublishNoticeForm
+            formInstance={publishForm}
+            onPublish={handlePublishNoticeSubmit}
+            onCancel={handleCancelPublish}
+            onSaveDraft={handleSaveDraft} // Pass the new handler
+            isSubmitting={isSubmitting}
+            isSavingDraft={isSavingDraft} // Pass the new loading state
+          />
+        ) : (
+          <NotificationDetailDisplay
+            notification={selectedNotificationDetail}
+            activeListType={'received'} // This value might need to be dynamic
+          />
+        )}
       </main>
     </div>
   )

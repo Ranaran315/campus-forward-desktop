@@ -19,13 +19,19 @@ const { TextArea } = Input
 interface PublishNoticeFormProps {
   formInstance: FormInstance
   onCancel: () => void
-  onPublish: (values: any) => void
+  onPublish: (values: any) => void // Retain this to be called by the internal button
+  onSaveDraft: (values: any) => void // New prop for saving draft
+  isSubmitting?: boolean // Added for loading state of the internal publish button
+  isSavingDraft?: boolean // Optional: for loading state of save draft button
 }
 
 const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
   formInstance,
   onCancel,
   onPublish,
+  onSaveDraft, // Destructure new prop
+  isSubmitting, // Destructure the new prop
+  isSavingDraft, // Destructure new prop
 }) => {
   // Dummy options for select fields - replace with actual data sources
   const senderIdentities = [
@@ -42,8 +48,20 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
     { id: 'cs_students', name: '计算机学院学生' },
   ]
 
+  const tags = ['重要', '会议', '活动', '选课', '讲座', '失物招领']
+
+  const handleSaveDraftClick = () => {
+    const values = formInstance.getFieldsValue()
+    onSaveDraft(values)
+  }
+
   return (
-    <Form form={formInstance} layout="vertical" name="publish_notice_form">
+    <Form
+      form={formInstance}
+      layout="vertical"
+      name="publish_notice_form"
+      onFinish={onPublish} // Call onPublish when form is submitted and validated
+    >
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item
@@ -97,8 +115,8 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
       <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="tags" label="标签">
-            <Select mode="tags" placeholder="添加标签">
-              {/* Removed mapping of predefined tags to allow free-form input */}
+            <Select mode="tags" placeholder="输入并按回车添加标签">
+              {/* No predefined <Option> elements here, users can type freely */}
             </Select>
           </Form.Item>
         </Col>
@@ -144,6 +162,23 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
           </Form.Item>
         </Col>
       </Row>
+
+      {/* Add Submit and Cancel buttons here */}
+      <Form.Item style={{ marginTop: '24px', textAlign: 'right' }}>
+        <Button onClick={onCancel} style={{ marginRight: 8 }}>
+          取消
+        </Button>
+        <Button
+          onClick={handleSaveDraftClick}
+          style={{ marginRight: 8 }}
+          loading={isSavingDraft} // Add loading state for save draft button
+        >
+          保存草稿
+        </Button>
+        <Button type="primary" htmlType="submit" loading={isSubmitting}>
+          发布
+        </Button>
+      </Form.Item>
     </Form>
   )
 }
