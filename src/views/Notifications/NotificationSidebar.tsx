@@ -8,9 +8,9 @@ import ArrowRight from '@/assets/icons/arrow_right.svg?react'
 import { UserProfile } from '@/types/user.types'
 import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
-import Modal from '@/components/Modal/Modal' // Import custom Modal
 import PublishNoticeForm from './PublishNoticeForm' // Import the form
-import { Form, message } from 'antd' // Import Form and message from antd for the form instance and notifications
+import { Form, Modal } from 'antd' // Import Form and message from antd for the form instance and notifications
+import { showMessage } from '@/components/Message/MessageContainer'
 
 interface NotificationItem {
   id: string
@@ -114,11 +114,11 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
       const values = await publishForm.validateFields()
       // TODO: Implement actual API call to publish the notice
       console.log('Publishing notice with values:', values)
-      message.success('通知已成功发布！') // Ant Design message
+      showMessage.success('通知已成功发布！') // Ant Design message
       closePublishModal()
     } catch (errorInfo) {
       console.log('Failed to publish notice:', errorInfo)
-      message.error('请检查表单信息是否完整正确。') // Ant Design message
+      showMessage.error('请检查表单信息是否完整正确。') // Ant Design message
     }
     setIsConfirmLoading(false)
   }
@@ -215,25 +215,16 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
       </div>
 
       <Modal
-        isOpen={isPublishModalOpen}
-        onClose={closePublishModal}
         title="发布新通知"
-        onConfirm={handlePublishNotice}
-        confirmText="发布"
+        open={isPublishModalOpen}
+        onOk={handlePublishNotice}
+        onCancel={closePublishModal}
+        confirmLoading={isConfirmLoading}
+        okText="发布"
         cancelText="取消"
-        isConfirmLoading={isConfirmLoading}
-        // customFooter={ // Example of how you might use custom footer if needed
-        //   <div style={{ textAlign: 'right' }}>
-        //     <Button theme="secondary" onClick={closePublishModal} style={{ marginRight: '8px' }}>取消</Button>
-        //     <Button theme="primary" onClick={handlePublishNotice}>发布</Button>
-        //   </div>
-        // }
       >
         <PublishNoticeForm
           formInstance={publishForm}
-          // onPublish and onCancel props on PublishNoticeForm are not strictly needed here
-          // as Modal's onConfirm/onClose will trigger the logic.
-          // However, keeping them for consistency if PublishNoticeForm expects them.
           onPublish={handlePublishNotice}
           onCancel={closePublishModal}
         />

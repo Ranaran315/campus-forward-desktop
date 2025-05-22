@@ -129,9 +129,6 @@ function NotificationPage() {
     setSelectedNotificationId(id)
   }, [])
 
-  // Placeholder for permission logic to show "Sent" tab
-  // const currentUserPermissions = { canViewSentNotifications: true };
-
   return (
     <div className="notification-page-container">
       <NotificationSidebar

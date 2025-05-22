@@ -42,8 +42,6 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
     { id: 'cs_students', name: '计算机学院学生' },
   ]
 
-  const tags = ['重要', '会议', '活动', '选课', '讲座', '失物招领']
-
   return (
     <Form form={formInstance} layout="vertical" name="publish_notice_form">
       <Row gutter={16}>
@@ -100,11 +98,7 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
         <Col span={12}>
           <Form.Item name="tags" label="标签">
             <Select mode="tags" placeholder="添加标签">
-              {tags.map((tag) => (
-                <Option key={tag} value={tag}>
-                  {tag}
-                </Option>
-              ))}
+              {/* Removed mapping of predefined tags to allow free-form input */}
             </Select>
           </Form.Item>
         </Col>
@@ -150,9 +144,6 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
           </Form.Item>
         </Col>
       </Row>
-
-      {/* Footer buttons are now part of the Modal in NotificationsSidebar.tsx */}
-      {/* The onCancel and onPublish props are kept for flexibility but might be unused if Modal handles all actions */}
     </Form>
   )
 }
