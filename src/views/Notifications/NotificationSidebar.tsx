@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import './NotificationSidebar.css'
-import { InputField } from '@/components/Form/Form' // 假设的 InputField 组件路径
+import { InputField } from '@/components/Form/Form'
 import FilterIcon from '@/assets/icons/filter.svg?react'
 import AddIcon from '@/assets/icons/add.svg?react'
 import EditIcon from '@/assets/icons/edit.svg?react'
@@ -8,6 +8,9 @@ import ArrowRight from '@/assets/icons/arrow_right.svg?react'
 import { UserProfile } from '@/types/user.types'
 import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
+import Modal from '@/components/Modal/Modal' // Import custom Modal
+import PublishNoticeForm from './PublishNoticeForm' // Import the form
+import { Form, message } from 'antd' // Import Form and message from antd for the form instance and notifications
 
 interface NotificationItem {
   id: string
@@ -79,7 +82,6 @@ const staticNotifications: NotificationItem[] = [
 ]
 
 interface NotificationsSidebarProps {
-  // 未来可以添加回调函数等
   onNotificationSelect: (notificationId: string) => void
   selectedNotificationId: string | null
 }
@@ -89,9 +91,36 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   selectedNotificationId,
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
+  const [publishForm] = Form.useForm() // Ant Design Form instance for PublishNoticeForm
+  const [isConfirmLoading, setIsConfirmLoading] = useState(false)
 
   const handleSearchChange = (name: string, value: string) => {
     setSearchQuery(value)
+  }
+
+  const openPublishModal = () => {
+    setIsPublishModalOpen(true)
+  }
+
+  const closePublishModal = () => {
+    setIsPublishModalOpen(false)
+    publishForm.resetFields()
+  }
+
+  const handlePublishNotice = async () => {
+    setIsConfirmLoading(true)
+    try {
+      const values = await publishForm.validateFields()
+      // TODO: Implement actual API call to publish the notice
+      console.log('Publishing notice with values:', values)
+      message.success('通知已成功发布！') // Ant Design message
+      closePublishModal()
+    } catch (errorInfo) {
+      console.log('Failed to publish notice:', errorInfo)
+      message.error('请检查表单信息是否完整正确。') // Ant Design message
+    }
+    setIsConfirmLoading(false)
   }
 
   const filteredNotifications = staticNotifications.filter(
@@ -178,12 +207,37 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
       <div className="publish-footer">
         <Button
           className="publish-btn"
-          onClick={() => console.log('发布新通知')} // 替换为实际回调
+          onClick={openPublishModal} // Changed to open the modal
         >
           <AddIcon />
           <span>发布通知</span>
         </Button>
       </div>
+
+      <Modal
+        isOpen={isPublishModalOpen}
+        onClose={closePublishModal}
+        title="发布新通知"
+        onConfirm={handlePublishNotice}
+        confirmText="发布"
+        cancelText="取消"
+        isConfirmLoading={isConfirmLoading}
+        // customFooter={ // Example of how you might use custom footer if needed
+        //   <div style={{ textAlign: 'right' }}>
+        //     <Button theme="secondary" onClick={closePublishModal} style={{ marginRight: '8px' }}>取消</Button>
+        //     <Button theme="primary" onClick={handlePublishNotice}>发布</Button>
+        //   </div>
+        // }
+      >
+        <PublishNoticeForm
+          formInstance={publishForm}
+          // onPublish and onCancel props on PublishNoticeForm are not strictly needed here
+          // as Modal's onConfirm/onClose will trigger the logic.
+          // However, keeping them for consistency if PublishNoticeForm expects them.
+          onPublish={handlePublishNotice}
+          onCancel={closePublishModal}
+        />
+      </Modal>
     </aside>
   )
 }

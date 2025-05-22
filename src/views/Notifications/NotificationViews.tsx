@@ -1,27 +1,18 @@
 // campus-forward-desktop/src/views/Notifications/NotificationPage.tsx
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import NotificationSidebar from './NotificationSidebar' // Corrected import path
 import NotificationDetailDisplay from './NotificationDetail'
-import {
-  ReceivedNotificationListItem,
-  SentNotificationListItem,
-  NotificationDetail as NotificationDetailType,
-} from '@/types/notifications.type'
+import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import './NotificationViews.css'
 
 function NotificationPage() {
-  // const [receivedNotifications, setReceivedNotifications] = useState<
-  //   ReceivedNotificationListItem[]
-  // >(mockReceivedNotificationsData) // No longer needed here, managed by Sidebar or fetched differently
-  // const [sentNotifications, setSentNotifications] = useState<
-  //   SentNotificationListItem[]
-  // >(mockSentNotificationsData) // No longer needed here
   const [selectedNotificationId, setSelectedNotificationId] = useState<
     string | null
   >(null)
   const [selectedNotificationDetail, setSelectedNotificationDetail] =
     useState<NotificationDetailType | null>(null)
 
+  // Mock data, assuming it might still be used for details, or fetched based on ID
   const mockNotificationDetailsData: { [key: string]: NotificationDetailType } =
     {
       r1: {
@@ -82,6 +73,7 @@ function NotificationPage() {
         sentBy: '您 (后勤集团)',
         recipients: [{ id: 'allcampus', name: '全体在校师生' }],
       },
+      // Add more details for static notifications from NotificationsSidebar if needed
       '1': {
         id: '1',
         title: '五一劳动节放假通知',
