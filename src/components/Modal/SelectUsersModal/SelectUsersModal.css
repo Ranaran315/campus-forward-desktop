@@ -1,0 +1,137 @@
+.select-users-modal .ant-modal-body {
+  padding: 0; /* Remove default padding if we want full control */
+}
+
+.select-users-modal-content {
+  display: flex;
+  /* min-height: 500px; */ /* Let content define height */
+  height: 60vh; /* Fixed height for the content area */
+  max-height: 70vh; /* Max height to prevent overly tall modals */
+}
+
+.left-panel,
+.right-panel {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Ensure panels take full height of the row */
+  overflow: hidden; /* Prevent direct overflow from panels */
+}
+
+.left-panel {
+  border-right: 1px solid var(--primary-border-color); /* Use global variable */
+}
+
+.search-section {
+  margin-bottom: 12px;
+  flex-shrink: 0; /* Prevent search section from shrinking */
+}
+
+.search-section .input-field-container.theme-search input {
+  /* Assuming --border-radius-medium is defined, otherwise use a fixed value or another global var */
+  /* border-radius: var(--border-radius-medium); */
+  border-radius: 4px; /* Example value */
+}
+
+.select-all-section {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--primary-border-color); /* Use global variable */
+  margin-bottom: 8px;
+  flex-shrink: 0; /* Prevent select-all section from shrinking */
+}
+
+.user-list-container,
+.selected-users-list-container {
+  flex-grow: 1;
+  overflow-y: auto; /* This enables scrolling within these containers */
+  border: 1px solid var(--primary-border-color); /* Use global variable */
+  /* border-radius: var(--border-radius-medium); */
+  border-radius: 4px; /* Example value */
+  padding: 8px;
+  background-color: var(
+    --primary-background-color
+  ); /* Use global variable for list background */
+}
+
+/* Custom scrollbar for list containers, using global variables */
+.user-list-container::-webkit-scrollbar,
+.selected-users-list-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.user-list-container::-webkit-scrollbar-thumb,
+.selected-users-list-container::-webkit-scrollbar-thumb {
+  background-color: var(--fill-color);
+  border-radius: 4px;
+}
+
+.user-list-container::-webkit-scrollbar-track,
+.selected-users-list-container::-webkit-scrollbar-track {
+  background-color: var(--secondary-bg-color); /* Or #f1f1f1 if preferred */
+  border-radius: 4px;
+}
+
+.user-list-container::-webkit-scrollbar-thumb:hover,
+.selected-users-list-container::-webkit-scrollbar-thumb:hover {
+  background-color: #555; /* Consider a global variable for this too */
+}
+
+.user-list-container .ant-list-item {
+  cursor: pointer;
+  padding: 8px 12px;
+  /* border-radius: var(--border-radius-small); */
+  border-radius: 2px; /* Example value */
+  transition: background-color 0.2s ease-in-out;
+  color: var(--primary-text-color); /* Ensure text color is from global */
+}
+
+.user-list-container .ant-list-item:hover {
+  background-color: var(--third-background-color); /* Use global variable */
+}
+
+.user-list-container .ant-list-item.user-selected {
+  background-color: var(
+    --secondary-color
+  ); /* Use global variable for selection */
+  color: var(
+    --active-text-color
+  ); /* Use global variable for text on selection */
+}
+
+.user-list-container .ant-list-item.user-selected:hover {
+  background-color: var(
+    --primary-color
+  ); /* Darker shade for hover on selected */
+}
+
+.right-panel h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: var(--medium-font-size); /* Use global variable */
+  /* font-weight: var(--font-weight-semibold); */ /* Assuming this is defined, or use a value */
+  font-weight: 600; /* Example value */
+  color: var(--primary-text-color); /* Use global variable */
+  flex-shrink: 0; /* Prevent title from shrinking */
+}
+
+.selected-users-list-container .ant-list-item {
+  padding: 8px 12px;
+  color: var(--primary-text-color); /* Ensure text color is from global */
+}
+
+/* Ensure Empty component is centered if needed and uses global text color */
+.ant-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--secondary-text-color); /* Use global variable */
+}
+
+.ant-empty .ant-empty-description {
+  color: var(
+    --secondary-text-color
+  ); /* Ensure description also uses global color */
+}
