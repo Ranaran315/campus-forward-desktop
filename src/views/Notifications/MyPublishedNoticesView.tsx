@@ -1,114 +1,38 @@
 // src/views/Notifications/MyPublishedNoticesView.tsx
-import React, { useState, useEffect } from 'react'
-import { Tabs, List, Pagination, Empty, Tag, Button, Space } from 'antd'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Tabs, List, Pagination, Empty, Tag, Button, Space, Spin, Alert } from 'antd'
 import type { TabsProps } from 'antd'
 import { InputField } from '@/components/Form/Form'
+import apiClient, { BackendStandardResponse } from '@/lib/axios' // Import BackendStandardResponse
 import './MyPublishedNoticesView.css'
 
-// Define a type for published notices
-interface MyNoticeItem {
-  id: string
+// Define a type for notices fetched from the backend
+interface MyCreatedNoticeItem {
+  _id: string
   title: string
+  description?: string; // Already added in previous step
   status: 'draft' | 'published' | 'archived'
-  lastModified: string
-  summary?: string
+  updatedAt: string 
+  publishAt?: string 
+  createdAt: string 
+  contentPreview?: string 
   tags?: string[]
-  // Add other relevant fields like creationDate, publicationDate, viewCount etc.
+  importance: 'high' | 'medium' | 'low'
+  deadline?: string 
 }
 
-// Mock Data for demonstration
-const mockMyNotices: MyNoticeItem[] = [
-  {
-    id: 'pub1',
-    title: '关于调整期末考试安排的通知 (草稿)',
-    status: 'draft',
-    lastModified: '2025-05-21',
-    summary: '初步调整方案，待审核...',
-    tags: ['考试', '教务'],
-  },
-  {
-    id: 'pub2',
-    title: '五一劳动节放假通知 (已发布)',
-    status: 'published',
-    lastModified: '2025-04-28',
-    summary: '根据国家法定节假日安排...',
-    tags: ['假期'],
-  },
-  {
-    id: 'pub3',
-    title: '校园网络升级公告 (已发布)',
-    status: 'published',
-    lastModified: '2025-03-10',
-    summary: '为提升校园网速及稳定性...',
-    tags: ['网络', '重要'],
-  },
-  {
-    id: 'pub4',
-    title: '旧版图书处理通知 (已归档)',
-    status: 'archived',
-    lastModified: '2024-12-01',
-    summary: '图书馆将处理一批旧版图书...',
-    tags: ['图书馆', '旧书'],
-  },
-  {
-    id: 'pub5',
-    title: '校庆活动志愿者招募 (草稿)',
-    status: 'draft',
-    lastModified: '2025-05-22',
-    summary: '校庆活动需要大量志愿者...',
-    tags: ['校庆', '招募'],
-  },
-  {
-    id: 'pub6',
-    title: '暑期社会实践安全须知 (已发布)',
-    status: 'published',
-    lastModified: '2025-05-15',
-    summary: '请参与暑期社会实践的同学注意...',
-    tags: ['暑期实践', '安全'],
-  },
-  {
-    id: 'pub7',
-    title: '关于举办第十届编程大赛的通知 (已发布)',
-    status: 'published',
-    lastModified: '2025-05-10',
-    summary: '报名截止日期为5月30日，详情请见附件。',
-    tags: ['竞赛', '编程'],
-  },
-  {
-    id: 'pub8',
-    title: '实验室设备采购清单 (草稿)',
-    status: 'draft',
-    lastModified: '2025-05-20',
-    summary: '初步清单，待各负责人确认。',
-    tags: ['实验', '采购'],
-  },
-  {
-    id: 'pub9',
-    title: '年度优秀教师评选通知 (已发布)',
-    status: 'published',
-    lastModified: '2025-04-15',
-    summary: '请各院系积极推荐候选人。',
-    tags: ['评选', '教师'],
-  },
-  {
-    id: 'pub10',
-    title: '国庆节值班安排 (已归档)',
-    status: 'archived',
-    lastModified: '2024-09-28',
-    summary: '确保节日期间校园安全。',
-    tags: ['国庆', '值班'],
-  },
-  {
-    id: 'pub11',
-    title: '新学期教材领取通知 (已发布)',
-    status: 'published',
-    lastModified: '2025-02-20',
-    summary: '请各班级派代表统一领取。',
-    tags: ['教材', '新学期'],
-  },
-]
+// Define the structure of the paginated API response (this is the type for backendResponse.data)
+interface PaginatedNoticesResponse {
+  data: MyCreatedNoticeItem[]
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
 
-const getStatusTagColor = (status: MyNoticeItem['status']) => {
+const getStatusTagColor = (status: MyCreatedNoticeItem['status']) => {
   switch (status) {
     case 'draft':
       return 'gold'
@@ -121,7 +45,7 @@ const getStatusTagColor = (status: MyNoticeItem['status']) => {
   }
 }
 
-const getStatusText = (status: MyNoticeItem['status']) => {
+const getStatusText = (status: MyCreatedNoticeItem['status']) => {
   switch (status) {
     case 'draft':
       return '草稿'
@@ -138,56 +62,77 @@ const MyPublishedNoticesView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [pageSize, setPageSize] = useState<number>(5) // Smaller page size for demo
-  const [filteredNotices, setFilteredNotices] = useState<MyNoticeItem[]>([])
+  const [pageSize, setPageSize] = useState<number>(5)
+  const [notices, setNotices] = useState<MyCreatedNoticeItem[]>([])
   const [totalNotices, setTotalNotices] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchNotices = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const params: any = {
+        page: currentPage,
+        limit: pageSize,
+        status: activeTab === 'all' ? undefined : activeTab,
+        searchQuery: searchQuery || undefined,
+        sortBy: 'updatedAt',
+        sortOrder: 'desc',
+      }
+
+      const backendResponse = await apiClient.get<BackendStandardResponse<PaginatedNoticesResponse>>(
+        '/informs/my-created',
+        { params }
+      );
+
+      if (backendResponse && backendResponse.data) {
+        const responseData = backendResponse.data; // responseData is PaginatedNoticesResponse
+        // @ts-ignore
+        setNotices(responseData.data?.map(notice => ({
+          ...notice,
+        })) || []); // Ensure an array is always passed to setNotices
+        // @ts-ignore
+        setTotalNotices(responseData.total);
+      } else {
+        // @ts-ignore
+        const errorMessage = backendResponse?.message || '获取通知列表失败：响应数据格式不正确或为空。';
+        console.error('Failed to fetch notices or data is null:', backendResponse);
+        setError(errorMessage);
+        setNotices([]);
+        setTotalNotices(0);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch notices:', err)
+      setError(
+        err.backendMessage || err.message || '获取通知列表失败，请稍后重试。'
+      )
+      setNotices([])
+      setTotalNotices(0)
+    } finally {
+      setLoading(false)
+    }
+  }, [activeTab, searchQuery, currentPage, pageSize])
 
   useEffect(() => {
-    let noticesSource = mockMyNotices
-
-    // Filter by activeTab
-    if (activeTab !== 'all') {
-      noticesSource = noticesSource.filter(
-        (notice) => notice.status === activeTab
-      )
-    }
-
-    // Filter by searchQuery
-    if (searchQuery) {
-      const lowerSearchQuery = searchQuery.toLowerCase()
-      noticesSource = noticesSource.filter(
-        (notice) =>
-          notice.title.toLowerCase().includes(lowerSearchQuery) ||
-          (notice.summary &&
-            notice.summary.toLowerCase().includes(lowerSearchQuery)) ||
-          (notice.tags &&
-            notice.tags.some((tag) =>
-              tag.toLowerCase().includes(lowerSearchQuery)
-            ))
-      )
-    }
-
-    setTotalNotices(noticesSource.length)
-    setFilteredNotices(
-      noticesSource.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    )
-  }, [activeTab, searchQuery, currentPage, pageSize])
+    fetchNotices()
+  }, [fetchNotices])
 
   const handleTabChange = (key: string) => {
     setActiveTab(key)
-    setCurrentPage(1)
+    setCurrentPage(1) // Reset to first page on tab change
   }
 
   const handleSearchChange = (_name: string, value: string) => {
     setSearchQuery(value)
-    setCurrentPage(1)
+    setCurrentPage(1) // Reset to first page on search
   }
 
   const handlePageChange = (page: number, newPageSize?: number) => {
     setCurrentPage(page)
     if (newPageSize && newPageSize !== pageSize) {
       setPageSize(newPageSize)
-      setCurrentPage(1)
+      setCurrentPage(1) // Reset to first page if page size changes
     }
   }
 
@@ -197,6 +142,16 @@ const MyPublishedNoticesView: React.FC = () => {
     { key: 'published', label: '已发布' },
     { key: 'archived', label: '已归档' },
   ]
+
+  // Function to format date string (e.g., from ISO to YYYY-MM-DD)
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return dateString; // Return original if parsing fails
+    }
+  }
 
   return (
     <div className="my-published-notices-view">
@@ -218,20 +173,26 @@ const MyPublishedNoticesView: React.FC = () => {
         </div>
       </div>
       <div className="my-notices-list-container">
-        {filteredNotices.length > 0 ? (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <Spin size="large" />
+          </div>
+        ) : error ? (
+          <Alert message="错误" description={error} type="error" showIcon closable onClose={() => setError(null)} />
+        ) : notices.length > 0 ? (
           <List
             className="my-notices-list"
             itemLayout="vertical"
-            dataSource={filteredNotices}
+            dataSource={notices}
             renderItem={(item) => (
               <List.Item
-                key={item.id}
+                key={item._id}
                 actions={
                   [
                     <Button
                       type="link"
                       size="small"
-                      onClick={() => console.log('View:', item.id)}
+                      onClick={() => console.log('View:', item._id)} 
                     >
                       查看
                     </Button>,
@@ -239,7 +200,7 @@ const MyPublishedNoticesView: React.FC = () => {
                       <Button
                         type="link"
                         size="small"
-                        onClick={() => console.log('Edit:', item.id)}
+                        onClick={() => console.log('Edit:', item._id)} 
                       >
                         编辑
                       </Button>
@@ -248,7 +209,7 @@ const MyPublishedNoticesView: React.FC = () => {
                       <Button
                         type="link"
                         size="small"
-                        onClick={() => console.log('Archive:', item.id)}
+                        onClick={() => console.log('Archive:', item._id)} 
                       >
                         归档
                       </Button>
@@ -257,7 +218,7 @@ const MyPublishedNoticesView: React.FC = () => {
                       <Button
                         type="link"
                         size="small"
-                        onClick={() => console.log('Unarchive:', item.id)}
+                        onClick={() => console.log('Unarchive:', item._id)} 
                       >
                         取消归档
                       </Button>
@@ -270,7 +231,10 @@ const MyPublishedNoticesView: React.FC = () => {
                       {getStatusText(item.status)}
                     </Tag>
                     <span className="last-modified-date">
-                      最后修改: {item.lastModified}
+                      最后修改: {formatDate(item.updatedAt)}
+                    </span>
+                     <span className="publish-date">
+                      {item.status === 'published' && item.publishAt ? `发布于: ${formatDate(item.publishAt)}` : ''}
                     </span>
                   </Space>
                 }
@@ -278,12 +242,12 @@ const MyPublishedNoticesView: React.FC = () => {
                 <List.Item.Meta
                   title={
                     <a
-                      onClick={() => console.log('View details for:', item.id)}
+                      onClick={() => console.log('View details for:', item._id)}
                     >
                       {item.title}
                     </a>
                   }
-                  description={item.summary}
+                  description={item.description || '暂无摘要'} // Uses item.description
                 />
                 {item.tags && item.tags.length > 0 && (
                   <div className="item-tags">
@@ -306,13 +270,13 @@ const MyPublishedNoticesView: React.FC = () => {
         )}
       </div>
       <div className="my-notices-pagination-container">
-        {totalNotices > pageSize && (
+        {totalNotices > pageSize && !loading && ( // Hide pagination while loading
           <Pagination
             current={currentPage}
             pageSize={pageSize}
             total={totalNotices}
             onChange={handlePageChange}
-            showSizeChanger={false}
+            showSizeChanger={false} // Consider enabling if many items
           />
         )}
       </div>

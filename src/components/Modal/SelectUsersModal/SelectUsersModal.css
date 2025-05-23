@@ -77,13 +77,22 @@
   background-color: #555; /* Consider a global variable for this too */
 }
 
-.user-list-container .ant-list-item {
-  cursor: pointer;
+.user-list-container .ant-list-item,
+.selected-users-list-container .ant-list-item {
+  display: flex;
+  align-items: center; /* Vertically center all content within the list item */
+  justify-content: space-between; /* Push meta to start and checkbox/actions to end */
   padding: 8px 12px;
+  color: var(--primary-text-color); /* Ensure text color is from global */
   /* border-radius: var(--border-radius-small); */
   border-radius: 2px; /* Example value */
   transition: background-color 0.2s ease-in-out;
-  color: var(--primary-text-color); /* Ensure text color is from global */
+}
+
+.selected-users-list-container .ant-list-item:hover {
+  background-color: var(
+    --third-background-color
+  ); /* Add hover effect for selected users list */
 }
 
 .user-list-container .ant-list-item:hover {
@@ -105,6 +114,20 @@
   ); /* Darker shade for hover on selected */
 }
 
+.user-list-container .ant-list-item .ant-list-item-meta,
+.selected-users-list-container .ant-list-item .ant-list-item-meta {
+  display: flex;
+  align-items: center; /* Vertically center the avatar and title/description block */
+  flex-grow: 1; /* Allow meta to take available space, pushing checkbox/actions to the end */
+}
+
+.user-list-container .ant-list-item .ant-list-item-meta-content,
+.selected-users-list-container .ant-list-item .ant-list-item-meta-content {
+  display: flex;
+  flex-direction: column; /* Stack title and description vertically */
+  justify-content: center; /* Center title/description block if meta has fixed height */
+}
+
 .right-panel h4 {
   margin-top: 0;
   margin-bottom: 12px;
@@ -113,11 +136,6 @@
   font-weight: 600; /* Example value */
   color: var(--primary-text-color); /* Use global variable */
   flex-shrink: 0; /* Prevent title from shrinking */
-}
-
-.selected-users-list-container .ant-list-item {
-  padding: 8px 12px;
-  color: var(--primary-text-color); /* Ensure text color is from global */
 }
 
 /* Ensure Empty component is centered if needed and uses global text color */

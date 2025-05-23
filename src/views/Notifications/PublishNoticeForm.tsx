@@ -132,9 +132,100 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
   }
 
   const handleSaveDraftClick = () => {
-    const values = formInstance.getFieldsValue()
-    onSaveDraft(values)
-  }
+    formInstance.validateFields()
+      .then(values => {
+        console.log('Form values before processing for draft:', values);
+
+        const draftData: any = {
+          title: values.title,
+          content: values.content,
+          description: values.description, // Added description
+          importance: values.importance,
+          allowReplies: values.allowComments === undefined ? true : values.allowComments,
+          attachments: values.attachments ? values.attachments.map((att: any) => ({ 
+            fileName: att.name,
+            url: att.response?.url || att.url,
+            status: att.status 
+          })) : [],
+          targetScope: '', 
+          targetIds: [],
+          userTypeFilter: null,
+        };
+
+        // 截止日期：如果表单提供了 deadline 值，则转换为 ISO 字符串；否则省略该字段
+        if (values.deadline) {
+          console.log('Type of values.deadline before toISOString:', typeof values.deadline); // 新增日志：记录 deadline 类型
+          // values.deadline 应该是 Ant Design DatePicker 返回的 Moment 对象
+          // 检查它是否是一个有效的日期对象并且有 toISOString 方法
+          if (typeof values.deadline.isValid === 'function' && values.deadline.isValid() && typeof values.deadline.toISOString === 'function') {
+            draftData.deadline = values.deadline.toISOString();
+            console.log('Result of toISOString():', draftData.deadline); // 新增日志：记录 toISOString 的结果
+          } else {
+            // 如果日期无效或对象不正确，则不在 draftData 中设置 deadline
+            // 这对于可选字段是合适的
+            console.warn('提供的截止日期无效或格式不正确，将不发送 deadline 字段。原始值:', values.deadline);
+          }
+        }
+
+        if (audienceSelectionMode === 'specific_users') { // 使用状态变量 audienceSelectionMode
+          draftData.targetScope = 'SPECIFIC_USERS'; // 确保此值与后端枚举定义一致
+          draftData.targetIds = selectedUsers.map(u => u.id) || []; // 使用状态变量 selectedUsers
+        } else { // 当 audienceSelectionMode === 'scope'
+          draftData.userTypeFilter = values.objectType || null;
+
+          switch (values.scopeType) {
+            case 'college':
+              draftData.targetScope = 'COLLEGE'; // 确保此值与后端枚举定义一致
+              // TODO (待办): 如果可以选择特定学院，需要从类似 values.selectedCollegeIds 的表单字段获取 ID
+              break;
+            case 'managed_classes':
+              draftData.targetScope = 'SENDER_MANAGED_CLASSES'; // 确保此值与后端枚举定义一致
+              break;
+            case 'major':
+              draftData.targetScope = 'MAJOR'; // 确保此值与后端枚举定义一致
+              // TODO (待办): 如果可以选择特定专业，需要从 values.selectedMajorIds 获取 ID
+              break;
+            case 'role':
+              draftData.targetScope = 'ROLE'; // 确保此值与后端枚举定义一致
+              // TODO (待办): 如果可以选择特定角色，需要从 values.selectedRoleCodes 获取 ID
+              break;
+            default:
+              if (values.scopeType) {
+                // 尝试直接映射，确保大小写与后端 DTO 枚举一致
+                draftData.targetScope = String(values.scopeType).toUpperCase();
+              } else {
+                console.warn('在范围模式下 scopeType 未定义，targetType 可能不正确。');
+              }
+              break;
+          }
+          // 对于某些范围类型（例如，发送者所在的学院），如果后端会处理，targetIds 可以为空数组
+        }
+
+        // 清理未定义的属性，因为后端 DTO 可能不允许它们
+        Object.keys(draftData).forEach(key => {
+          if (draftData[key] === undefined) {
+            delete draftData[key];
+          }
+          // 后端期望 attachments 是一个数组，即使为空。
+          // 如果表单中的 attachments 是 null 或 undefined，确保将其设置为空数组。
+          if (key === 'attachments' && !draftData[key]) {
+            draftData[key] = [];
+          }
+        });
+        
+        console.log('保存草稿时发送的数据 (前端):\r\n', draftData); 
+        onSaveDraft(draftData);
+      })
+      .catch(errorInfo => {
+        console.log('表单验证失败:', errorInfo);
+        // 假设 showMessage 是全局可用或已导入的
+        if (typeof showMessage !== 'undefined' && showMessage.error) {
+          showMessage.error('请检查表单填写是否完整正确！');
+        } else {
+          alert('请检查表单填写是否完整正确！'); // 备用方案
+        }
+      });
+  };
 
   const handleSelectUsersOk = (usersFromModal: ModalUser[]) => {
     setSelectedUsers(usersFromModal)
@@ -165,7 +256,7 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
       form={formInstance}
       layout="vertical"
       name="publish_notice_form"
-      onFinish={onPublish}
+      onFinish={onPublish} // This will call the onPublish passed from NotificationViews
     >
       <Row gutter={16}>
         <Col span={12}>
@@ -185,7 +276,7 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
         </Col>
       </Row>
 
-      {/* Target Audience Section - new structure */}
+      {/* Target Audience Section */}
       <Form.Item label="目标受众" required style={{ marginBottom: '8px' }}>
         <Radio.Group
           onChange={handleAudienceSelectionModeChange}
@@ -309,18 +400,26 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
 
       <Form.Item
         name="title"
-        label="通知标题"
+        label="标题"
         rules={[{ required: true, message: '请输入通知标题!' }]}
       >
         <Input placeholder="输入通知标题" />
       </Form.Item>
 
       <Form.Item
-        name="content"
-        label="通知内容"
-        rules={[{ required: true, message: '请输入通知内容!' }]}
+        name="description"
+        label="摘要/描述 (可选)"
+        rules={[{ max: 250, message: '摘要内容不能超过250个字符' }]}
       >
-        <TextArea rows={6} placeholder="输入通知内容 (支持Markdown)" />
+        <TextArea rows={2} placeholder="输入通知的简短摘要或描述，将显示在列表视图中" />
+      </Form.Item>
+
+      <Form.Item
+        name="content"
+        label="正文内容"
+        rules={[{ required: true, message: '请输入通知正文内容!' }]}
+      >
+        <TextArea rows={6} placeholder="输入通知的详细内容" />
       </Form.Item>
 
       <Row gutter={16}>
@@ -372,19 +471,15 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
         </Col>
       </Row>
 
-      <Form.Item style={{ marginTop: '24px', textAlign: 'right' }}>
+      <Form.Item>
         <Button onClick={onCancel} style={{ marginRight: 8 }}>
           取消
         </Button>
-        <Button
-          onClick={handleSaveDraftClick}
-          style={{ marginRight: 8 }}
-          loading={isSavingDraft}
-        >
+        <Button onClick={handleSaveDraftClick} loading={isSavingDraft} style={{ marginRight: 8 }}>
           保存草稿
         </Button>
         <Button type="primary" htmlType="submit" loading={isSubmitting}>
-          发布
+          发布通知
         </Button>
       </Form.Item>
       <SelectUsersModal

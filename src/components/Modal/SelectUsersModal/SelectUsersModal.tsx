@@ -2,52 +2,25 @@ import React, { useState, useEffect } from 'react'
 import {
   Modal,
   Button,
-  Input,
   List,
   Avatar,
   Checkbox,
   Row,
   Col,
   Empty,
+  Spin,
+  Alert,
 } from 'antd'
 import './SelectUsersModal.css'
-import { InputField } from '@/components/Form/Form' // Assuming InputField is a custom component
+import { InputField } from '@/components/Form/Form'
+import apiClient, { BackendStandardResponse } from '@/lib/axios'
+import { CloseOutlined, DeleteOutlined } from '@ant-design/icons'
 
-// Mock user data type - replace with your actual User type
 export interface User {
-  // Added export
   id: string
   name: string
   avatar?: string
-  department?: string // Example additional field
 }
-
-// Mock data - replace with actual API call and data fetching
-const MOCK_ALL_USERS: User[] = [
-  {
-    id: '1',
-    name: '张三',
-    avatar: '/assets/avatars/avatar1.png',
-    department: '技术部',
-  },
-  {
-    id: '2',
-    name: '李四',
-    avatar: '/assets/avatars/avatar2.png',
-    department: '产品部',
-  },
-  { id: '3', name: '王五', department: '技术部' },
-  {
-    id: '4',
-    name: '赵六',
-    avatar: '/assets/avatars/avatar3.png',
-    department: '设计部',
-  },
-  { id: '5', name: '孙七', department: '产品部' },
-  { id: '6', name: '周八', department: '技术部' },
-  { id: '7', name: '吴九', department: '市场部' },
-  { id: '8', name: '郑十', department: '市场部' },
-]
 
 interface SelectUsersModalProps {
   visible: boolean
@@ -62,29 +35,74 @@ const SelectUsersModal: React.FC<SelectUsersModalProps> = ({
   onOk,
   initialSelectedUsers = [],
 }) => {
-  const [allUsers, setAllUsers] = useState<User[]>(MOCK_ALL_USERS)
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(MOCK_ALL_USERS)
+  const [allUsers, setAllUsers] = useState<User[]>([])
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [selectedUsers, setSelectedUsers] =
     useState<User[]>(initialSelectedUsers)
   const [searchTerm, setSearchTerm] = useState('')
+  const [loadingUsers, setLoadingUsers] = useState<boolean>(false)
+  const [errorUsers, setErrorUsers] = useState<string | null>(null)
 
   useEffect(() => {
-    // When the modal becomes visible, if there are initialSelectedUsers, set them.
-    // Also, reset if initialSelectedUsers changes (e.g. opening modal for different notices)
     setSelectedUsers(initialSelectedUsers)
   }, [visible, initialSelectedUsers])
 
   useEffect(() => {
-    // Filter users based on search term
-    const lowercasedSearchTerm = searchTerm.toLowerCase()
-    const results = allUsers.filter(
-      (user) =>
-        user.name.toLowerCase().includes(lowercasedSearchTerm) ||
-        (user.department &&
-          user.department.toLowerCase().includes(lowercasedSearchTerm))
-    )
-    setFilteredUsers(results)
-  }, [searchTerm, allUsers])
+    // 当弹窗变为可见时，获取用户列表
+    if (visible) {
+      const fetchUsers = async () => {
+        setLoadingUsers(true)
+        setErrorUsers(null)
+        setAllUsers([]) // 清空旧数据
+        setFilteredUsers([]) // 清空旧数据
+        try {
+          const response = await apiClient.get<BackendStandardResponse<any[]>>(
+            '/friends'
+          ) // 使用 any[] 暂时接收，因为结构复杂
+
+          if (response && response.data && Array.isArray(response.data)) {
+            // 将后端返回的好友关系对象映射到前端 User 接口
+            // response.data 是一个数组，每个元素是一个“好友关系”对象
+            const fetchedUsers: User[] = response.data
+              .filter(
+                (relation) =>
+                  relation && relation.friend && relation.status === 'accepted'
+              ) // 可选：确保 friend 对象存在且状态为 accepted
+              .map((relation) => ({
+                id: relation.friend._id, // 使用 friend 对象中的 _id
+                name: relation.friend.nickname || relation.friend.username, // 优先使用 nickname，否则使用 username
+                avatar: relation.friend.avatar, // 使用 friend 对象中的 avatar
+              }))
+            setAllUsers(fetchedUsers)
+            setFilteredUsers(fetchedUsers) // 初始时，显示所有用户
+          } else {
+            console.warn('获取用户列表成功，但数据为空或格式不正确。')
+            setAllUsers([])
+            setFilteredUsers([])
+            if (response && !response.data) {
+              // 如果后端明确返回了 null 或 undefined data，可以设置一个更具体的提示
+              // setErrorUsers('未能获取到用户列表数据。');
+            }
+          }
+        } catch (error: any) {
+          console.error('获取用户列表失败:', error)
+          setErrorUsers(
+            error.backendMessage ||
+              error.message ||
+              '获取用户列表失败，请稍后再试。'
+          )
+          setAllUsers([])
+          setFilteredUsers([])
+        } finally {
+          setLoadingUsers(false)
+        }
+      }
+      fetchUsers()
+    } else {
+      // 可选：当弹窗关闭时，清空搜索词
+      // setSearchTerm('');
+    }
+  }, [visible]) // 依赖 visible 状态，当弹窗显示时触发
 
   const handleSearch = (name: string, value: string) => {
     setSearchTerm(value)
@@ -103,13 +121,11 @@ const SelectUsersModal: React.FC<SelectUsersModalProps> = ({
 
   const handleSelectAll = (e: any) => {
     if (e.target.checked) {
-      // Select all from the currently *filtered* list that are not already selected
       const newSelections = filteredUsers.filter(
         (fu) => !selectedUsers.find((su) => su.id === fu.id)
       )
       setSelectedUsers((prevSelected) => [...prevSelected, ...newSelections])
     } else {
-      // Deselect all from the currently *filtered* list
       setSelectedUsers((prevSelected) =>
         prevSelected.filter(
           (su) => !filteredUsers.find((fu) => fu.id === su.id)
@@ -177,7 +193,13 @@ const SelectUsersModal: React.FC<SelectUsersModalProps> = ({
             </Checkbox>
           </div>
           <div className="user-list-container">
-            {filteredUsers.length > 0 ? (
+            {loadingUsers ? ( // 添加加载状态处理
+              <div style={{ textAlign: 'center', padding: '20px' }}>
+                <Spin tip="正在加载用户列表..." />
+              </div>
+            ) : errorUsers ? ( // 添加错误状态处理
+              <Alert message={errorUsers} type="error" showIcon />
+            ) : filteredUsers.length > 0 ? (
               <List
                 itemLayout="horizontal"
                 dataSource={filteredUsers}
@@ -188,9 +210,13 @@ const SelectUsersModal: React.FC<SelectUsersModalProps> = ({
                     className={isUserSelected(user.id) ? 'user-selected' : ''}
                   >
                     <List.Item.Meta
-                      avatar={<Avatar src={user.avatar}>{user.name[0]}</Avatar>}
+                      avatar={
+                        <Avatar src={user.avatar}>
+                          {user.name && user.name[0]}
+                        </Avatar>
+                      }
                       title={user.name}
-                      description={user.department || '无部门'}
+                      style={{ alignItems: 'center' }}
                     />
                     <Checkbox checked={isUserSelected(user.id)} />
                   </List.Item>
@@ -198,7 +224,13 @@ const SelectUsersModal: React.FC<SelectUsersModalProps> = ({
               />
             ) : (
               <Empty
-                description={searchTerm ? '未找到匹配用户' : '暂无用户数据'}
+                description={
+                  searchTerm
+                    ? '未找到匹配用户'
+                    : allUsers.length === 0 && !errorUsers
+                    ? '暂无用户数据'
+                    : '列表为空或未找到用户'
+                }
               />
             )}
           </div>
@@ -216,19 +248,23 @@ const SelectUsersModal: React.FC<SelectUsersModalProps> = ({
                   <List.Item
                     key={user.id}
                     actions={[
-                      <Button
-                        type="link"
-                        danger
+                      <CloseOutlined
+                        key="remove" // 建议为 action 添加 key
+                        style={{
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                        }} // 设置图标颜色、鼠标手势和大小
                         onClick={() => handleUserToggle(user)}
-                      >
-                        移除
-                      </Button>,
+                      />,
                     ]}
                   >
                     <List.Item.Meta
-                      avatar={<Avatar src={user.avatar}>{user.name[0]}</Avatar>}
+                      avatar={
+                        <Avatar src={user.avatar}>
+                          {user.name && user.name[0]}
+                        </Avatar>
+                      }
                       title={user.name}
-                      description={user.department || '无部门'}
                     />
                   </List.Item>
                 )}

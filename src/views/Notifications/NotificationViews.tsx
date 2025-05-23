@@ -7,6 +7,7 @@ import MyPublishedNoticesView from './MyPublishedNoticesView' // Import MyPublis
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import './NotificationViews.css'
 import { Form, message } from 'antd' // Import Form and message from antd
+import apiClient from '@/lib/axios' // Import apiClient
 
 function NotificationPage() {
   const [selectedNotificationId, setSelectedNotificationId] = useState<
@@ -163,6 +164,7 @@ function NotificationPage() {
     console.log('Publishing notice with values:', values)
     // Simulate API call
     try {
+      // Replace with actual API call: apiClient.post('/informs/publish', values)
       await new Promise((resolve) => setTimeout(resolve, 1500))
       message.success('通知发布成功!')
       handleCancelPublish() // Close form and reset
@@ -175,18 +177,25 @@ function NotificationPage() {
     }
   }
 
-  const handleSaveDraft = async (values: any) => {
+  const handleSaveDraft = async (draftData: any) => {
     setIsSavingDraft(true)
-    console.log('Saving draft with values:', values)
-    // Simulate API call for saving draft
+    console.log('Saving draft with data:', draftData)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await apiClient.post('/informs/draft', draftData)
       message.success('草稿保存成功!')
       // Optionally, you might want to keep the form open or close it
       // handleCancelPublish(); // or publishForm.resetFields(); if you want to clear after save
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save draft:', error)
-      message.error('草稿保存失败，请稍后再试。')
+      let errorMessage = '草稿保存失败，请稍后再试。'
+      if (error.response && error.response.data && error.response.data.message) {
+        if (Array.isArray(error.response.data.message)) {
+          errorMessage = error.response.data.message.join('; ')
+        } else {
+          errorMessage = error.response.data.message
+        }
+      }
+      message.error(errorMessage)
     } finally {
       setIsSavingDraft(false)
     }
