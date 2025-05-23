@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Form,
   Input,
@@ -12,9 +12,15 @@ import {
 } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { FormInstance } from 'antd/lib/form'
+import apiClient, { BackendStandardResponse } from '@/lib/axios'
 
 const { Option } = Select
 const { TextArea } = Input
+
+interface UserRole {
+  code: string
+  name: string
+}
 
 interface PublishNoticeFormProps {
   formInstance: FormInstance
@@ -29,17 +35,53 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
   formInstance,
   onCancel,
   onPublish,
-  onSaveDraft, // Destructure new prop
-  isSubmitting, // Destructure the new prop
-  isSavingDraft, // Destructure new prop
+  onSaveDraft,
+  isSubmitting,
+  isSavingDraft,
 }) => {
-  // Dummy options for select fields - replace with actual data sources
-  const senderIdentities = [
-    { id: '1', name: '学生会' },
-    { id: '2', name: '教务处' },
-    { id: '3', name: '后勤集团' },
-    { id: 'admin', name: '管理员' },
-  ]
+  const [senderIdentities, setSenderIdentities] = useState<
+    { id: string; name: string }[]
+  >([])
+  const [loadingIdentities, setLoadingIdentities] = useState<boolean>(true)
+  const [errorIdentities, setErrorIdentities] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchSenderIdentities = async () => {
+      setLoadingIdentities(true)
+      setErrorIdentities(null)
+      try {
+        const response = await apiClient.get<
+          BackendStandardResponse<UserRole[]>
+        >('/roles/mine/sendable')
+
+        if (response && response.data) {
+          // 确保 response.data 存在且不为 null
+          // @ts-ignore
+          const formattedIdentities = response.data.map((role: UserRole) => ({
+            id: role.code,
+            name: role.name,
+          }))
+          setSenderIdentities(formattedIdentities)
+        } else {
+          // 如果 response.data 为 null 或 undefined，但请求成功（例如后端返回了空数组的成功响应）
+          // 或者是拦截器处理后，data 结构不符合预期
+          setSenderIdentities([]) // 设置为空数组或根据业务逻辑处理
+          console.warn(
+            'Received success response but data is null or undefined for sender identities.'
+          )
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch sender identities:', error)
+        setErrorIdentities(
+          error.backendMessage || error.message || '获取发布者身份失败'
+        )
+      } finally {
+        setLoadingIdentities(false)
+      }
+    }
+
+    fetchSenderIdentities()
+  }, [])
 
   const targetAudiences = [
     { id: 'all', name: '全体成员' },
@@ -47,8 +89,6 @@ const PublishNoticeForm: React.FC<PublishNoticeFormProps> = ({
     { id: 'teachers', name: '全体教职工' },
     { id: 'cs_students', name: '计算机学院学生' },
   ]
-
-  const tags = ['重要', '会议', '活动', '选课', '讲座', '失物招领']
 
   const handleSaveDraftClick = () => {
     const values = formInstance.getFieldsValue()
