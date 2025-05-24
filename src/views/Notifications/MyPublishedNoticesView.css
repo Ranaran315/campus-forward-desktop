@@ -32,9 +32,14 @@
   }
 
   .my-notices-list {
-    .ant-list-item {
-      padding: 12px 0;
-
+    .my-notices-list-item {
+      padding: 12px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      &:hover {
+        background-color: var(--secondary-background-color);
+        color: var(--active-text-color);
+      }
       .ant-list-item-meta-title > a {
         color: var(--primary-color);
         font-size: var(--medium-font-size);

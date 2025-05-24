@@ -91,7 +91,7 @@
     .request-message {
       margin: 12px 0;
       padding: 12px;
-      background-color: var(--secondary-bg-color);
+      background-color: var(--secondary-background-color);
       border-radius: 8px;
       .message-label {
         font-size: 14px;

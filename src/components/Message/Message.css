@@ -10,7 +10,7 @@
   border: 1px solid transparent;
   font-size: 0.9rem;
   line-height: 1.4;
-  background-color: var(--secondary-bg-color);
+  background-color: var(--secondary-background-color);
   box-shadow: var(--primary-box-shadow);
 }
 

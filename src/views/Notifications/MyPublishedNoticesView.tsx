@@ -1,6 +1,16 @@
 // src/views/Notifications/MyPublishedNoticesView.tsx
 import React, { useState, useEffect, useCallback } from 'react'
-import { Tabs, List, Pagination, Empty, Tag, Button, Space, Spin, Alert } from 'antd'
+import {
+  Tabs,
+  List,
+  Pagination,
+  Empty,
+  Tag,
+  Button,
+  Space,
+  Spin,
+  Alert,
+} from 'antd'
 import type { TabsProps } from 'antd'
 import { InputField } from '@/components/Form/Form'
 import apiClient, { BackendStandardResponse } from '@/lib/axios' // Import BackendStandardResponse
@@ -10,15 +20,15 @@ import './MyPublishedNoticesView.css'
 interface MyCreatedNoticeItem {
   _id: string
   title: string
-  description?: string; // Already added in previous step
+  description?: string // Already added in previous step
   status: 'draft' | 'published' | 'archived'
-  updatedAt: string 
-  publishAt?: string 
-  createdAt: string 
-  contentPreview?: string 
+  updatedAt: string
+  publishAt?: string
+  createdAt: string
+  contentPreview?: string
   tags?: string[]
   importance: 'high' | 'medium' | 'low'
-  deadline?: string 
+  deadline?: string
 }
 
 // Define the structure of the paginated API response (this is the type for backendResponse.data)
@@ -81,26 +91,32 @@ const MyPublishedNoticesView: React.FC = () => {
         sortOrder: 'desc',
       }
 
-      const backendResponse = await apiClient.get<BackendStandardResponse<PaginatedNoticesResponse>>(
-        '/informs/my-created',
-        { params }
-      );
+      const backendResponse = await apiClient.get<
+        BackendStandardResponse<PaginatedNoticesResponse>
+      >('/informs/my-created', { params })
 
       if (backendResponse && backendResponse.data) {
-        const responseData = backendResponse.data; // responseData is PaginatedNoticesResponse
+        const responseData = backendResponse.data // responseData is PaginatedNoticesResponse
         // @ts-ignore
-        setNotices(responseData.data?.map(notice => ({
-          ...notice,
-        })) || []); // Ensure an array is always passed to setNotices
+        setNotices(
+          responseData.data?.map((notice) => ({
+            ...notice,
+          })) || []
+        ) // Ensure an array is always passed to setNotices
         // @ts-ignore
-        setTotalNotices(responseData.total);
+        setTotalNotices(responseData.total)
       } else {
         // @ts-ignore
-        const errorMessage = backendResponse?.message || '获取通知列表失败：响应数据格式不正确或为空。';
-        console.error('Failed to fetch notices or data is null:', backendResponse);
-        setError(errorMessage);
-        setNotices([]);
-        setTotalNotices(0);
+        const errorMessage =
+          backendResponse?.message ||
+          '获取通知列表失败：响应数据格式不正确或为空。'
+        console.error(
+          'Failed to fetch notices or data is null:',
+          backendResponse
+        )
+        setError(errorMessage)
+        setNotices([])
+        setTotalNotices(0)
       }
     } catch (err: any) {
       console.error('Failed to fetch notices:', err)
@@ -145,11 +161,11 @@ const MyPublishedNoticesView: React.FC = () => {
 
   // Function to format date string (e.g., from ISO to YYYY-MM-DD)
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return 'N/A'
     try {
-      return new Date(dateString).toLocaleDateString();
+      return new Date(dateString).toLocaleDateString()
     } catch (e) {
-      return dateString; // Return original if parsing fails
+      return dateString // Return original if parsing fails
     }
   }
 
@@ -178,7 +194,14 @@ const MyPublishedNoticesView: React.FC = () => {
             <Spin size="large" />
           </div>
         ) : error ? (
-          <Alert message="错误" description={error} type="error" showIcon closable onClose={() => setError(null)} />
+          <Alert
+            message="错误"
+            description={error}
+            type="error"
+            showIcon
+            closable
+            onClose={() => setError(null)}
+          />
         ) : notices.length > 0 ? (
           <List
             className="my-notices-list"
@@ -187,44 +210,7 @@ const MyPublishedNoticesView: React.FC = () => {
             renderItem={(item) => (
               <List.Item
                 key={item._id}
-                actions={
-                  [
-                    <Button
-                      type="link"
-                      size="small"
-                      onClick={() => console.log('View:', item._id)} 
-                    >
-                      查看
-                    </Button>,
-                    item.status === 'draft' && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => console.log('Edit:', item._id)} 
-                      >
-                        编辑
-                      </Button>
-                    ),
-                    item.status === 'published' && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => console.log('Archive:', item._id)} 
-                      >
-                        归档
-                      </Button>
-                    ),
-                    item.status === 'archived' && (
-                      <Button
-                        type="link"
-                        size="small"
-                        onClick={() => console.log('Unarchive:', item._id)} 
-                      >
-                        取消归档
-                      </Button>
-                    ),
-                  ].filter(Boolean) as React.ReactNode[]
-                }
+                className="my-notices-list-item"
                 extra={
                   <Space direction="vertical" align="end">
                     <Tag color={getStatusTagColor(item.status)}>
@@ -233,8 +219,10 @@ const MyPublishedNoticesView: React.FC = () => {
                     <span className="last-modified-date">
                       最后修改: {formatDate(item.updatedAt)}
                     </span>
-                     <span className="publish-date">
-                      {item.status === 'published' && item.publishAt ? `发布于: ${formatDate(item.publishAt)}` : ''}
+                    <span className="publish-date">
+                      {item.status === 'published' && item.publishAt
+                        ? `发布于: ${formatDate(item.publishAt)}`
+                        : ''}
                     </span>
                   </Space>
                 }
@@ -270,15 +258,16 @@ const MyPublishedNoticesView: React.FC = () => {
         )}
       </div>
       <div className="my-notices-pagination-container">
-        {totalNotices > pageSize && !loading && ( // Hide pagination while loading
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={totalNotices}
-            onChange={handlePageChange}
-            showSizeChanger={false} // Consider enabling if many items
-          />
-        )}
+        {totalNotices > pageSize &&
+          !loading && ( // Hide pagination while loading
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={totalNotices}
+              onChange={handlePageChange}
+              showSizeChanger={false} // Consider enabling if many items
+            />
+          )}
       </div>
     </div>
   )

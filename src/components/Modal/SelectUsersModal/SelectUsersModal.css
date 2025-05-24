@@ -68,7 +68,9 @@
 
 .user-list-container::-webkit-scrollbar-track,
 .selected-users-list-container::-webkit-scrollbar-track {
-  background-color: var(--secondary-bg-color); /* Or #f1f1f1 if preferred */
+  background-color: var(
+    --secondary-background-color
+  ); /* Or #f1f1f1 if preferred */
   border-radius: 4px;
 }
 

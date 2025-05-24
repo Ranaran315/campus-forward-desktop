@@ -15,7 +15,7 @@
 
 .button-primary {
   background-color: var(--primary-color);
-  color: var(--secondary-bg-color);
+  color: var(--secondary-background-color);
 }
 
 .button-primary:hover {
@@ -24,7 +24,7 @@
 
 .button-danger {
   background-color: var(--primary-danger-color);
-  color: var(--secondary-bg-color);
+  color: var(--secondary-background-color);
 }
 
 .button-danger:hover {
@@ -33,7 +33,7 @@
 
 .button-success {
   background-color: var(--primary-success-color);
-  color: var(--secondary-bg-color);
+  color: var(--secondary-background-color);
 }
 
 .button-success:hover {
@@ -42,7 +42,7 @@
 
 .button-warning {
   background-color: var(--primary-warning-color);
-  color: var(--secondary-bg-color);
+  color: var(--secondary-background-color);
 }
 
 .button-warning:hover {

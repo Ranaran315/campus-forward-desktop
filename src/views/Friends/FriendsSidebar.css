@@ -25,7 +25,7 @@
       height: 36px;
       border-radius: 50%;
       border: none;
-      background-color: var(--secondary-bg-color);
+      background-color: var(--secondary-background-color);
       color: var(--primary-text-color);
       display: flex;
       align-items: center;
@@ -48,7 +48,7 @@
   /* 功能区域 */
   .friends-functions {
     background-color: var(--primary-background-color);
-    border-bottom: 1px solid var(--secondary-bg-color);
+    border-bottom: 1px solid var(--secondary-background-color);
 
     .function-item {
       display: flex;
@@ -60,7 +60,7 @@
       position: relative;
 
       &:hover {
-        background-color: var(--secondary-bg-color);
+        background-color: var(--secondary-background-color);
       }
 
       &.active {
@@ -105,7 +105,7 @@
     }
 
     .category-add-btn {
-      background-color: var(--secondary-bg-color);
+      background-color: var(--secondary-background-color);
       border: none;
       cursor: pointer;
       width: 28px;
@@ -139,7 +139,7 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: var(--secondary-bg-color);
+          background-color: var(--secondary-background-color);
         }
 
         .category-name {
@@ -172,7 +172,7 @@
           transition: background-color 0.2s;
 
           &:hover {
-            background-color: var(--secondary-bg-color);
+            background-color: var(--secondary-background-color);
           }
 
           &.active {

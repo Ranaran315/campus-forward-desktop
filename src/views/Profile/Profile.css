@@ -24,7 +24,7 @@
           .user-type {
             padding: 0 10px;
             background-color: var(--primary-color);
-            color: var(--secondary-bg-color);
+            color: var(--secondary-background-color);
             border-radius: 8px;
             box-shadow: var(--primary-box-shadow);
           }
