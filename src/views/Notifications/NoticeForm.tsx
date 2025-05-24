@@ -106,9 +106,9 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
     if (ids.length > 0) {
       setAudienceSelectionMode('specific_users')
       // 如果需要显示用户名，批量请求一下用户信息
-      apiClient
-        .post<{ data: ModalUser[] }>('/users/batch', { ids })
-        .then((res) => setSelectedUsers(res.data.data))
+      // apiClient
+      //   .post<{ data: ModalUser[] }>('/users/batch', { ids })
+      //   .then((res) => setSelectedUsers(res.data.data))
     }
   }, [])
 
@@ -156,138 +156,105 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
     setIsSelectUsersModalVisible(true) // Updated
   }
 
+  // 首先添加一个处理表单数据的通用函数
+  const prepareNoticeData = (
+    values: any,
+    audienceSelectionMode: 'scope' | 'specific_users',
+    selectedUsers: ModalUser[]
+  ) => {
+    const noticeData: any = {
+      title: values.title,
+      content: values.content,
+      description: values.description,
+      importance: values.importance || 'low',
+      allowReplies:
+        values.allowComments === undefined ? true : values.allowComments,
+      attachments: values.attachments
+        ? values.attachments.map((att: any) => ({
+            fileName: att.name,
+            url: att.response?.url || att.url,
+            status: att.status,
+          }))
+        : [],
+      targetScope: '',
+      targetIds: [],
+      userTypeFilter: null,
+      // needsFeedback: values.needsFeedback || false,
+      // needsConfirmation: values.needsConfirmation || false,
+    }
+
+    // 处理截止日期
+    if (values.deadline) {
+      if (
+        typeof values.deadline.isValid === 'function' &&
+        values.deadline.isValid() &&
+        typeof values.deadline.toISOString === 'function'
+      ) {
+        noticeData.deadline = values.deadline.toISOString()
+      }
+    }
+
+    // 处理目标受众
+    if (audienceSelectionMode === 'specific_users') {
+      noticeData.targetScope = 'SPECIFIC_USERS'
+      noticeData.targetIds = selectedUsers.map((u) => u.id) || []
+    } else {
+      // 范围选择模式 - 简化处理
+      noticeData.targetScope = 'ALL' // 默认发送给所有人
+      noticeData.userTypeFilter = values.objectType || 'all'
+    }
+
+    // 处理标签
+    if (values.tags && Array.isArray(values.tags) && values.tags.length > 0) {
+      noticeData.tags = values.tags
+    }
+
+    // 清理未定义的属性
+    Object.keys(noticeData).forEach((key) => {
+      if (noticeData[key] === undefined) {
+        delete noticeData[key]
+      }
+      if (key === 'attachments' && !noticeData[key]) {
+        noticeData[key] = []
+      }
+    })
+
+    return noticeData
+  }
+
   // 点击“存为草稿”按钮时的处理函数
   const handleSaveDraftClick = () => {
     formInstance
       .validateFields()
       .then((values: any) => {
-        console.log('Form values before processing for draft:', values)
-
-        const draftData: any = {
-          title: values.title,
-          content: values.content,
-          description: values.description, // Added description
-          importance: values.importance,
-          allowReplies:
-            values.allowComments === undefined ? true : values.allowComments,
-          attachments: values.attachments
-            ? values.attachments.map((att: any) => ({
-                fileName: att.name,
-                url: att.response?.url || att.url,
-                status: att.status,
-              }))
-            : [],
-          targetScope: '',
-          targetIds: [],
-          userTypeFilter: null,
-        }
-
-        // 截止日期：如果表单提供了 deadline 值，则转换为 ISO 字符串；否则省略该字段
-        if (values.deadline) {
-          console.log(
-            'Type of values.deadline before toISOString:',
-            typeof values.deadline
-          ) // 新增日志：记录 deadline 类型
-          // values.deadline 应该是 Ant Design DatePicker 返回的 Moment 对象
-          // 检查它是否是一个有效的日期对象并且有 toISOString 方法
-          if (
-            typeof values.deadline.isValid === 'function' &&
-            values.deadline.isValid() &&
-            typeof values.deadline.toISOString === 'function'
-          ) {
-            draftData.deadline = values.deadline.toISOString()
-            console.log('Result of toISOString():', draftData.deadline) // 新增日志：记录 toISOString 的结果
-          } else {
-            // 如果日期无效或对象不正确，则不在 draftData 中设置 deadline
-            // 这对于可选字段是合适的
-            console.warn(
-              '提供的截止日期无效或格式不正确，将不发送 deadline 字段。原始值:',
-              values.deadline
-            )
-          }
-        }
-
-        if (audienceSelectionMode === 'specific_users') {
-          // 使用状态变量 audienceSelectionMode
-          draftData.targetScope = 'SPECIFIC_USERS' // 确保此值与后端枚举定义一致
-          draftData.targetIds = selectedUsers.map((u) => u.id) || [] // 使用状态变量 selectedUsers
-        } else {
-          // 当 audienceSelectionMode === 'scope'
-          draftData.userTypeFilter = values.objectType || null
-
-          switch (values.scopeType) {
-            case 'college':
-              draftData.targetScope = 'COLLEGE' // 确保此值与后端枚举定义一致
-              // TODO (待办): 如果可以选择特定学院，需要从类似 values.selectedCollegeIds 的表单字段获取 ID
-              break
-            case 'managed_classes':
-              draftData.targetScope = 'SENDER_MANAGED_CLASSES' // 确保此值与后端枚举定义一致
-              break
-            case 'major':
-              draftData.targetScope = 'MAJOR' // 确保此值与后端枚举定义一致
-              // TODO (待办): 如果可以选择特定专业，需要从 values.selectedMajorIds 获取 ID
-              break
-            case 'role':
-              draftData.targetScope = 'ROLE' // 确保此值与后端枚举定义一致
-              // TODO (待办): 如果可以选择特定角色，需要从 values.selectedRoleCodes 获取 ID
-              break
-            default:
-              if (values.scopeType) {
-                // 尝试直接映射，确保大小写与后端 DTO 枚举一致
-                draftData.targetScope = String(values.scopeType).toUpperCase()
-              } else {
-                console.warn(
-                  '在范围模式下 scopeType 未定义，targetType 可能不正确。'
-                )
-              }
-              break
-          }
-          // 对于某些范围类型（例如，发送者所在的学院），如果后端会处理，targetIds 可以为空数组
-        }
-
-        // 清理未定义的属性，因为后端 DTO 可能不允许它们
-        Object.keys(draftData).forEach((key) => {
-          if (draftData[key] === undefined) {
-            delete draftData[key]
-          }
-          // 后端期望 attachments 是一个数组，即使为空。
-          // 如果表单中的 attachments 是 null 或 undefined，确保将其设置为空数组。
-          if (key === 'attachments' && !draftData[key]) {
-            draftData[key] = []
-          }
-        })
-
-        console.log('保存草稿时发送的数据 (前端):\r\n', draftData)
+        const draftData = prepareNoticeData(
+          values,
+          audienceSelectionMode,
+          selectedUsers
+        )
+        console.log('保存草稿时发送的数据:', draftData)
         handleSaveDraft(draftData)
       })
       .catch((errorInfo: any) => {
         console.log('表单验证失败:', errorInfo)
-        // 假设 showMessage 是全局可用或已导入的
-        if (typeof showMessage !== 'undefined' && showMessage.error) {
-          showMessage.error('请检查表单填写是否完整正确！')
-        } else {
-          alert('请检查表单填写是否完整正确！') // 备用方案
-        }
+        message.error('请检查表单填写是否完整正确！')
       })
   }
 
   // 保存为草稿
   const handleSaveDraft = async (draftData: any) => {
     setIsSavingDraft(true)
-    console.log('Saving draft with data:', draftData)
     try {
-      await apiClient.post('/informs/draft', draftData)
+      const response = await apiClient.post('/informs/draft', draftData)
       message.success('草稿保存成功!')
-      // Optionally, you might want to keep the form open or close it
-      // handleCancelPublish(); // or newForm.resetFields(); if you want to clear after save
+      // 可选：保存成功后返回列表或清空表单
+      if (isNew) {
+        navigate(`/notifications/edit/${response.data._id}`)
+      }
     } catch (error: any) {
       console.error('Failed to save draft:', error)
       let errorMessage = '草稿保存失败，请稍后再试。'
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
+      if (error.response?.data?.message) {
         if (Array.isArray(error.response.data.message)) {
           errorMessage = error.response.data.message.join('; ')
         } else {
@@ -300,9 +267,46 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
     }
   }
 
+  // 发布通知
   const handlePublish = async (values: any) => {
     setIsSubmitting(true)
-    console.log('Publishing notice with values:', values)
+    try {
+      const noticeData = prepareNoticeData(
+        values,
+        audienceSelectionMode,
+        selectedUsers
+      )
+      console.log('发布通知时发送的数据:', noticeData)
+
+      if (id) {
+        // 如果已有ID，说明是编辑现有草稿，直接发布
+        await apiClient.post(`/informs/${id}/publish`)
+        message.success('通知发布成功!')
+        navigate('/notifications/my-created')
+      } else {
+        // 如果是新建，先创建草稿，再发布
+        const draftResponse = await apiClient.post('/informs/draft', noticeData)
+        const createdDraftId = draftResponse.data.data._id
+
+        // 然后发布这个草稿
+        await apiClient.post(`/informs/${createdDraftId}/publish`)
+        message.success('通知发布成功!')
+        navigate('/notifications/my-created')
+      }
+    } catch (error: any) {
+      console.error('Failed to publish notice:', error)
+      let errorMessage = '通知发布失败，请稍后再试。'
+      if (error.response?.data?.message) {
+        if (Array.isArray(error.response.data.message)) {
+          errorMessage = error.response.data.message.join('; ')
+        } else {
+          errorMessage = error.response.data.message
+        }
+      }
+      message.error(errorMessage)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // 处理选择用户的操作
@@ -574,7 +578,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
         </Col>
       </Row>
 
-      <Row gutter={16}>
+      {/* <Row gutter={16}>
         <Col span={12}>
           <Form.Item name="needsFeedback" valuePropName="checked">
             <Checkbox>需要反馈</Checkbox>
@@ -585,7 +589,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
             <Checkbox>需要确认已读</Checkbox>
           </Form.Item>
         </Col>
-      </Row>
+      </Row> */}
 
       <Form.Item>
         <Space>

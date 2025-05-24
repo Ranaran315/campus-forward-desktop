@@ -21,20 +21,21 @@ export interface SentNotificationListItem extends BaseNotification {
   recipientsSummary: string; // e.g., "Alice, Bob and 2 others" or "All Students"
 }
 
-export interface NotificationDetail extends BaseNotification {
+export interface NotificationDetail {
+  id: string;
+  title: string;
   contentFull: string;
-  sender?: { // For received
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  recipients?: Array<{ // For sent
-    id: string;
-    name: string;
+  timestamp: string;
+  type?: string;
+  sender?: { name: string; id: string };
+  importance: 'high' | 'medium' | 'low';
+  isRead?: boolean;
+  isPinned?: boolean;
+  deadline?: string;
+  attachments?: Array<{
+    fileName: string;
+    url: string;
   }>;
-  sentBy?: string; // For sent, could be "You" or specific sender if admin views others' sent items
-  type?: string; // General type
-  // Add other fields as necessary, e.g., attachments, actions
 }
 
 // Union type for items in the list, if needed, though usually lists are specific

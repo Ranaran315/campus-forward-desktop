@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './NotificationSidebar.css'
 import { InputField } from '@/components/Form/Form'
 import FilterIcon from '@/assets/icons/filter.svg?react'
@@ -9,6 +9,7 @@ import { UserProfile } from '@/types/user.types'
 import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
 import { matchPath, useLocation, useNavigate } from 'react-router-dom'
+import apiClient from '@/lib/axios'
 
 interface NotificationItem {
   id: string
@@ -20,64 +21,6 @@ interface NotificationItem {
   tags?: string[]
   importance?: 'high' | 'medium' | 'low'
 }
-
-// 静态通知数据示例
-const staticNotifications: NotificationItem[] = [
-  {
-    id: '1',
-    title: '五一劳动节放假通知',
-    summary: '根据国家法定节假日安排，结合我校实际情况...',
-    timestamp: '2025-04-28',
-    unread: true,
-    sender: {
-      _id: 'admin',
-      name: '系统管理员',
-      avatar: '/assets/avatars/admin.png',
-    },
-    tags: ['假期通知'],
-    importance: 'high',
-  },
-  {
-    id: '2',
-    title: '关于开展校园安全大检查的通知',
-    summary: '为进一步加强校园安全管理，消除安全隐患...',
-    timestamp: '2025-05-10',
-    sender: {
-      _id: 'admin',
-      name: '系统管理员',
-      avatar: '/assets/avatars/admin.png',
-    },
-    tags: ['安全通知'],
-    importance: 'high',
-  },
-  {
-    id: '3',
-    title: '图书馆闭馆通知',
-    summary: '因内部系统升级，图书馆将于下周一闭馆一天...',
-    timestamp: '2025-05-15',
-    unread: true,
-    sender: {
-      _id: 'admin',
-      name: '系统管理员',
-      avatar: '/assets/avatars/admin.png',
-    },
-    tags: ['图书馆通知'],
-    importance: 'medium',
-  },
-  {
-    id: '4',
-    title: '学术讲座邀请：AI与未来教育',
-    summary: '特邀李明教授分享人工智能在教育领域的最新进展...',
-    timestamp: '2025-05-20',
-    sender: {
-      _id: 'admin',
-      name: '系统管理员aaaaaaaaaaaaaaaaa',
-      avatar: '/assets/avatars/admin.png',
-    },
-    tags: ['学术活动', '讲座', 'AI', '学时'],
-    importance: 'low',
-  },
-]
 
 interface NotificationsSidebarProps {
   onNotificationSelect: (notificationId: string) => void
@@ -92,6 +35,9 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const isMyPublishedButtonActive =
     matchPath({ path: '/notifications/my-created', end: false }, pathname) !=
@@ -102,11 +48,66 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
     setSearchQuery(value)
   }
 
-  const filteredNotifications = staticNotifications.filter(
-    (notification) =>
-      notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      notification.summary.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // 获取通知列表
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await apiClient.get('/informs/my-informs', {
+          params: {
+            // 可以添加分页和筛选参数
+            page: 1,
+            limit: 20,
+            searchQuery: searchQuery || undefined,
+          },
+        })
+
+        // 注意：后端返回的是 response.data.data
+        const notificationItems = response.data.data || []
+
+        const notifications = notificationItems.map((item: any) => {
+          // 从回执和通知数据中提取信息
+          const inform = item.informId
+          const sender = inform.senderId
+
+          return {
+            id: item._id, // 回执ID
+            informId: inform._id, // 通知本身的ID
+            title: inform.title,
+            summary: inform.description || inform.content?.substring(0, 100),
+            timestamp: new Date(
+              inform.publishAt || inform.createdAt
+            ).toLocaleDateString(),
+            unread: !item.isRead,
+            isRead: item.isRead,
+            isPinned: item.isPinned,
+            sender: {
+              name: sender.nickname || sender.realname || '未知用户',
+              id: sender._id,
+              avatar: sender.avatar, // 头像URL
+            },
+            tags: inform.tags || [],
+            importance: inform.importance,
+            deadline: inform.deadline,
+            receivedAt: new Date(item.receivedAt).toLocaleDateString(),
+          }
+        })
+
+        setNotifications(notifications)
+
+        // 如果需要获取发送者信息，可以额外发送请求
+        // 或者在后端确保senderId被正确填充为用户对象
+      } catch (err) {
+        console.error('获取通知列表失败:', err)
+        setError('获取通知列表失败，请稍后重试')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchNotifications()
+  }, [searchQuery]) // 当搜索条件变化时重新获取
 
   return (
     <aside className="notifications-sidebar">
@@ -141,12 +142,16 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
         </div>
 
         <div className="notifications-list-container">
-          {filteredNotifications.length === 0 ? (
+          {loading ? (
+            <div className="loading-indicator">加载中...</div>
+          ) : error ? (
+            <div className="error-message">{error}</div>
+          ) : notifications.length === 0 ? (
             <div className="empty-state">
               {searchQuery ? '没有找到匹配的通知' : '暂无通知'}
             </div>
           ) : (
-            filteredNotifications.map((notification) => (
+            notifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`notification-item ${
