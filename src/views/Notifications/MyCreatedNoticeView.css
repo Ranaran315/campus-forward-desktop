@@ -1,4 +1,4 @@
-.my-published-notices-view {
+.my-created-notices-view {
   background-color: var(--primary-background-color);
   height: 100%;
   display: flex;
@@ -77,7 +77,7 @@
     z-index: 10;
   }
 
-  .my-published-notices-view .ant-tabs-nav {
+  .my-created-notices-view .ant-tabs-nav {
     margin-bottom: 0;
   }
 

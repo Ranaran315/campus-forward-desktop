@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import NotificationSidebar from './NotificationSidebar' // Corrected import path
 import NotificationDetailDisplay from './NotificationDetail'
 import NewNotification from './NoticeForm' // Import NewNotification
-import MyPublishedNoticesView from './MyPublishedNoticesView' // Import MyPublishedNoticesView
+import MyPublishedNoticesView from './MyCreatedNoticeView' // Import MyPublishedNoticesView
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import './NotificationViews.css'
 import { Form, message } from 'antd' // Import Form and message from antd
@@ -187,7 +187,7 @@ function NotificationPage() {
               />
             }
           />
-          <Route path="my-published" element={<MyPublishedNoticesView />} />
+          <Route path="my-created" element={<MyPublishedNoticesView />} />
           <Route path="edit/:id" element={<NotificationEditView />} />
           {/* <Route path=":id" element={<NotificationDetailDisplay />} /> */}
           <Route path="*" element={<div>页面不存在</div>} />

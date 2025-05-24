@@ -94,7 +94,7 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState('')
 
   const isMyPublishedButtonActive =
-    matchPath({ path: '/notifications/my-published', end: false }, pathname) !=
+    matchPath({ path: '/notifications/my-created', end: false }, pathname) !=
     null
 
   const handleSearchChange = (_name: string, value: string) => {
@@ -132,10 +132,10 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
             className={`function-item ${
               isMyPublishedButtonActive ? 'active' : ''
             }`}
-            onClick={() => navigate('/notifications/my-published')}
+            onClick={() => navigate('/notifications/my-created')}
           >
             <EditIcon />
-            <span className="function-text">我发布的通知</span>
+            <span className="function-text">我创建的通知</span>
             <ArrowRight style={{ marginLeft: 'auto' }} />
           </div>
         </div>

@@ -1,4 +1,4 @@
-// src/views/Notifications/MyPublishedNoticesView.tsx
+// src/views/Notifications/MyCreatedNoticeView.tsx
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   Tabs,
@@ -14,7 +14,7 @@ import {
 import type { TabsProps } from 'antd'
 import { InputField } from '@/components/Form/Form'
 import apiClient, { BackendStandardResponse } from '@/lib/axios' // Import BackendStandardResponse
-import './MyPublishedNoticesView.css'
+import './MyCreatedNoticeView.css'
 import { useNavigate } from 'react-router-dom'
 
 // Define a type for notices fetched from the backend
@@ -69,7 +69,7 @@ const getStatusText = (status: MyCreatedNoticeItem['status']) => {
   }
 }
 
-const MyPublishedNoticesView: React.FC = () => {
+const MyCreatedNoticeView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentPage, setCurrentPage] = useState<number>(1)
@@ -173,7 +173,7 @@ const MyPublishedNoticesView: React.FC = () => {
   }
 
   return (
-    <div className="my-published-notices-view">
+    <div className="my-created-notices-view">
       <div className="sticky-controls">
         <Tabs
           activeKey={activeTab}
@@ -277,4 +277,4 @@ const MyPublishedNoticesView: React.FC = () => {
   )
 }
 
-export default MyPublishedNoticesView
+export default MyCreatedNoticeView
