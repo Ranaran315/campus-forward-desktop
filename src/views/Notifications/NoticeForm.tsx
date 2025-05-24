@@ -12,6 +12,8 @@ import {
   Radio, // Added Radio
   Tag,
   FormInstance,
+  message,
+  Space,
 } from 'antd'
 import { UploadOutlined, UserOutlined } from '@ant-design/icons' // Added UserOutlined
 import apiClient, { BackendStandardResponse } from '@/lib/axios'
@@ -19,6 +21,7 @@ import { showMessage } from '@/components/Message/MessageContainer'
 import SelectUsersModal, {
   User as ModalUser,
 } from '../../components/Modal/SelectUsersModal/SelectUsersModal' // Added
+import { useNavigate } from 'react-router-dom'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -39,23 +42,10 @@ type ScopeType =
 
 interface NoticeFormProps {
   formInstance: FormInstance
-  onCancel: () => void
-  onPublish: (values: any) => void
-  isSubmitting?: boolean
-  readonly?: boolean
-  customFooterButtons?: React.ReactNode
-  cancelText?: string
+  status?: 'draft' | 'published' | 'archived'
 }
 
-const NoticeForm: React.FC<NoticeFormProps> = ({
-  formInstance,
-  onCancel,
-  onPublish,
-  isSubmitting = false,
-  readonly = false,
-  customFooterButtons,
-  cancelText,
-}) => {
+const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
   const [senderIdentities, setSenderIdentities] = useState<
     { id: string; name: string }[]
   >([])
@@ -66,7 +56,18 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
     useState(false) // Added
   const [selectedUsers, setSelectedUsers] = useState<ModalUser[]>([])
   const [isSavingDraft, setIsSavingDraft] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const navigate = useNavigate()
+
+  const isNew = !status
+  const isDraft = status === 'draft'
+  const isPublished = status === 'published'
+  const isArchived = status === 'archived'
+
+  const id = isNew ? undefined : formInstance.getFieldValue('_id')
+
+  // 获取发布者身份列表
   useEffect(() => {
     const fetchSenderIdentities = async () => {
       try {
@@ -99,6 +100,18 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
     fetchSenderIdentities()
   }, [])
 
+  // 初始化表单
+  useEffect(() => {
+    const ids: string[] = formInstance.getFieldValue('specificUserIds') || []
+    if (ids.length > 0) {
+      setAudienceSelectionMode('specific_users')
+      // 如果需要显示用户名，批量请求一下用户信息
+      apiClient
+        .post<{ data: ModalUser[] }>('/users/batch', { ids })
+        .then((res) => setSelectedUsers(res.data.data))
+    }
+  }, [])
+
   const scopeTypeOptions = [
     { value: 'college' as ScopeType, label: '所在学院' },
     { value: 'managed_classes' as ScopeType, label: '管理班级' },
@@ -107,6 +120,15 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
     // { value: 'specific_users' as ScopeType, label: '特定用户' }, // Removed, now a mode
   ]
 
+  const handleCancel = () => {
+    if (isNew) {
+      navigate('/notifications')
+    } else {
+      navigate(-1)
+    }
+  }
+
+  // 处理受众选择模式变化
   const handleAudienceSelectionModeChange = (e: any) => {
     const newMode = e.target.value
     setAudienceSelectionMode(newMode)
@@ -129,6 +151,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
     }
   }
 
+  // 点击“选择具体用户”按钮时的处理函数
   const handleOpenSelectUsersModal = () => {
     setIsSelectUsersModalVisible(true) // Updated
   }
@@ -137,7 +160,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
   const handleSaveDraftClick = () => {
     formInstance
       .validateFields()
-      .then((values) => {
+      .then((values: any) => {
         console.log('Form values before processing for draft:', values)
 
         const draftData: any = {
@@ -237,7 +260,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
         console.log('保存草稿时发送的数据 (前端):\r\n', draftData)
         handleSaveDraft(draftData)
       })
-      .catch((errorInfo) => {
+      .catch((errorInfo: any) => {
         console.log('表单验证失败:', errorInfo)
         // 假设 showMessage 是全局可用或已导入的
         if (typeof showMessage !== 'undefined' && showMessage.error) {
@@ -277,19 +300,27 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
     }
   }
 
+  const handlePublish = async (values: any) => {
+    setIsSubmitting(true)
+    console.log('Publishing notice with values:', values)
+  }
+
+  // 处理选择用户的操作
   const handleSelectUsersOk = (usersFromModal: ModalUser[]) => {
     setSelectedUsers(usersFromModal)
     formInstance.setFieldsValue({
       specificUserIds: usersFromModal.map((u) => u.id),
     })
-    formInstance.validateFields(['specificUserIds']) // Trigger validation
+    formInstance.validateFields(['specificUserIds'])
     setIsSelectUsersModalVisible(false)
   }
 
+  // 处理取消选择用户的操作
   const handleSelectUsersCancel = () => {
     setIsSelectUsersModalVisible(false)
   }
 
+  // 处理删除已选择的用户
   const handleRemoveSelectedUser = (userIdToRemove: string) => {
     const newSelectedUsers = selectedUsers.filter(
       (user) => user.id !== userIdToRemove
@@ -301,16 +332,43 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
     formInstance.validateFields(['specificUserIds'])
   }
 
+  // 处理删除草稿
+  const handleDeleteDraft = async () => {
+    apiClient
+      .delete(`/informs/${id}`)
+      .then(() => {
+        message.success('已删除')
+        navigate(-1)
+      })
+      .catch(() => message.error('删除失败'))
+  }
+
+  // 撤销已发布的通知
+  const handleRevokePublished = async () => {
+    apiClient
+      .post(`/informs/${id}/revoke`)
+      .then(() => message.success('已撤销发布'))
+      .catch(() => message.error('撤销失败'))
+  }
+
+  // 归档已发布的通知
+  const handleArchived = async () => {
+    apiClient
+      .post(`/informs/${id}/archive`)
+      .then(() => message.success('已归档'))
+      .catch(() => message.error('归档失败'))
+  }
+
   return (
     <Form
       form={formInstance}
       layout="vertical"
       name="publish_notice_form"
-      onFinish={onPublish}
-      disabled={readonly}
+      onFinish={handlePublish}
+      disabled={isArchived}
     >
-      <Row gutter={16}>
-        <Col span={12}>
+      {!(isPublished || isArchived) && (
+        <>
           <Form.Item
             name="senderIdentity"
             label="发布者身份"
@@ -324,129 +382,128 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
               ))}
             </Select>
           </Form.Item>
-        </Col>
-      </Row>
 
-      <Form.Item label="目标受众" required style={{ marginBottom: '8px' }}>
-        <Radio.Group
-          onChange={handleAudienceSelectionModeChange}
-          value={audienceSelectionMode}
-        >
-          <Radio value="scope">按范围选择</Radio>
-          <Radio value="specific_users">选择特定用户</Radio>
-        </Radio.Group>
-      </Form.Item>
+          <Form.Item label="目标受众" required style={{ marginBottom: '8px' }}>
+            <Radio.Group
+              onChange={handleAudienceSelectionModeChange}
+              value={audienceSelectionMode}
+            >
+              <Radio value="scope">按范围选择</Radio>
+              <Radio value="specific_users">选择特定用户</Radio>
+            </Radio.Group>
+          </Form.Item>
 
-      {audienceSelectionMode === 'scope' && (
-        <Row gutter={16} style={{ marginTop: 0 }}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="scopeType"
-              label="范围类型"
-              // initialValue={'college'} // Set via handleAudienceSelectionModeChange
-              rules={[
-                {
-                  required: audienceSelectionMode === 'scope',
-                  message: '请选择范围类型!',
-                },
-              ]}
-            >
-              <Select placeholder="选择范围类型">
-                {scopeTypeOptions.map((option) => (
-                  <Option key={option.value} value={option.value}>
-                    {option.label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="objectType"
-              label="对象类型"
-              // initialValue="students" // Set via handleAudienceSelectionModeChange
-              rules={[
-                {
-                  required: audienceSelectionMode === 'scope',
-                  message: '请选择对象类型!',
-                },
-              ]}
-            >
-              <Select placeholder="选择对象类型">
-                <Option value="all">所有用户</Option>
-                <Option value="students">学生</Option>
-                <Option value="staff">教职工</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-      )}
-
-      {audienceSelectionMode === 'specific_users' && (
-        <Row gutter={16} style={{ marginTop: '16px' }}>
-          <Col span={24}>
-            <Form.Item
-              name="specificUserIds"
-              // label prop removed to allow custom layout for asterisk and button
-              rules={[
-                {
-                  required: audienceSelectionMode === 'specific_users',
-                  validator: async (_, value) => {
-                    if (
-                      audienceSelectionMode === 'specific_users' &&
-                      (!value || value.length === 0)
-                    ) {
-                      return Promise.reject(new Error('请选择具体用户!'))
-                    }
-                    return Promise.resolve()
-                  },
-                },
-              ]}
-            >
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {audienceSelectionMode === 'specific_users' && (
-                  <span
-                    style={{
-                      color: 'red',
-                      marginRight: '4px',
-                      fontSize: '14px',
-                    }}
-                  >
-                    *
-                  </span>
-                )}
-                <Button
-                  onClick={handleOpenSelectUsersModal}
-                  icon={<UserOutlined />}
+          {audienceSelectionMode === 'scope' && (
+            <Row gutter={16} style={{ marginTop: 0 }}>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="scopeType"
+                  label="范围类型"
+                  // initialValue={'college'} // Set via handleAudienceSelectionModeChange
+                  rules={[
+                    {
+                      required: audienceSelectionMode === 'scope',
+                      message: '请选择范围类型!',
+                    },
+                  ]}
                 >
-                  选择具体用户
-                </Button>
-              </div>
-              {/* Display selected users using Ant Design Tags */}
-              {audienceSelectionMode === 'specific_users' &&
-                selectedUsers.length > 0 && (
-                  <div style={{ marginTop: '8px' }}>
-                    {selectedUsers.map((user) => (
-                      <Tag
-                        key={user.id}
-                        closable
-                        onClose={() => handleRemoveSelectedUser(user.id)}
+                  <Select placeholder="选择范围类型">
+                    {scopeTypeOptions.map((option) => (
+                      <Option key={option.value} value={option.value}>
+                        {option.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="objectType"
+                  label="对象类型"
+                  // initialValue="students" // Set via handleAudienceSelectionModeChange
+                  rules={[
+                    {
+                      required: audienceSelectionMode === 'scope',
+                      message: '请选择对象类型!',
+                    },
+                  ]}
+                >
+                  <Select placeholder="选择对象类型">
+                    <Option value="all">所有用户</Option>
+                    <Option value="students">学生</Option>
+                    <Option value="staff">教职工</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
+
+          {audienceSelectionMode === 'specific_users' && (
+            <Row gutter={16} style={{ marginTop: '16px' }}>
+              <Col span={24}>
+                <Form.Item
+                  name="specificUserIds"
+                  // label prop removed to allow custom layout for asterisk and button
+                  rules={[
+                    {
+                      required: audienceSelectionMode === 'specific_users',
+                      validator: async (_, value) => {
+                        if (
+                          audienceSelectionMode === 'specific_users' &&
+                          (!value || value.length === 0)
+                        ) {
+                          return Promise.reject(new Error('请选择具体用户!'))
+                        }
+                        return Promise.resolve()
+                      },
+                    },
+                  ]}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {audienceSelectionMode === 'specific_users' && (
+                      <span
                         style={{
+                          color: 'red',
                           marginRight: '4px',
-                          marginBottom: '4px',
-                          marginTop: '4px',
+                          fontSize: '14px',
                         }}
                       >
-                        {user.name}
-                      </Tag>
-                    ))}
+                        *
+                      </span>
+                    )}
+                    <Button
+                      onClick={handleOpenSelectUsersModal}
+                      icon={<UserOutlined />}
+                    >
+                      选择具体用户
+                    </Button>
                   </div>
-                )}
-            </Form.Item>
-          </Col>
-        </Row>
+                  {/* Display selected users using Ant Design Tags */}
+                  {audienceSelectionMode === 'specific_users' &&
+                    selectedUsers.length > 0 && (
+                      <div style={{ marginTop: '8px' }}>
+                        {selectedUsers.map((user) => (
+                          <Tag
+                            key={user.id}
+                            closable
+                            onClose={() => handleRemoveSelectedUser(user.id)}
+                            style={{
+                              marginRight: '4px',
+                              marginBottom: '4px',
+                              marginTop: '4px',
+                            }}
+                          >
+                            {user.name}
+                          </Tag>
+                        ))}
+                      </div>
+                    )}
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
+        </>
       )}
-      {/* End Target Audience Section */}
 
       <Form.Item
         name="title"
@@ -525,31 +582,32 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
       </Row>
 
       <Form.Item>
-        <Button onClick={onCancel} style={{ marginRight: 8 }}>
-          {cancelText || '取消'}
-        </Button>
-        {!readonly && (
-          <>
-            <Button
-              style={{ marginLeft: 8 }}
-              onClick={() =>
-                formInstance.validateFields().then(handleSaveDraftClick)
-              }
-              loading={isSavingDraft}
-            >
-              存为草稿
-            </Button>
-            <Button
-              type="primary"
-              htmlType="submit"
-              style={{ marginLeft: 8 }}
-              loading={isSubmitting}
-            >
-              发布
-            </Button>
-          </>
-        )}
-        {customFooterButtons}
+        <Space>
+          <Button onClick={handleCancel}>{isNew ? '取消' : '返回'}</Button>
+          {(isNew || isDraft) && (
+            <>
+              <Button onClick={handleSaveDraftClick} loading={isSavingDraft}>
+                存为草稿
+              </Button>
+              <Button type="primary" htmlType="submit" loading={isSubmitting}>
+                发布
+              </Button>
+            </>
+          )}
+          {isDraft && (
+            <>
+              <Button danger onClick={handleDeleteDraft}>
+                删除
+              </Button>
+            </>
+          )}
+          {isPublished && (
+            <>
+              <Button onClick={handleRevokePublished}>撤销</Button>
+              <Button onClick={handleArchived}>归档</Button>
+            </>
+          )}
+        </Space>
       </Form.Item>
       <SelectUsersModal
         visible={isSelectUsersModalVisible}

@@ -178,14 +178,7 @@ function NotificationPage() {
           <Route index element={<NotificationWelcome />} />
           <Route
             path="new"
-            element={
-              <NewNotification
-                formInstance={newForm}
-                onCancel={handleCancelPublish}
-                onPublish={handlePublishNoticeSubmit}
-                isSubmitting={isSubmitting}
-              />
-            }
+            element={<NewNotification formInstance={newForm} />}
           />
           <Route path="my-created" element={<MyPublishedNoticesView />} />
           <Route path="edit/:id" element={<NotificationEditView />} />
