@@ -345,18 +345,24 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
 
   // 撤销已发布的通知
   const handleRevokePublished = async () => {
-    apiClient
-      .post(`/informs/${id}/revoke`)
-      .then(() => message.success('已撤销发布'))
-      .catch(() => message.error('撤销失败'))
+    try {
+      await apiClient.post(`/informs/${id}/revoke`)
+      message.success('已撤销发布')
+      navigate(-1)
+    } catch {
+      message.error('撤销失败')
+    }
   }
 
   // 归档已发布的通知
   const handleArchived = async () => {
-    apiClient
-      .post(`/informs/${id}/archive`)
-      .then(() => message.success('已归档'))
-      .catch(() => message.error('归档失败'))
+    try {
+      await apiClient.post(`/informs/${id}/archive`)
+      message.success('已归档')
+      navigate(-1)
+    } catch {
+      message.error('归档失败')
+    }
   }
 
   return (
@@ -583,7 +589,9 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
 
       <Form.Item>
         <Space>
-          <Button onClick={handleCancel}>{isNew ? '取消' : '返回'}</Button>
+          <Button disabled={false} onClick={handleCancel}>
+            {isNew ? '取消' : '返回'}
+          </Button>
           {(isNew || isDraft) && (
             <>
               <Button onClick={handleSaveDraftClick} loading={isSavingDraft}>

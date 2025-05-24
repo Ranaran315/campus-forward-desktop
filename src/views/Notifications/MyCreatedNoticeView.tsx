@@ -81,6 +81,7 @@ const MyCreatedNoticeView: React.FC = () => {
 
   const navigate = useNavigate()
 
+  // 获取通知列表
   const fetchNotices = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -100,8 +101,8 @@ const MyCreatedNoticeView: React.FC = () => {
 
       if (backendResponse && backendResponse.data) {
         const responseData = backendResponse.data // responseData is PaginatedNoticesResponse
-        // @ts-ignore
         setNotices(
+          // @ts-ignore
           responseData.data?.map((notice) => ({
             ...notice,
           })) || []
@@ -109,8 +110,7 @@ const MyCreatedNoticeView: React.FC = () => {
         // @ts-ignore
         setTotalNotices(responseData.total)
       } else {
-        // @ts-ignore
-        const errorMessage =
+        const errorMessage = // @ts-ignore
           backendResponse?.message ||
           '获取通知列表失败：响应数据格式不正确或为空。'
         console.error(
@@ -137,16 +137,19 @@ const MyCreatedNoticeView: React.FC = () => {
     fetchNotices()
   }, [fetchNotices])
 
+  // 切换 Tab
   const handleTabChange = (key: string) => {
     setActiveTab(key)
     setCurrentPage(1) // Reset to first page on tab change
   }
 
+  // 搜索通知
   const handleSearchChange = (_name: string, value: string) => {
     setSearchQuery(value)
     setCurrentPage(1) // Reset to first page on search
   }
 
+  // 分页处理
   const handlePageChange = (page: number, newPageSize?: number) => {
     setCurrentPage(page)
     if (newPageSize && newPageSize !== pageSize) {
@@ -210,7 +213,7 @@ const MyCreatedNoticeView: React.FC = () => {
             className="my-notices-list"
             itemLayout="vertical"
             dataSource={notices}
-            renderItem={(item) => (
+            renderItem={(item: any) => (
               <List.Item
                 key={item._id}
                 className="my-notices-list-item"
@@ -243,7 +246,7 @@ const MyCreatedNoticeView: React.FC = () => {
                 />
                 {item.tags && item.tags.length > 0 && (
                   <div className="item-tags">
-                    {item.tags.map((tag) => (
+                    {item.tags.map((tag: any) => (
                       <Tag key={tag}>{tag}</Tag>
                     ))}
                   </div>
