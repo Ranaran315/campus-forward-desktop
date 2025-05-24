@@ -15,6 +15,7 @@ import type { TabsProps } from 'antd'
 import { InputField } from '@/components/Form/Form'
 import apiClient, { BackendStandardResponse } from '@/lib/axios' // Import BackendStandardResponse
 import './MyPublishedNoticesView.css'
+import { useNavigate } from 'react-router-dom'
 
 // Define a type for notices fetched from the backend
 interface MyCreatedNoticeItem {
@@ -77,6 +78,8 @@ const MyPublishedNoticesView: React.FC = () => {
   const [totalNotices, setTotalNotices] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+
+  const navigate = useNavigate()
 
   const fetchNotices = useCallback(async () => {
     setLoading(true)
@@ -211,6 +214,7 @@ const MyPublishedNoticesView: React.FC = () => {
               <List.Item
                 key={item._id}
                 className="my-notices-list-item"
+                onClick={() => navigate('/notifications/edit/' + item._id)}
                 extra={
                   <Space direction="vertical" align="end">
                     <Tag color={getStatusTagColor(item.status)}>

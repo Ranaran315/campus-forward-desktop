@@ -2,13 +2,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import NotificationSidebar from './NotificationSidebar' // Corrected import path
 import NotificationDetailDisplay from './NotificationDetail'
-import PublishNoticeForm from './PublishNoticeForm' // Import PublishNoticeForm
+import NewNotification from './NoticeForm' // Import NewNotification
 import MyPublishedNoticesView from './MyPublishedNoticesView' // Import MyPublishedNoticesView
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import './NotificationViews.css'
 import { Form, message } from 'antd' // Import Form and message from antd
 import apiClient from '@/lib/axios' // Import apiClient
 import { Route, Routes } from 'react-router-dom'
+import NotificationEditView from './NotificationEditView'
 
 function NotificationWelcome() {
   return (
@@ -29,7 +30,6 @@ function NotificationPage() {
     useState<NotificationDetailType | null>(null)
   const [newForm] = Form.useForm()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSavingDraft, setIsSavingDraft] = useState(false)
 
   // Mock data, assuming it might still be used for details, or fetched based on ID
   const mockNotificationDetailsData: { [key: string]: NotificationDetailType } =
@@ -167,34 +167,6 @@ function NotificationPage() {
     }
   }
 
-  const handleSaveDraft = async (draftData: any) => {
-    setIsSavingDraft(true)
-    console.log('Saving draft with data:', draftData)
-    try {
-      await apiClient.post('/informs/draft', draftData)
-      message.success('草稿保存成功!')
-      // Optionally, you might want to keep the form open or close it
-      // handleCancelPublish(); // or newForm.resetFields(); if you want to clear after save
-    } catch (error: any) {
-      console.error('Failed to save draft:', error)
-      let errorMessage = '草稿保存失败，请稍后再试。'
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        if (Array.isArray(error.response.data.message)) {
-          errorMessage = error.response.data.message.join('; ')
-        } else {
-          errorMessage = error.response.data.message
-        }
-      }
-      message.error(errorMessage)
-    } finally {
-      setIsSavingDraft(false)
-    }
-  }
-
   return (
     <div className="notification-page-container">
       <NotificationSidebar
@@ -207,17 +179,16 @@ function NotificationPage() {
           <Route
             path="new"
             element={
-              <PublishNoticeForm
+              <NewNotification
                 formInstance={newForm}
                 onCancel={handleCancelPublish}
                 onPublish={handlePublishNoticeSubmit}
-                onSaveDraft={handleSaveDraft}
                 isSubmitting={isSubmitting}
-                isSavingDraft={isSavingDraft}
               />
             }
           />
           <Route path="my-published" element={<MyPublishedNoticesView />} />
+          <Route path="edit/:id" element={<NotificationEditView />} />
           {/* <Route path=":id" element={<NotificationDetailDisplay />} /> */}
           <Route path="*" element={<div>页面不存在</div>} />
         </Routes>
