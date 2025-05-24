@@ -83,13 +83,15 @@ interface NotificationsSidebarProps {
   selectedNotificationId: string | null
   onPublishNewNoticeClick: () => void // Added prop for parent to handle form display
   onShowMyPublishedNoticesClick: () => void // Added prop for "My Published Notices"
+  isMyPublishedButtonActive?: boolean
 }
 
 const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   onNotificationSelect,
   selectedNotificationId,
   onPublishNewNoticeClick, // Destructure the new prop
-  onShowMyPublishedNoticesClick, // Destructure the new prop
+  onShowMyPublishedNoticesClick,
+  isMyPublishedButtonActive,
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -125,7 +127,9 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
 
         <div className="notifications-functions">
           <div
-            className="function-item"
+            className={`function-item ${
+              isMyPublishedButtonActive ? 'active' : ''
+            }`}
             onClick={onShowMyPublishedNoticesClick} // Use the passed prop
           >
             <EditIcon />

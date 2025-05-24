@@ -15,12 +15,12 @@ function NotificationPage() {
   >(null)
   const [selectedNotificationDetail, setSelectedNotificationDetail] =
     useState<NotificationDetailType | null>(null)
-  const [isPublishViewActive, setIsPublishViewActive] = useState(false) // State to control publish form visibility
+  const [isPublishViewActive, setIsPublishViewActive] = useState(false)
   const [isMyPublishedNoticesViewActive, setIsMyPublishedNoticesViewActive] =
-    useState(false) // State for "My Published Notices" view
-  const [publishForm] = Form.useForm() // Form instance for PublishNoticeForm
-  const [isSubmitting, setIsSubmitting] = useState(false) // State for submission loading
-  const [isSavingDraft, setIsSavingDraft] = useState(false) // State for save draft loading
+    useState(false)
+  const [publishForm] = Form.useForm()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSavingDraft, setIsSavingDraft] = useState(false)
 
   // Mock data, assuming it might still be used for details, or fetched based on ID
   const mockNotificationDetailsData: { [key: string]: NotificationDetailType } =
@@ -130,7 +130,7 @@ function NotificationPage() {
       setSelectedNotificationDetail(
         mockNotificationDetailsData[selectedNotificationId]
       )
-      setIsPublishViewActive(false) // Ensure publish form is hidden when a notification is selected
+      setIsPublishViewActive(false)
     } else {
       setSelectedNotificationDetail(null)
     }
@@ -138,20 +138,20 @@ function NotificationPage() {
 
   const handleSelectNotification = useCallback((id: string) => {
     setSelectedNotificationId(id)
-    setIsMyPublishedNoticesViewActive(false) // Hide "My Published Notices" view when a notification is selected
-    setIsPublishViewActive(false) // Also hide publish form view
+    setIsMyPublishedNoticesViewActive(false)
+    setIsPublishViewActive(false)
   }, [])
 
   const handleShowPublishForm = () => {
-    setSelectedNotificationId(null) // Deselect any notification
+    setSelectedNotificationId(null)
     setIsPublishViewActive(true)
-    setIsMyPublishedNoticesViewActive(false) // Hide "My Published Notices" view
+    setIsMyPublishedNoticesViewActive(false)
   }
 
   const handleShowMyPublishedNotices = () => {
-    setSelectedNotificationId(null) // Deselect any notification
-    setIsPublishViewActive(false) // Hide publish form
-    setIsMyPublishedNoticesViewActive(true) // Show "My Published Notices" view
+    setSelectedNotificationId(null)
+    setIsPublishViewActive(false)
+    setIsMyPublishedNoticesViewActive(true)
   }
 
   const handleCancelPublish = () => {
@@ -162,13 +162,10 @@ function NotificationPage() {
   const handlePublishNoticeSubmit = async (values: any) => {
     setIsSubmitting(true)
     console.log('Publishing notice with values:', values)
-    // Simulate API call
     try {
-      // Replace with actual API call: apiClient.post('/informs/publish', values)
       await new Promise((resolve) => setTimeout(resolve, 1500))
       message.success('通知发布成功!')
-      handleCancelPublish() // Close form and reset
-      // Here you might want to refresh the notifications list
+      handleCancelPublish()
     } catch (error) {
       console.error('Failed to publish notice:', error)
       message.error('通知发布失败，请稍后再试。')
@@ -188,7 +185,11 @@ function NotificationPage() {
     } catch (error: any) {
       console.error('Failed to save draft:', error)
       let errorMessage = '草稿保存失败，请稍后再试。'
-      if (error.response && error.response.data && error.response.data.message) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         if (Array.isArray(error.response.data.message)) {
           errorMessage = error.response.data.message.join('; ')
         } else {
@@ -208,6 +209,7 @@ function NotificationPage() {
         onNotificationSelect={handleSelectNotification}
         onPublishNewNoticeClick={handleShowPublishForm} // Pass the handler to the sidebar
         onShowMyPublishedNoticesClick={handleShowMyPublishedNotices} // Pass the new handler
+        isMyPublishedButtonActive={isMyPublishedNoticesViewActive} // Pass the active state
       />
       <main className="notification-detail-view">
         {isPublishViewActive ? (

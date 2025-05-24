@@ -67,6 +67,11 @@
         width: var(--normal-icon-size);
         height: var(--normal-icon-size);
       }
+
+      &.active {
+        background-color: var(--primary-color);
+        color: var(--active-text-color);
+      }
     }
   }
 
