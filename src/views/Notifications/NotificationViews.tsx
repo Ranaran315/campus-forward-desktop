@@ -8,6 +8,18 @@ import { NotificationDetail as NotificationDetailType } from '@/types/notificati
 import './NotificationViews.css'
 import { Form, message } from 'antd' // Import Form and message from antd
 import apiClient from '@/lib/axios' // Import apiClient
+import { Route, Routes } from 'react-router-dom'
+
+function NotificationWelcome() {
+  return (
+    <>
+      <div className="notification-welcome">
+        <span>🔔</span>
+        请选择一条通知以查看详情
+      </div>
+    </>
+  )
+}
 
 function NotificationPage() {
   const [selectedNotificationId, setSelectedNotificationId] = useState<
@@ -15,10 +27,7 @@ function NotificationPage() {
   >(null)
   const [selectedNotificationDetail, setSelectedNotificationDetail] =
     useState<NotificationDetailType | null>(null)
-  const [isPublishViewActive, setIsPublishViewActive] = useState(false)
-  const [isMyPublishedNoticesViewActive, setIsMyPublishedNoticesViewActive] =
-    useState(false)
-  const [publishForm] = Form.useForm()
+  const [newForm] = Form.useForm()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSavingDraft, setIsSavingDraft] = useState(false)
 
@@ -130,7 +139,6 @@ function NotificationPage() {
       setSelectedNotificationDetail(
         mockNotificationDetailsData[selectedNotificationId]
       )
-      setIsPublishViewActive(false)
     } else {
       setSelectedNotificationDetail(null)
     }
@@ -138,25 +146,10 @@ function NotificationPage() {
 
   const handleSelectNotification = useCallback((id: string) => {
     setSelectedNotificationId(id)
-    setIsMyPublishedNoticesViewActive(false)
-    setIsPublishViewActive(false)
   }, [])
 
-  const handleShowPublishForm = () => {
-    setSelectedNotificationId(null)
-    setIsPublishViewActive(true)
-    setIsMyPublishedNoticesViewActive(false)
-  }
-
-  const handleShowMyPublishedNotices = () => {
-    setSelectedNotificationId(null)
-    setIsPublishViewActive(false)
-    setIsMyPublishedNoticesViewActive(true)
-  }
-
   const handleCancelPublish = () => {
-    setIsPublishViewActive(false)
-    publishForm.resetFields()
+    newForm.resetFields()
   }
 
   const handlePublishNoticeSubmit = async (values: any) => {
@@ -181,7 +174,7 @@ function NotificationPage() {
       await apiClient.post('/informs/draft', draftData)
       message.success('草稿保存成功!')
       // Optionally, you might want to keep the form open or close it
-      // handleCancelPublish(); // or publishForm.resetFields(); if you want to clear after save
+      // handleCancelPublish(); // or newForm.resetFields(); if you want to clear after save
     } catch (error: any) {
       console.error('Failed to save draft:', error)
       let errorMessage = '草稿保存失败，请稍后再试。'
@@ -207,28 +200,27 @@ function NotificationPage() {
       <NotificationSidebar
         selectedNotificationId={selectedNotificationId}
         onNotificationSelect={handleSelectNotification}
-        onPublishNewNoticeClick={handleShowPublishForm} // Pass the handler to the sidebar
-        onShowMyPublishedNoticesClick={handleShowMyPublishedNotices} // Pass the new handler
-        isMyPublishedButtonActive={isMyPublishedNoticesViewActive} // Pass the active state
       />
       <main className="notification-detail-view">
-        {isPublishViewActive ? (
-          <PublishNoticeForm
-            formInstance={publishForm}
-            onPublish={handlePublishNoticeSubmit}
-            onCancel={handleCancelPublish}
-            onSaveDraft={handleSaveDraft} // Pass the new handler
-            isSubmitting={isSubmitting}
-            isSavingDraft={isSavingDraft} // Pass the new loading state
+        <Routes>
+          <Route index element={<NotificationWelcome />} />
+          <Route
+            path="new"
+            element={
+              <PublishNoticeForm
+                formInstance={newForm}
+                onCancel={handleCancelPublish}
+                onPublish={handlePublishNoticeSubmit}
+                onSaveDraft={handleSaveDraft}
+                isSubmitting={isSubmitting}
+                isSavingDraft={isSavingDraft}
+              />
+            }
           />
-        ) : isMyPublishedNoticesViewActive ? (
-          <MyPublishedNoticesView />
-        ) : (
-          <NotificationDetailDisplay
-            notification={selectedNotificationDetail}
-            activeListType={'received'} // This value might need to be dynamic
-          />
-        )}
+          <Route path="my-published" element={<MyPublishedNoticesView />} />
+          {/* <Route path=":id" element={<NotificationDetailDisplay />} /> */}
+          <Route path="*" element={<div>页面不存在</div>} />
+        </Routes>
       </main>
     </div>
   )

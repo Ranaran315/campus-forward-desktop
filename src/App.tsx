@@ -103,7 +103,7 @@ function AppLayout() {
             <Link
               to="/notifications"
               className={`sidebar-button ${
-                currentPath === '/notifications' ? 'active' : ''
+                currentPath.startsWith('/notifications') ? 'active' : ''
               }`}
             >
               <NotificationIcon className="sidebar-icon" />
@@ -207,7 +207,7 @@ function App() {
             }
           >
             <Route index element={<ChatViews />} /> {/* 默认子路由 */}
-            <Route path="notifications" element={<NotificationViews />} />
+            <Route path="notifications/*" element={<NotificationViews />} />
             <Route path="calendar" element={<CalendarViews />} />
             <Route path="contacts" element={<FriendsViews />} />
             <Route path="profile" element={<ProfileViwes />} />

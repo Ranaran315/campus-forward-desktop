@@ -193,9 +193,9 @@
 
   .publish-footer {
     padding: 12px 16px;
-    border-top: 1px solid var(--primary-background-color);
+    border-top: 1px solid var(--secondary-background-color);
     background-color: var(
-      --secondary-background-color
+      --primary-background-color
     ); /* 确保背景色与其他部分一致 */
     /* 固定在底部，如果 notifications-sidebar 有固定高度且 overflow */
     /* position: sticky; */

@@ -8,6 +8,7 @@ import ArrowRight from '@/assets/icons/arrow_right.svg?react'
 import { UserProfile } from '@/types/user.types'
 import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
+import { matchPath, useLocation, useNavigate } from 'react-router-dom'
 
 interface NotificationItem {
   id: string
@@ -81,19 +82,20 @@ const staticNotifications: NotificationItem[] = [
 interface NotificationsSidebarProps {
   onNotificationSelect: (notificationId: string) => void
   selectedNotificationId: string | null
-  onPublishNewNoticeClick: () => void // Added prop for parent to handle form display
-  onShowMyPublishedNoticesClick: () => void // Added prop for "My Published Notices"
   isMyPublishedButtonActive?: boolean
 }
 
 const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   onNotificationSelect,
   selectedNotificationId,
-  onPublishNewNoticeClick, // Destructure the new prop
-  onShowMyPublishedNoticesClick,
-  isMyPublishedButtonActive,
 }) => {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
+
+  const isMyPublishedButtonActive =
+    matchPath({ path: '/notifications/my-published', end: false }, pathname) !=
+    null
 
   const handleSearchChange = (_name: string, value: string) => {
     // Mark name as unused
@@ -130,7 +132,7 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
             className={`function-item ${
               isMyPublishedButtonActive ? 'active' : ''
             }`}
-            onClick={onShowMyPublishedNoticesClick} // Use the passed prop
+            onClick={() => navigate('/notifications/my-published')}
           >
             <EditIcon />
             <span className="function-text">我发布的通知</span>
@@ -192,7 +194,7 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
         <div className="publish-footer">
           <Button
             className="publish-btn"
-            onClick={onPublishNewNoticeClick} // Changed to call the prop from parent
+            onClick={() => navigate('/notifications/new')} // Changed to call the prop from parent
           >
             <AddIcon />
             <span>发布通知</span>

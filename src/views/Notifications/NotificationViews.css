@@ -1,4 +1,16 @@
 /* NotificationPage.css */
+.notification-welcome {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  span {
+    font-size: var(--largest-icon-size);
+  }
+}
+
 .notification-page-container {
   display: flex;
   height: 100%;
@@ -37,7 +49,7 @@
 }
 
 .notification-sidebar-tabs button.active {
-  color: #007bff;
+  color: var(--primary-color);
   border-bottom-color: #007bff;
   font-weight: 600; /* Slightly bolder */
 }
