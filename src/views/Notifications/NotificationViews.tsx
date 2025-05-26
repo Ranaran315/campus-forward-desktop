@@ -8,7 +8,7 @@ import { NotificationDetail as NotificationDetailType } from '@/types/notificati
 import './NotificationViews.css'
 import { Form, message } from 'antd' // Import Form and message from antd
 import apiClient from '@/lib/axios' // Import apiClient
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 import NotificationEditView from './NotificationEditView'
 
 function NotificationWelcome() {
@@ -23,61 +23,14 @@ function NotificationWelcome() {
 }
 
 function NotificationViews() {
-  const [selectedNotificationId, setSelectedNotificationId] = useState<
-    string | null
-  >(null)
-  const [selectedNotificationDetail, setSelectedNotificationDetail] =
-    useState<NotificationDetailType | null>(null)
-
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detailError, setDetailError] = useState<string | null>(null)
-
+  const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
   const [newForm] = Form.useForm()
-
-
-  // 当选中的通知ID变化时，获取通知详情
-  useEffect(() => {
-    if (!selectedNotificationId) {
-      setSelectedNotificationDetail(null)
-      return
-    }
-    
-    const fetchNotificationDetail = async () => {
-      setDetailLoading(true)
-      setDetailError(null)
-      
-      try {
-        const response = await apiClient.get(`/informs/${selectedNotificationId}`)
-        const notificationData = response.data.data
-        
-        // 转换数据为组件所需格式
-        const formattedDetail: NotificationDetailType = {
-          id: notificationData._id,
-          title: notificationData.title,
-          contentFull: notificationData.content,
-          timestamp: new Date(notificationData.createdAt).toLocaleString(),
-          type: notificationData.tags?.[0] || '',
-          // 根据API返回数据结构设置发送者和接收者信息
-          sender: notificationData.sender,
-          sentBy: notificationData.sender?.name,
-          recipients: notificationData.recipients
-        }
-        
-        setSelectedNotificationDetail(formattedDetail)
-      } catch (err) {
-        console.error('获取通知详情失败:', err)
-        setDetailError('获取通知详情失败，请稍后重试')
-      } finally {
-        setDetailLoading(false)
-      }
-    }
-    
-    fetchNotificationDetail()
-  }, [selectedNotificationId])
+  const navigate = useNavigate()
 
   const handleSelectNotification = useCallback((id: string) => {
     setSelectedNotificationId(id)
-  }, [])
+    navigate(`/notifications/${id}`)
+  }, [navigate])
 
   return (
     <div className="notification-page-container">
@@ -94,7 +47,7 @@ function NotificationViews() {
           />
           <Route path="my-created" element={<MyPublishedNoticesView />} />
           <Route path="edit/:id" element={<NotificationEditView />} />
-          {/* <Route path=":id" element={<NotificationDetailDisplay />} /> */}
+          <Route path=":id" element={<NotificationDetailDisplay />} />
           <Route path="*" element={<div>页面不存在</div>} />
         </Routes>
       </main>

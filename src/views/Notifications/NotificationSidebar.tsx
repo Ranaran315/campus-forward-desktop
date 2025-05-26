@@ -8,8 +8,9 @@ import ArrowRight from '@/assets/icons/arrow_right.svg?react'
 import { UserProfile } from '@/types/user.types'
 import Avatar from '@/components/Avatar/Avatar'
 import Button from '@/components/Button/Button'
-import { matchPath, useLocation, useNavigate } from 'react-router-dom'
+import { matchPath, useLocation, useNavigate, useParams } from 'react-router-dom'
 import apiClient from '@/lib/axios'
+import { Tag } from 'antd'
 
 interface NotificationItem {
   id: string
@@ -28,10 +29,7 @@ interface NotificationsSidebarProps {
   isMyPublishedButtonActive?: boolean
 }
 
-const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
-  onNotificationSelect,
-  selectedNotificationId,
-}) => {
+const NotificationsSidebar: React.FC<NotificationsSidebarProps> = () => {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
@@ -39,10 +37,24 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const extractNotificationId = (path: string): string | null => {
+    const match = /\/notifications\/([a-f0-9]+)$/.exec(path)
+    return match ? match[1] : null
+  }
+  
+  const currentNotificationId = extractNotificationId(pathname)
+  
+  // 处理通知项点击
+  const handleNotificationClick = (notificationId: string) => {
+    navigate(`/notifications/${notificationId}`)
+  }
+
+  // 处理通知项选择
   const isMyPublishedButtonActive =
     matchPath({ path: '/notifications/my-created', end: false }, pathname) !=
     null
 
+  // 处理搜索输入变化
   const handleSearchChange = (_name: string, value: string) => {
     // Mark name as unused
     setSearchQuery(value)
@@ -68,8 +80,8 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
 
         const notifications = notificationItems.map((item: any) => {
           // 从回执和通知数据中提取信息
-          const inform = item.informId
-          const sender = inform.senderId
+          const inform = item.inform // 使用新字段名
+          const sender = inform.sender // 使用新字段名
 
           return {
             id: item._id, // 回执ID
@@ -108,6 +120,10 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
 
     fetchNotifications()
   }, [searchQuery]) // 当搜索条件变化时重新获取
+
+  useEffect(() => {
+    console.log('当前选中的通知ID:', currentNotificationId)
+  }, [currentNotificationId])
 
   return (
     <aside className="notifications-sidebar">
@@ -157,9 +173,9 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
                 className={`notification-item ${
                   notification.unread ? 'unread' : ''
                 } ${
-                  selectedNotificationId === notification.id ? 'active' : ''
+                  currentNotificationId === notification.id ? 'active' : ''
                 }`}
-                onClick={() => onNotificationSelect(notification.id)}
+                onClick={() => handleNotificationClick(notification.id)}
               >
                 <div className="notification-item-header">
                   <h3 className="notification-title">{notification.title}</h3>
@@ -184,13 +200,13 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = ({
                     </span>
                   </span>
                 </div>
-                <ul className="notification-tags">
+                <div className="notification-tags">
                   {notification.tags?.map((tag, index) => (
-                    <li key={index} className="notification-tag">
+                    <Tag key={index} className="notification-tag">
                       {tag}
-                    </li>
+                    </Tag>
                   ))}
-                </ul>
+                </div>
               </div>
             ))
           )}

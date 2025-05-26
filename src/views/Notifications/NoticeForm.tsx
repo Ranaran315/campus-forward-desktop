@@ -177,7 +177,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
           }))
         : [],
       targetScope: '',
-      targetIds: [],
+      targetUsers: [],
       userTypeFilter: null,
       // needsFeedback: values.needsFeedback || false,
       // needsConfirmation: values.needsConfirmation || false,
@@ -197,7 +197,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({ formInstance, status }) => {
     // 处理目标受众
     if (audienceSelectionMode === 'specific_users') {
       noticeData.targetScope = 'SPECIFIC_USERS'
-      noticeData.targetIds = selectedUsers.map((u) => u.id) || []
+      noticeData.targetUsers = selectedUsers.map((u) => u.id) || []
     } else {
       // 范围选择模式 - 简化处理
       noticeData.targetScope = 'ALL' // 默认发送给所有人

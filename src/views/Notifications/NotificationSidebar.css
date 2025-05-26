@@ -85,6 +85,9 @@
       border-bottom: 1px solid var(--primary-background-color);
       cursor: pointer;
       transition: background-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
 
       &:last-child {
         border-bottom: none;
@@ -96,6 +99,7 @@
 
       &.active {
         background-color: var(--secondary-color);
+        color: var(--active-text-color);
       }
 
       .notification-item-header {
@@ -163,22 +167,6 @@
             font-size: var(--small-font-size);
             color: var(--placeholder-text-color);
           }
-        }
-      }
-
-      .notification-tags {
-        padding: 0 4px;
-        display: flex;
-        gap: 4px;
-        align-items: center;
-        font-size: var(--small-font-size);
-        margin-top: 10px;
-        li {
-          padding: 4px 8px;
-          background-color: var(--third-background-color);
-          border-radius: 4px;
-          color: var(--primary-text-color);
-          font-size: var(--small-font-size);
         }
       }
     }

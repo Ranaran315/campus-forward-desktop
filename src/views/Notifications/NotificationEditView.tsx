@@ -28,7 +28,7 @@ const NotificationEditView: React.FC = () => {
               : info.targetScope.toLowerCase(),
           objectType: info.userTypeFilter ?? undefined,
           specificUserIds:
-            info.targetScope === 'SPECIFIC_USERS' ? info.targetIds : [],
+            info.targetScope === 'SPECIFIC_USERS' ? info.targetUsers : [],
         }
         setData(info)
         form.setFieldsValue(initial)
