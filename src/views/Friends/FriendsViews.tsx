@@ -82,19 +82,7 @@ function FriendsViews() {
   // --- 使用 WebSocket Hook ---
   // const { on: socketOn } = useWebSocketContext()
 
-  // 查看添加好友页面
-  const viewAddFriend = () => {
-    setSelectedTab('addFriend')
-    setSelectedFriend(null)
-  }
-
-  // --- 好友请求 ---
-  // 查看好友请求
-  const viewFriendRequests = () => {
-    setSelectedTab('requests')
-    setSelectedFriend(null)
-  }
-  // 获取好友列表(按分类)
+    // 获取好友列表(按分类)
   const fetchFriends = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -115,6 +103,20 @@ function FriendsViews() {
       setIsLoading(false)
     }
   }, [])
+
+  // 查看添加好友页面
+  const viewAddFriend = () => {
+    setSelectedTab('addFriend')
+    setSelectedFriend(null)
+  }
+
+  // --- 好友请求 ---
+  // 查看好友请求
+  const viewFriendRequests = () => {
+    setSelectedTab('requests')
+    setSelectedFriend(null)
+  }
+
   // 获取收到的好友请求
   const fetchReceivedRequests = useCallback(async () => {
     console.log('Fetching received requests...')

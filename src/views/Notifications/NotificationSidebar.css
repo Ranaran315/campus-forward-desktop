@@ -97,6 +97,10 @@
         background-color: var(--primary-background-color);
       }
 
+      &.pinned {
+        background-color: var(--third-background-color);
+      }
+
       &.active {
         background-color: var(--secondary-color);
         color: var(--active-text-color);

@@ -74,7 +74,7 @@ function AppLayout() {
   // 获取当前路由路径
   const location = useLocation()
   const currentPath = location.pathname
-  const { pendingReceivedRequestsCount } = useAppNotificationsContext()
+  const { pendingReceivedRequestsCount, unreadNotificationsCount } = useAppNotificationsContext()
   const { checkPermission, isLoading: authLoading, user } = useAuth()
 
   // 只有在 authLoading 完成后才进行权限检查
@@ -108,6 +108,11 @@ function AppLayout() {
             >
               <NotificationIcon className="sidebar-icon" />
               <span>通知</span>
+              {unreadNotificationsCount > 0 && (
+                <span className="sidebar-badge">
+                  {unreadNotificationsCount}
+                </span>
+              )}
             </Link>
             <Link
               to="/calendar"

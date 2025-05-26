@@ -1,15 +1,26 @@
 // campus-forward-desktop/src/views/Notifications/NotificationDetail.tsx
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Button, Tag, Divider, Space, message, Tooltip } from 'antd'
+import {
+  Button,
+  Tag,
+  Divider,
+  Space,
+  message,
+  Tooltip,
+  Avatar,
+  Flex,
+} from 'antd'
 import {
   EyeOutlined,
-  DeleteOutlined,
+  EyeInvisibleOutlined,
   PushpinOutlined,
   PushpinFilled,
 } from '@ant-design/icons'
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import apiClient from '@/lib/axios'
+import { useAppNotificationsContext } from '@/contexts/AppNotificationsContext'
+import './NotificationDetail.css'
 
 // 可以不需要notification属性，组件内部自己获取
 interface NotificationDetailProps {}
@@ -25,6 +36,10 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
   const [error, setError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
   const [isPinned, setIsPinned] = useState(false)
+  const [isRead, setIsRead] = useState(false)
+
+  const { bumpNotificationsVersion, fetchAndUpdateUnreadNotifications } =
+    useAppNotificationsContext()
 
   // 获取通知详情
   useEffect(() => {
@@ -35,12 +50,8 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
       setError(null)
 
       try {
-        const response = await apiClient.get(`/informs/receipt/${id}`)
-
-        // 1. 检查响应格式
+        const response = await apiClient.get(`/informs/receipt/${id}/detail`)
         const receipt = response.data
-
-        // 2. 找到inform
         const inform = receipt.inform
 
         if (!inform) {
@@ -72,11 +83,9 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
 
         setNotification(formattedDetail)
         setIsPinned(receipt.isPinned)
+        setIsRead(receipt.isRead)
 
-        // 如果通知未读，自动标记为已读
-        if (!receipt.isRead) {
-          markAsRead(receipt._id)
-        }
+        // 删除自动标记为已读的逻辑
       } catch (err) {
         console.error('获取通知详情失败, 错误详情:', err)
         message.error('获取通知详情失败，请稍后重试')
@@ -89,45 +98,34 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
     fetchNotificationDetail()
   }, [id])
 
-  // 标记为已读
-  const markAsRead = async (receiptId: string) => {
-    try {
-      await apiClient.post(`/informs/${receiptId}/read`)
-      // 不需要显示消息，这是自动操作
-    } catch (err) {
-      console.error('标记已读失败:', err)
-    }
-  }
-
-  // 处理标记为已读按钮点击
-  const handleMarkAsRead = async () => {
-    if (!id || !notification || notification.isRead) return
+  // 切换已读/未读状态
+  const handleToggleReadStatus = async () => {
+    if (!id || !notification) return
 
     setProcessing(true)
     try {
-      await apiClient.post(`/informs/${id}/read`)
-      message.success('已标记为已读')
-      setNotification((prev) => (prev ? { ...prev, isRead: true } : null))
-    } catch (err) {
-      console.error('标记已读失败:', err)
-      message.error('操作失败，请稍后重试')
-    } finally {
-      setProcessing(false)
-    }
-  }
+      // 根据当前状态决定调用哪个API
+      if (isRead) {
+        // 标记为未读
+        await apiClient.post(`/informs/receipt/${id}/unread`)
+        message.success('已标记为未读')
+      } else {
+        // 标记为已读
+        await apiClient.post(`/informs/receipt/${id}/read`)
+        message.success('已标记为已读')
+      }
 
-  // 处理删除通知
-  const handleDelete = async () => {
-    if (!id) return
+      // 更新状态
+      const newReadStatus = !isRead
+      setIsRead(newReadStatus)
+      setNotification((prev) =>
+        prev ? { ...prev, isRead: newReadStatus } : null
+      )
 
-    setProcessing(true)
-    try {
-      await apiClient.delete(`/informs/${id}/receipt`)
-      message.success('已从列表中移除')
-      // 删除后返回通知列表
-      navigate('/notifications')
+      bumpNotificationsVersion()
+      fetchAndUpdateUnreadNotifications()
     } catch (err) {
-      console.error('删除通知失败:', err)
+      console.error('切换已读状态失败:', err)
       message.error('操作失败，请稍后重试')
     } finally {
       setProcessing(false)
@@ -140,12 +138,16 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
 
     setProcessing(true)
     try {
-      await apiClient.post(`/informs/${id}/pin`, { isPinned: !isPinned })
+      await apiClient.post(`/informs/receipt/${id}/pin`, {
+        isPinned: !isPinned,
+      })
       setIsPinned(!isPinned)
       setNotification((prev) =>
         prev ? { ...prev, isPinned: !isPinned } : null
       )
       message.success(isPinned ? '已取消置顶' : '已置顶')
+
+      bumpNotificationsVersion()
     } catch (err) {
       console.error('置顶操作失败:', err)
       message.error('操作失败，请稍后重试')
@@ -162,10 +164,11 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
       case 'high':
         return <Tag color="red">重要</Tag>
       case 'medium':
-        return <Tag color="orange">一般</Tag>
+        return <Tag color="orange">紧急</Tag>
       case 'low':
+        return <Tag color="blue">一般</Tag>
       default:
-        return <Tag color="blue">普通</Tag>
+        return <Tag>普通</Tag>
     }
   }
 
@@ -187,27 +190,40 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
   }
 
   return (
-    <div className="notification-content">
-      <div className="notification-header">
+    <div className="notification-detail">
+      <Flex
+        className="notification-header"
+        justify="space-between"
+        align="flex-end"
+      >
         <h2>{notification.title}</h2>
-        <div className="notification-meta">
-          <Space>
-            {getImportanceTag()}
-            {notification.type && <Tag>{notification.type}</Tag>}
-          </Space>
-        </div>
-      </div>
+        <Tooltip title={isPinned ? '取消置顶' : '置顶通知'}>
+          <Button
+            icon={isPinned ? <PushpinFilled /> : <PushpinOutlined />}
+            onClick={handleTogglePin}
+            loading={processing}
+          />
+        </Tooltip>
+      </Flex>
 
       <p className="notification-info">
-        <span className="sender">
-          发件人: {notification.sender?.name || '系统通知'}
-        </span>
-        <span className="time">发布时间: {notification.timestamp}</span>
-        {notification.deadline && (
-          <span className="deadline">
-            截止时间: {new Date(notification.deadline).toLocaleString()}
+        <Space>
+          <span className="sender">
+            <Avatar
+              src={notification.sender?.avatar}
+              style={{ marginRight: '8px' }}
+            ></Avatar>
+            <span>{notification.sender?.name}</span>
           </span>
-        )}
+          <span className="time">🕒 发布时间: {notification.timestamp}</span>
+        </Space>
+      </p>
+
+      <p className="notification-tags">
+        <Space>
+          {getImportanceTag()}
+          {notification.type && <Tag>{notification.type}</Tag>}
+        </Space>
       </p>
 
       <Divider />
@@ -239,29 +255,12 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
 
       <div className="notification-actions">
         <Space>
-          {!notification.isRead && (
-            <Button
-              icon={<EyeOutlined />}
-              onClick={handleMarkAsRead}
-              loading={processing}
-            >
-              标记为已读
-            </Button>
-          )}
-          <Tooltip title={isPinned ? '取消置顶' : '置顶通知'}>
-            <Button
-              icon={isPinned ? <PushpinFilled /> : <PushpinOutlined />}
-              onClick={handleTogglePin}
-              loading={processing}
-            />
-          </Tooltip>
           <Button
-            icon={<DeleteOutlined />}
-            onClick={handleDelete}
+            icon={isRead ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+            onClick={handleToggleReadStatus}
             loading={processing}
-            danger
           >
-            删除
+            {isRead ? '标记为未读' : '标记为已读'}
           </Button>
         </Space>
       </div>

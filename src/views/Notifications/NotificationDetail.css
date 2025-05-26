@@ -1,74 +1,50 @@
-.notification-content {
+.notification-detail {
   padding: 24px;
   height: 100%;
-  overflow-y: auto;
-  background-color: #fff;
-}
-
-.notification-header {
-  margin-bottom: 16px;
-}
-
-.notification-header h2 {
-  margin-bottom: 8px;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.notification-meta {
-  margin-bottom: 16px;
-}
-
-.notification-info {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  color: #666;
-  font-size: 14px;
+  flex-direction: column;
+  background-color: var(--primary-background-color);
 }
 
+/* 头部信息固定 */
+.notification-header,
+.notification-meta,
+.notification-info,
+.notification-tags {
+  flex-shrink: 0;
+}
+
+/* 内容区域自适应高度，溢出时滚动 */
 .notification-body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
   margin: 24px 0;
   line-height: 1.6;
+  color: var(--primary-text-color);
 }
 
+/* 附件区域也固定不滚动 */
 .notification-attachments {
+  flex-shrink: 0;
   margin-top: 24px;
   padding: 16px;
-  background-color: #f9f9f9;
+  background-color: var(--secondary-background-color);
   border-radius: 4px;
 }
 
-.notification-attachments h4 {
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.notification-attachments ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.notification-attachments li {
-  margin-bottom: 8px;
-}
-
-.notification-attachments a {
-  color: #1890ff;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-}
-
+/* 底部操作区固定在底部 */
 .notification-actions {
-  margin-top: 32px;
+  flex-shrink: 0;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
 }
 
-.notification-loading, 
-.notification-error, 
+.notification-loading,
+.notification-error,
 .no-notification-selected {
   display: flex;
   justify-content: center;
