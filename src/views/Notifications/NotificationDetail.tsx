@@ -207,7 +207,7 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
       </Flex>
 
       <p className="notification-info">
-        <Space>
+        <Flex justify="space-between" align="center">
           <span className="sender">
             <Avatar
               src={notification.sender?.avatar}
@@ -216,7 +216,7 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
             <span>{notification.sender?.name}</span>
           </span>
           <span className="time">🕒 发布时间: {notification.timestamp}</span>
-        </Space>
+        </Flex>
       </p>
 
       <p className="notification-tags">
