@@ -28,7 +28,7 @@ interface NotificationItem {
 interface NotificationsSidebarProps {
   onNotificationSelect: (notificationId: string) => void
   selectedNotificationId: string | null
-  isMyPublishedButtonActive?: boolean
+  isMyCreatedButtonActive?: boolean
 }
 
 const NotificationsSidebar: React.FC<NotificationsSidebarProps> = () => {
@@ -54,9 +54,16 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = () => {
   }
 
   // 处理通知项选择
-  const isMyPublishedButtonActive =
+  const isMyCreatedButtonActive =
     matchPath({ path: '/notifications/my-created', end: false }, pathname) !=
-    null
+      null ||
+    matchPath(
+      {
+        path: '/notifications/edit',
+        end: false,
+      },
+      pathname
+    ) != null
 
   // 处理搜索输入变化
   const handleSearchChange = (_name: string, value: string) => {
@@ -150,7 +157,7 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = () => {
         <div className="notifications-functions">
           <div
             className={`function-item ${
-              isMyPublishedButtonActive ? 'active' : ''
+              isMyCreatedButtonActive ? 'active' : ''
             }`}
             onClick={() => navigate('/notifications/my-created')}
           >

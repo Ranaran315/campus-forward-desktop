@@ -25,7 +25,7 @@ const NotificationEditView: React.FC = () => {
           scopeType:
             info.targetScope === 'SPECIFIC_USERS'
               ? undefined
-              : info.targetScope.toLowerCase(),
+              : info.targetScope?.toLowerCase(),
           objectType: info.userTypeFilter ?? undefined,
           specificUserIds:
             info.targetScope === 'SPECIFIC_USERS' ? info.targetUsers : [],
@@ -34,6 +34,7 @@ const NotificationEditView: React.FC = () => {
         form.setFieldsValue(initial)
       })
       .catch((err) => {
+        console.error(err)
         setError(err.response?.data?.message || '加载失败')
       })
       .finally(() => setLoading(false))
@@ -42,10 +43,9 @@ const NotificationEditView: React.FC = () => {
   if (loading) return <Spin size="large" style={{ margin: 50 }} />
   if (error)
     return <Alert type="error" message={error} style={{ margin: 20 }} />
-
   return (
     <div style={{ padding: 16 }}>
-      <NoticeForm status={data.status} formInstance={form} />
+      <NoticeForm status={data.status} formInstance={form} id={id} />
     </div>
   )
 }
