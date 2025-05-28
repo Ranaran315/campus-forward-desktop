@@ -5,19 +5,21 @@ import {
   UserOutlined,
   LoadingOutlined,
 } from '@ant-design/icons'
-import { FileUploadService } from '@/services/FileUploadService'
 import './AvatarUploader.css'
+import { getAvatarUrl } from '@/utils/imageHelper'
 
 interface AvatarUploaderProps {
   /**
    * 当前头像URL
    */
-  value?: string
+  imageUrl?: string
 
   /**
    * 头像变更回调
+   * @param file 选择的文件对象
+   * @param previewUrl 预览URL (可能是本地临时URL或服务端返回的URL)
    */
-  onChange?: (url: string) => void
+  onFileSelected?: (file: File | null, previewUrl: string | null) => void
 
   /**
    * 头像大小
@@ -34,12 +36,13 @@ interface AvatarUploaderProps {
  * 头像上传组件
  */
 const AvatarUploader: React.FC<AvatarUploaderProps> = ({
-  value,
-  onChange,
+  imageUrl,
+  onFileSelected,
   size = 100,
   disabled = false,
 }) => {
   const [loading, setLoading] = useState(false)
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null)
 
   // 上传前检查文件大小和类型
   const beforeUpload = (file: File) => {
@@ -55,39 +58,31 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({
       return Upload.LIST_IGNORE
     }
 
-    return true
-  }
-
-  // 自定义上传实现
-  const customRequest = async (options: any) => {
-    const { file, onSuccess, onError } = options
-    setLoading(true)
-
-    try {
-      const result = await FileUploadService.uploadAvatar(file)
-
-      if (result.url && onChange) {
-        onChange(result.url)
-      }
-
-      onSuccess(result, file)
-      message.success('头像上传成功!')
-    } catch (error: any) {
-      onError(error)
-      message.error(`头像上传失败: ${error.message}`)
-    } finally {
-      setLoading(false)
+    // 生成本地预览 URL
+    const previewUrl = URL.createObjectURL(file)
+    
+    // 保存本地预览URL以便直接显示
+    setLocalPreviewUrl(previewUrl)
+    
+    // 通知父组件
+    if (onFileSelected) {
+      onFileSelected(file, previewUrl)
     }
+
+    return false // 阻止自动上传
   }
+
+  // 确定要显示的最终URL：优先显示本地预览，如果没有则使用服务器URL
+  const displayUrl = localPreviewUrl || (imageUrl ? getAvatarUrl(imageUrl) : undefined)
 
   return (
     <div className="avatar-uploader">
       <div className="avatar-wrapper">
-        {value ? (
-          <Avatar src={value} size={size} icon={<UserOutlined />} />
-        ) : (
-          <Avatar size={size} icon={<UserOutlined />} />
-        )}
+        <Avatar
+          src={displayUrl}
+          size={size}
+          icon={!displayUrl ? <UserOutlined /> : undefined}
+        />
         {loading && (
           <div className="loading-overlay">
             <LoadingOutlined style={{ fontSize: 24 }} />
@@ -99,14 +94,12 @@ const AvatarUploader: React.FC<AvatarUploaderProps> = ({
         name="avatar"
         showUploadList={false}
         beforeUpload={beforeUpload}
-        customRequest={customRequest}
         disabled={disabled || loading}
         accept=".jpg,.jpeg,.png"
       >
         <Button
           icon={<UploadOutlined />}
           disabled={disabled || loading}
-          size="small"
           style={{ marginTop: 8 }}
         >
           {loading ? '上传中...' : '更换头像'}

@@ -1,18 +1,14 @@
 // (如果你的文件实际在 components 目录，请相应调整路径注释)
-import React, { useState, useCallback, useImperativeHandle, RefObject } from 'react'; // 引入 useImperativeHandle, RefObject
-import { InputField } from '@/components/Form/Form';
-// 不再需要 Button
-// import Button from '@/components/Button/Button';
+import React, { useState, useCallback, useImperativeHandle, RefObject } from 'react';
+import { Form, Input, Alert } from 'antd'; // 导入 Ant Design 组件
 import apiClient from '@/lib/axios';
 import './ChangePasswordForm.css';
 import { showMessage } from '@/components/Message/MessageContainer';
 
-// --- 修改 Props ---
+// --- Props 定义 ---
 interface ChangePasswordFormProps {
-  // onSave 和 onCancel 由 Modal 处理
-  onSuccess: () => void; // 成功后的回调
-  setLoading: (loading: boolean) => void; // 更新父组件加载状态的函数
-  // 用于父组件触发提交的 ref
+  onSuccess: () => void;
+  setLoading: (loading: boolean) => void;
   submitRef?: RefObject<{ submit: () => Promise<void> }>;
 }
 
@@ -21,90 +17,122 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
   setLoading,
   submitRef
 }) => {
-  const [formData, setFormData] = useState({
-    newPassword: '',
-    confirmPassword: '',
-  });
-  // 内部不再管理 isSaving 状态
-  // const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null); // 表单内部错误提示
+  // 使用 Ant Design 的表单实例
+  const [form] = Form.useForm();
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = useCallback((name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setError(null);
-  }, []);
-
-  // --- 修改 handleSubmit ---
-  // 这个函数将由父组件通过 ref 调用
+  // --- 核心提交逻辑 ---
   const handleSubmit = useCallback(async () => {
     setError(null);
-
-    // 前端校验
-    if (formData.newPassword !== formData.confirmPassword) {
-      const msg = '新密码和确认密码不匹配。';
-      setError(msg);
-      return;
-    }
-    if (formData.newPassword.length < 6) {
-      const msg = '新密码长度不能少于 6 位。';
-      setError(msg);
-      return;
-    }
-
-    setLoading(true); // 通知父组件开始加载
-
+    
     try {
+      // 使用 Ant Design 表单验证
+      const values = await form.validateFields();
+      
+      // 前端校验
+      if (values.newPassword !== values.confirmPassword) {
+        setError('新密码和确认密码不匹配。');
+        return;
+      }
+      
+      setLoading(true);
+      
       await apiClient.patch('/users/me/password', {
-        newPassword: formData.newPassword,
+        newPassword: values.newPassword,
       });
-      showMessage.success('密码修改成功！'); // 显示成功消息
-
+      
+      showMessage.success('密码修改成功！');
+      
       // 延迟调用成功回调，让用户看到成功消息
       setTimeout(() => {
-         setFormData({ newPassword: '', confirmPassword: '' }); // 清空表单
-         onSuccess(); // 通知父组件成功（父组件负责关闭 Modal）
+        form.resetFields(); // 清空表单
+        onSuccess();
       }, 1500);
-
+      
     } catch (err: any) {
-      showMessage.error(err.backendMessage?.join(',') || '修改密码失败，请稍后重试。'); // 显示错误消息
+      // 区分表单验证错误和API错误
+      if (err.errorFields) {
+        // 表单验证失败，不需要额外处理，Ant Design 会显示错误信息
+        return;
+      }
+      
+      showMessage.error(
+        err.response?.data?.message?.join(',') || 
+        '修改密码失败，请稍后重试。'
+      );
+      
       console.error('修改密码失败:', err);
-      const errorMessage = err.response?.data?.message || '修改密码失败，请检查旧密码或稍后重试。';
-      setError(errorMessage); // 在表单内显示错误
+      
+      const errorMessage = 
+        err.response?.data?.message || 
+        '修改密码失败，请检查旧密码或稍后重试。';
+      
+      setError(errorMessage);
     } finally {
-      setLoading(false); // 通知父组件加载结束
+      setLoading(false);
     }
-  }, [formData, onSuccess, setLoading]); // 添加依赖
-
-  // --- 使用 useImperativeHandle 暴露 submit 方法 ---
+  }, [form, onSuccess, setLoading]);
+  
+  // --- 暴露 submit 方法给父组件 ---
   useImperativeHandle(submitRef, () => ({
-      submit: handleSubmit
-  }), [handleSubmit]); // 依赖 handleSubmit
+    submit: handleSubmit
+  }), [handleSubmit]);
 
   return (
-    // 不再需要 Form 的 onSubmit，因为提交由外部触发
     <div className="change-password-form">
-      <InputField
-        name="newPassword"
-        label="新密码"
-        placeholder='请输入新密码'
-        type="password"
-        value={formData.newPassword}
-        onChange={handleInputChange}
-        required
-        minLength={6}
-      />
-      <InputField
-        name="confirmPassword"
-        label="确认新密码"
-        placeholder='请再次输入新密码'
-        type="password"
-        value={formData.confirmPassword}
-        onChange={handleInputChange}
-        required
-        minLength={6}
-      />
-      {/* 前端校验错误信息显示 */}
-      <div className="form-error-message">{error}</div>
+      <Form
+        form={form}
+        layout="vertical"
+        requiredMark={true}
+      >
+        <Form.Item
+          name="newPassword"
+          label="新密码"
+          rules={[
+            { required: true, message: '请输入新密码' },
+            { min: 6, message: '密码长度不能少于6位' },
+            { max: 20, message: '密码长度不能超过20位' }
+          ]}
+        >
+          <Input.Password 
+            placeholder="请输入新密码" 
+            maxLength={20}
+          />
+        </Form.Item>
+        
+        <Form.Item
+          name="confirmPassword"
+          label="确认新密码"
+          dependencies={['newPassword']} // 依赖新密码字段
+          rules={[
+            { required: true, message: '请再次输入新密码' },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue('newPassword') === value) {
+                  return Promise.resolve();
+                }
+                return Promise.reject(new Error('两次输入的密码不一致'));
+              },
+            }),
+          ]}
+        >
+          <Input.Password 
+            placeholder="请再次输入新密码" 
+            maxLength={20}
+          />
+        </Form.Item>
+      </Form>
+      
+      {/* 显示API错误信息 */}
+      {error && (
+        <Alert 
+          message={error} 
+          type="error" 
+          showIcon 
+          style={{ marginTop: 16 }}
+          closable
+        />
+      )}
     </div>
   );
 };

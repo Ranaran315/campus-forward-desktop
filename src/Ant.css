@@ -1,0 +1,19 @@
+/* 覆盖 Ant-Design 原有样式 */
+
+/* button */
+.ant-btn {
+  display: flex;
+  align-items: center;
+  .ant-btn-icon {
+    display: flex;
+  }
+}
+
+/* modal */
+.ant-modal {
+  .ant-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 16px;
+  }
+}

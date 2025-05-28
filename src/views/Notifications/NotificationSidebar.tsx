@@ -12,6 +12,7 @@ import { matchPath, useLocation, useNavigate } from 'react-router-dom'
 import apiClient from '@/lib/axios'
 import { Tag } from 'antd'
 import { useAppNotificationsContext } from '@/contexts/AppNotificationsContext'
+import { getAvatarUrl } from '@/utils/imageHelper'
 
 interface NotificationItem {
   id: string
@@ -202,8 +203,8 @@ const NotificationsSidebar: React.FC<NotificationsSidebarProps> = () => {
                   </span>
                   <span className="notification-sender">
                     <Avatar
-                      src={notification.sender.avatar}
-                      size="20px"
+                      src={getAvatarUrl(notification.sender.avatar)}
+                      size={20}
                     ></Avatar>
                     <span className="notification-sender-name">
                       {notification.sender.name}

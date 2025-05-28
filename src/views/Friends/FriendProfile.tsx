@@ -13,6 +13,7 @@ import { showMessage } from '@/components/Message/MessageContainer'
 import { normalizeAge, normalizeGender } from '@/utils/normalizationUtils'
 import { formatDateTime } from '@/utils/dateUtils'
 import { SelectField } from '@/components/Form/Form'
+import { getAvatarUrl } from '@/utils/imageHelper'
 
 interface FriendProfileProps {
   friendInitial: Friend
@@ -167,7 +168,11 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
   return (
     <div className="friend-profile-container">
       <div className="profile-header">
-        <Avatar src={friendDetails.avatar} alt={displayName} size={80} />
+        <Avatar
+          src={getAvatarUrl(friendDetails.avatar)}
+          alt={displayName}
+          size={80}
+        />
         <div className="profile-name-section">
           <div className="profile-display-name">{displayName}</div>
           <p className="profile-username">@{friendDetails.username}</p>

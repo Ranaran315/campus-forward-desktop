@@ -7,6 +7,7 @@ import {
   useLocation,
 } from 'react-router-dom'
 import './App.css'
+import './Ant.css'
 // 登录注册
 import LoginViews from './views/Login/Login'
 import RegisterViews from './views/Register/Register'
@@ -74,7 +75,8 @@ function AppLayout() {
   // 获取当前路由路径
   const location = useLocation()
   const currentPath = location.pathname
-  const { pendingReceivedRequestsCount, unreadNotificationsCount } = useAppNotificationsContext()
+  const { pendingReceivedRequestsCount, unreadNotificationsCount } =
+    useAppNotificationsContext()
   const { checkPermission, isLoading: authLoading, user } = useAuth()
 
   // 只有在 authLoading 完成后才进行权限检查

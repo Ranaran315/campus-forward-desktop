@@ -233,7 +233,7 @@ function LoginPage() {
         <div className="login-title">
           <span>飞信</span>
         </div>
-        <Avatar src={currentAvatar} size="80px"></Avatar>
+        <Avatar src={currentAvatar} size={96}></Avatar>
         <Form className="login-form">
           <InputField
             name="username"
@@ -260,7 +260,7 @@ function LoginPage() {
                       handleSavedAccountClick(acc, e as unknown as MouseEvent)
                     }}
                   >
-                    <Avatar src={acc.avatar} size="20px" />
+                    <Avatar src={acc.avatar} size={20} />
                     {acc.username}
                     <span
                       className="remove-account-icon-wrapper"
