@@ -1,0 +1,70 @@
+.notice-attachment-upload {
+  margin-bottom: 16px;
+}
+
+.notice-attachment-upload .ant-upload-list {
+  margin-top: 8px;
+}
+
+/* 文件项样式 */
+.notice-attachment-upload .ant-upload-list-item {
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* 缩略图样式 */
+.notice-attachment-upload
+  .ant-upload-list-picture
+  .ant-upload-list-item-thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 文件图标样式 */
+.notice-attachment-upload .ant-upload-list-item-thumbnail .anticon {
+  font-size: 22px;
+  color: #1890ff;
+}
+
+/* 不同文件类型的图标颜色 */
+.notice-attachment-upload .file-icon-pdf {
+  color: #ff4d4f;
+}
+
+.notice-attachment-upload .file-icon-word {
+  color: #1890ff;
+}
+
+.notice-attachment-upload .file-icon-excel {
+  color: #52c41a;
+}
+
+.notice-attachment-upload .file-icon-ppt {
+  color: #fa8c16;
+}
+
+.notice-attachment-upload .file-icon-zip {
+  color: #722ed1;
+}
+
+.notice-attachment-upload .file-icon-image {
+  color: #13c2c2;
+}
+
+/* 文件信息样式 */
+.notice-attachment-upload .file-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.notice-attachment-upload .file-info-name {
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.notice-attachment-upload .file-info-size {
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}

@@ -6,13 +6,12 @@ import {
   DatePicker,
   Button,
   Space,
-  Upload,
   Row,
   Col,
   FormInstance,
   message,
 } from 'antd'
-import { UploadOutlined } from '@ant-design/icons'
+import { NoticeAttachmentUpload } from '@/components/FileUpload'
 import apiClient from '@/lib/axios'
 import { useNavigate } from 'react-router-dom'
 import PublishTargetModal, {
@@ -63,8 +62,10 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
         values.allowComments === undefined ? true : values.allowComments,
       attachments: values.attachments
         ? values.attachments.map((att: any) => ({
-            fileName: att.name,
+            fileName: att.name || att.originalname || '未命名文件',
             url: att.response?.url || att.url,
+            size: att.response?.size || att.size,
+            mimetype: att.response?.mimetype || att.type,
             status: att.status,
           }))
         : [],
@@ -144,7 +145,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
       const values = formInstance.getFieldsValue()
       const noticeData = prepareBaseNoticeData(values)
       console.log('基础通知数据:', noticeData)
-      
+
       // 发布请求参数，确保完全符合 PublishInformDto 结构
       const publishData = {
         targetScope: targetData.targetScope,
@@ -240,7 +241,6 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
         >
           <Input placeholder="输入通知标题" />
         </Form.Item>
-
         <Form.Item
           name="description"
           label="摘要/描述 (可选)"
@@ -251,7 +251,6 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
             placeholder="输入通知的简短摘要或描述，将显示在列表视图中"
           />
         </Form.Item>
-
         <Form.Item
           name="content"
           label="正文内容"
@@ -259,7 +258,6 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
         >
           <TextArea rows={6} placeholder="输入通知的详细内容" />
         </Form.Item>
-
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="tags" label="标签">
@@ -279,8 +277,7 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
               </Select>
             </Form.Item>
           </Col>
-        </Row>
-
+        </Row>{' '}
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="deadline" label="截止日期">
@@ -292,13 +289,10 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
           </Col>
           <Col span={12}>
             <Form.Item name="attachments" label="附件">
-              <Upload beforeUpload={() => false} listType="picture">
-                <Button icon={<UploadOutlined />}>上传附件</Button>
-              </Upload>
+              <NoticeAttachmentUpload />
             </Form.Item>
           </Col>
         </Row>
-
         <Form.Item>
           <Space>
             <Button onClick={handleCancel}>{isNew ? '取消' : '返回'}</Button>

@@ -1,0 +1,41 @@
+.chat-file-upload {
+  margin-bottom: 16px;
+}
+
+.chat-file-upload .ant-upload-list {
+  margin-top: 8px;
+}
+
+.chat-file-upload .ant-upload-list-item {
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.chat-file-upload .ant-upload-list-item-info {
+  padding: 8px;
+}
+
+.chat-file-upload .ant-upload-list-picture .ant-upload-list-item-thumbnail {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-file-upload .ant-upload-list-picture .ant-upload-list-item-thumbnail svg {
+  font-size: 24px;
+}
+
+.chat-file-upload .ant-upload-list-picture .ant-upload-list-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+/* 图片预览样式 */
+.chat-file-upload .ant-image-preview {
+  z-index: 1050;
+}
