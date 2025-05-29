@@ -7,10 +7,11 @@ import { Form, InputField } from '@/components/Form/Form'
 import CustomTitlebar from '@/components/CustomTitlebar/CustomTitlebar'
 import Button from '@/components/Button/Button'
 import Avatar from '@/components/Avatar/Avatar'
-import { LoginResponse } from '@/types/auth.types'
+import { LoginResponse, BackendUser } from '@/types/auth.types' // Import BackendUser
 import { Checkbox } from 'antd'
 import RemoveIcon from '@/assets/icons/remove.svg?react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth, UserProfile } from '@/contexts/AuthContext' // Import UserProfile
+import { jwtDecode } from 'jwt-decode' // For decoding token to get exp/iat
 
 interface SavedAccountInfo {
   username: string // 学号/工号
@@ -75,14 +76,12 @@ function LoginPage() {
     const account = savedAccounts.find((acc) => acc.username === value)
     if (account) {
       setCurrentAvatar(account.avatar)
-      // 考虑是否在输入完全匹配时填充密码，或者仅在选择后填充
-      // setPassword(account.password || '');
     } else {
       setCurrentAvatar(undefined)
-      setPassword('') // 如果输入内容与任何已保存账户都不匹配，则清空密码
+      setPassword('')
     }
     if (value && savedAccounts.length > 0) {
-      setIsUsernameDropdownVisible(true) // 输入时如果列表有内容则显示
+      setIsUsernameDropdownVisible(true)
     } else {
       setIsUsernameDropdownVisible(false)
     }
@@ -99,7 +98,7 @@ function LoginPage() {
       return
     }
     populateFieldsFromAccount(account)
-    setIsUsernameDropdownVisible(false) // 选择后隐藏下拉列表
+    setIsUsernameDropdownVisible(false)
   }
 
   // --- 处理用户名输入框获取焦点 ---
@@ -110,23 +109,15 @@ function LoginPage() {
   }
 
   // --- 处理账户选择 ---
-  const handleAccountSelect = (value: string) => {
-    const account = savedAccounts.find((acc) => acc.username === value)
-    if (account) {
-      setUsername(account.username)
-      setPassword(account.password || '') // 自动填充密码 (安全风险)
-      setCurrentAvatar(account.avatar)
-    }
-    // 如果 value 不是已保存的账户，则 username 已经通过 AutoComplete 的 onChange 更新了
-  }
+  // const handleAccountSelect = (value: string) => { ... } // This seems unused, can be removed if so
 
   // --- 处理删除已保存账户的逻辑 ---
   const handleRemoveSavedAccount = (
     accountToRemove: SavedAccountInfo,
-    event: React.MouseEvent // 引入 event 参数
+    event: React.MouseEvent
   ) => {
     console.log('删除账户:', accountToRemove.username)
-    event.stopPropagation() // 阻止事件冒泡到 li 的 onMouseDown
+    event.stopPropagation()
 
     const updatedAccounts = savedAccounts.filter(
       (acc) => acc.username !== accountToRemove.username
@@ -134,15 +125,12 @@ function LoginPage() {
     setSavedAccounts(updatedAccounts)
     localStorage.setItem(SAVED_ACCOUNTS_KEY, JSON.stringify(updatedAccounts))
 
-    // 如果删除的是当前选中的账户，则清空输入框和头像
     if (username === accountToRemove.username) {
-      populateFieldsFromAccount(undefined) // 使用辅助函数清空
+      populateFieldsFromAccount(undefined)
     }
-    // 如果删除后列表为空，也隐藏下拉框
     if (updatedAccounts.length === 0) {
       setIsUsernameDropdownVisible(false)
     }
-
     console.log('已删除账户:', accountToRemove.username)
   }
 
@@ -151,7 +139,7 @@ function LoginPage() {
     setTimeout(() => {
       setIsUsernameDropdownVisible(false)
     }, 100)
-  }, []) // 空依赖数组，因为 setIsUsernameDropdownVisible 是稳定的
+  }, [])
 
   // 点击登录按钮
   const handleLoginButtonClick = async () => {
@@ -163,22 +151,46 @@ function LoginPage() {
         username,
         password,
       })
-      const { access_token, user: userInfo } = response.data
+      const { access_token, user: userInfoFromBackend } = response.data // userInfoFromBackend is BackendUser | undefined
 
-      if (access_token && userInfo) {
-        console.log('登录成功：', userInfo)
-        await auth.login(access_token)
+      if (access_token && userInfoFromBackend) {
+        console.log('登录成功：', userInfoFromBackend)
+
+        let userProfileForContext: UserProfile;
+        try {
+          const decodedToken = jwtDecode<{ exp?: number, iat?: number, sub: string, username: string, roles: string[], permissions: string[] }>(access_token);
+          
+          userProfileForContext = {
+            sub: userInfoFromBackend.id || decodedToken.sub, 
+            username: userInfoFromBackend.username || decodedToken.username, 
+            avatar: userInfoFromBackend.avatar, 
+            displayName: userInfoFromBackend.nickname || userInfoFromBackend.username, // Use nickname from backend user
+            // Assuming BackendUser does not have roles/permissions, take from token.
+            // If BackendUser *can* have them, prefer them: userInfoFromBackend.roles || decodedToken.roles || []
+            roles: decodedToken.roles || [], 
+            permissions: decodedToken.permissions || [], 
+            exp: decodedToken.exp,
+            iat: decodedToken.iat,
+          };
+        } catch (e) {
+          console.error("Error decoding token or mapping user info:", e);
+          setError('处理用户信息时发生错误。');
+          setLoading(false);
+          return;
+        }
+
+        await auth.login(access_token, userProfileForContext);
 
         if (rememberAccount) {
           try {
             const currentAccounts = [...savedAccounts]
             const existingAccountIndex = currentAccounts.findIndex(
-              (acc) => acc.username === userInfo.username
+              (acc) => acc.username === userInfoFromBackend.username
             )
             const newAccountInfo: SavedAccountInfo = {
-              username: userInfo.username,
-              avatar: userInfo.avatar,
-              password: password || '', // 保存当前输入的密码 (安全风险)
+              username: userInfoFromBackend.username, 
+              avatar: userInfoFromBackend.avatar, 
+              password: password || '', 
             }
 
             if (existingAccountIndex > -1) {
@@ -199,12 +211,10 @@ function LoginPage() {
           console.log('用户未选择保存账号信息。')
         }
 
-        // 登录成功后，跳转到之前的页面或默认页面
         const from = location.state?.from?.pathname || '/'
         navigate(from, { replace: true })
         console.log(`Navigating to ${from}`)
 
-        // 通知主进程登录成功
         if (window.ipcRenderer?.send) {
           window.ipcRenderer.send('login-success', access_token)
           console.log('已通知主进程登录成功。')
@@ -213,7 +223,10 @@ function LoginPage() {
           setError('登录成功但无法切换窗口，请联系管理员。')
         }
       } else {
-        setError('登录失败：缺少 token 或用户信息。')
+        // Handle missing token or user info from backend more gracefully
+        const errorMessage = !access_token ? '登录失败：缺少访问令牌。' : '登录失败：缺少用户信息。';
+        setError(errorMessage);
+        console.error(errorMessage, response.data);
       }
     } catch (err: any) {
       console.error('登录出错:', err)
@@ -223,7 +236,6 @@ function LoginPage() {
     }
   }
 
-  // 用于下拉列表的选项，可以根据输入内容进行过滤（可选）
   const dropdownOptions = savedAccounts
 
   return (
@@ -250,8 +262,6 @@ function LoginPage() {
               handleUsernameOutsideClick()
             }}
             dropdownContent={
-              // 这个 ul 的样式需要确保它在 InputField 内部正确定位
-              // Login.css 中的 .username-dropdown 样式应该仍然适用
               <ul className="username-dropdown">
                 {dropdownOptions.map((acc) => (
                   <li
@@ -290,7 +300,6 @@ function LoginPage() {
             >
               保存账号
             </Checkbox>
-            {/* 你可以在这里添加 "忘记密码" 等链接 */}
           </div>
           <p className="error-info">{error && error}</p>
           <Button

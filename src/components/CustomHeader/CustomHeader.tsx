@@ -1,17 +1,28 @@
 // src/components/CustomHeader.tsx
 import React from 'react'
-import './CustomHeader.css' // 你可以创建对应的 CSS 文件
+import './CustomHeader.css' // Reverted import to .css
 import MinimizeIcon from '@/assets/icons/minimize.svg?react'
 import MaximizeIcon from '@/assets/icons/maximize.svg?react'
 import CloseIcon from '@/assets/icons/close.svg?react'
 import Avatar from '@/components/Avatar/Avatar'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext' // UserProfile will be available via useAuth().user
 
 interface CustomHeaderProps {
   title: string
 }
 
+// The temporary UserWithProfile interface is no longer needed
+// interface UserWithProfile {
+//   avatar?: string;
+//   username?: string; 
+//   [key: string]: any; 
+// }
+
 const CustomHeader: React.FC<CustomHeaderProps> = ({ title }) => {
+  // user object from useAuth() is now expected to be of type UserProfile | null
+  const { user } = useAuth() 
+
   const navigate = useNavigate()
   const handleMinimize = () => {
     console.log('Minimize button clicked')
@@ -27,7 +38,6 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ title }) => {
   }
 
   const handleAvatarClick = () => {
-    // 跳转到个人资料页面
     navigate('/profile')
   }
 
@@ -37,7 +47,15 @@ const CustomHeader: React.FC<CustomHeaderProps> = ({ title }) => {
         <div className="app-title">{title}</div>
       </div>
       <div className="custom-header-right">
-        <Avatar size="40px" onClick={handleAvatarClick}></Avatar>
+        <div className="user-info-container">
+          {user?.displayName && <span className="user-display-name">{user.displayName}</span>}
+          <Avatar
+            className="user-avatar"
+            src={user?.avatar} 
+            size={32} 
+            onClick={handleAvatarClick}
+          />
+        </div>
         <div className="window-controls">
           <button onClick={handleMinimize}>
             <MinimizeIcon className="window-icon" />

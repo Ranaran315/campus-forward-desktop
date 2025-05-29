@@ -8,45 +8,67 @@
   padding: 15px 15px;
   height: 60px; /* 设置头部高度 */
   -webkit-app-region: drag; /* 允许拖动窗口 */
-}
 
-.custom-header-left {
-  font-size: 16px;
-}
+  .custom-header-left {
+    font-size: 16px;
+    /* If this area becomes interactive, uncomment the line below */
+    /* -webkit-app-region: no-drag; */
+  }
 
-.custom-header-right {
-  display: flex;
-  align-items: center;
-}
+  .custom-header-right {
+    display: flex;
+    align-items: center;
+    -webkit-app-region: no-drag; /* Ensure this entire section is not draggable */
 
-.window-controls {
-  display: flex;
-}
+    .user-info-container {
+      display: flex;
+      align-items: center;
+      margin-right: 10px;
+      gap: 8px;
+      /* -webkit-app-region: no-drag; /* This is already covered by parent */
 
-.window-controls button {
-  color: var(--active-text-color);
-  appearance: none;
-  background: none;
-  border: none;
-  padding: 10px;
-  margin-left: 5px;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  -webkit-app-region: no-drag; /* 禁止拖动按钮 */
-}
+      .user-display-name {
+        color: var(--active-text-color);
+        font-size: 14px;
+        font-weight: 700;
+      }
 
-.window-controls button:hover {
-  background-color: var(--active-text-color); /* 鼠标悬停时的背景色 */
-  color: var(--header-background); /* 鼠标悬停时的文字颜色 */
-}
+      .user-avatar {
+        display: flex; /* Useful for AntDesign avatar if it needs flex context */
+        align-items: center;
+      }
+    }
 
-.window-icon {
-  width: var(--normal-icon-size);
-  aspect-ratio: 1;
-  color: currentColor; /* 使用当前颜色 */
+    .window-controls {
+      display: flex;
+      /* -webkit-app-region: no-drag; /* This is already covered by parent */
+
+      button {
+        color: var(--active-text-color);
+        appearance: none;
+        background: none;
+        border: none;
+        padding: 10px;
+        margin-left: 5px;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &:hover {
+          background-color: var(--active-text-color);
+          color: var(--header-background);
+        }
+
+        .window-icon {
+          width: var(--normal-icon-size);
+          aspect-ratio: 1;
+          color: currentColor;
+        }
+      }
+    }
+  }
 }
 
 /* 可以根据你的原型图添加更多样式 */
