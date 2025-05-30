@@ -151,7 +151,6 @@
 
 .input-field-wrapper {
   position: relative; 
-  padding: 10px; 
   flex-grow: 1; /* Allow this wrapper to take up remaining vertical space */
   display: flex; /* To make textarea and button container align if needed, though textarea is 100% height */
   flex-direction: column; /* So textarea can be 100% height */

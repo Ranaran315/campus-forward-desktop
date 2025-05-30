@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
 import type { Message as ConversationSummaryMessage } from './ChatViews'; // Renamed to avoid confusion
-import { Button } from 'antd'; // Added Ant Design Button import
+import { Button, Spin, Alert } from 'antd'; // Added Ant Design Button, Spin, Alert import
 import { DownOutlined } from '@ant-design/icons'; // Added Ant Design Icon import
+import apiClient from '@/lib/axios'; // Import apiClient
 import './MessageDetails.css';
 
 // Interface for individual messages in the chat
@@ -12,6 +13,15 @@ interface DisplayMessage {
   text: string;
   timestamp: string;
   avatar?: string;
+}
+
+// Define BackendChatMessage interface (adjust based on actual backend response)
+interface BackendChatMessage {
+  _id: string;
+  sender: string | { _id: string; username?: string; realname?: string; avatar?: string }; // Sender can be ID or populated object
+  content: string;
+  createdAt: string; // ISO date string
+  // Add any other fields your backend sends for a chat message
 }
 
 // Current user definition (replace with actual logged-in user data)
@@ -35,71 +45,57 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
+  const [chatLoading, setChatLoading] = useState<boolean>(false);
+  const [chatError, setChatError] = useState<string | null>(null);
 
   useEffect(() => {
     if (message) {
-      const otherUser = {
-        id: message.id, // Assuming message.id from ConversationSummaryMessage is the other user's ID or a related unique ID
-        name: message.sender,
-        avatar: message.avatar || 'https://i.pravatar.cc/150?u=' + message.id, // Fallback avatar
+      const fetchMessages = async () => {
+        setChatLoading(true);
+        setChatError(null);
+        try {
+          // Use message.id which should correspond to the conversationId
+          const response = await apiClient.get<BackendChatMessage[]>(`/chat/conversations/${message.id}/messages?limit=50`);
+          
+          // If 'response' is AxiosResponse<BackendChatMessage[], any>, then data is in response.data
+          // If interceptor correctly makes it T, then response is BackendChatMessage[]
+          // Linter suggests response is AxiosResponse, so use response.data
+          const backendMessages: BackendChatMessage[] = (response as any).data || []; 
+
+          const transformedMessages: DisplayMessage[] = backendMessages.map((msg: BackendChatMessage) => {
+            let senderId = '';
+            let senderAvatar = undefined;
+
+            if (typeof msg.sender === 'string') {
+              senderId = msg.sender;
+            } else if (msg.sender && typeof msg.sender === 'object') {
+              senderId = msg.sender._id;
+              senderAvatar = msg.sender.avatar; // Use avatar from sender object if available
+            }
+
+            return {
+              id: msg._id,
+              senderId: senderId,
+              text: msg.content,
+              timestamp: new Date(msg.createdAt).toLocaleString(), // Basic timestamp formatting
+              avatar: senderAvatar || `https://i.pravatar.cc/150?u=${senderId}`, // Fallback to pravatar
+            };
+          });
+          setChatMessages(transformedMessages);
+        } catch (err: any) {
+          const errorMsg = err.backendMessage || err.message || '获取聊天记录失败';
+          setChatError(errorMsg);
+          setChatMessages([]); // Clear messages on error
+        } finally {
+          setChatLoading(false);
+        }
       };
 
-      // Simulate fetching/generating messages for this conversation
-      const loadedMessages: DisplayMessage[] = [
-        {
-          id: 'msg1',
-          senderId: otherUser.id,
-          text: `你好 ${currentUser.name}！这是来自 ${otherUser.name} 的一条演示消息。`,
-          timestamp: '昨天 10:32',
-          avatar: otherUser.avatar,
-        },
-        {
-          id: 'msg2',
-          senderId: currentUser.id,
-          text: '你好呀！这是一条来自当前用户的演示消息。',
-          timestamp: '昨天 10:33',
-          avatar: currentUser.avatar,
-        },
-        {
-          id: 'msg3',
-          senderId: otherUser.id,
-          text: '关于那个项目，我们下周开会讨论一下具体细节和分工吧，你觉得什么时间方便？',
-          timestamp: '昨天 10:35',
-          avatar: otherUser.avatar,
-        },
-        {
-          id: 'msg4',
-          senderId: currentUser.id,
-          text: '好啊，下周我都可以。你那边时间怎么样？我们可以约在周一下午或者周二上午。',
-          timestamp: '昨天 10:38',
-          avatar: currentUser.avatar,
-        },
-        {
-          id: 'msg4',
-          senderId: currentUser.id,
-          text: '好啊，下周我都可以。你那边时间怎么样？我们可以约在周一下午或者周二上午。',
-          timestamp: '昨天 10:38',
-          avatar: currentUser.avatar,
-        },
-        {
-          id: 'msg4',
-          senderId: currentUser.id,
-          text: '好啊，下周我都可以。你那边时间怎么样？我们可以约在周一下午或者周二上午。',
-          timestamp: '昨天 10:38',
-          avatar: currentUser.avatar,
-        },
-        // Include the last message from the conversation summary prop if it makes sense
-        {
-          id: 'msg5',
-          senderId: otherUser.id, // Assuming the content in prop is from the other user
-          text: message.content, // Content from the conversation summary
-          timestamp: message.timestamp, // Timestamp from the conversation summary
-          avatar: otherUser.avatar,
-        },
-      ];
-      setChatMessages(loadedMessages);
+      fetchMessages();
     } else {
       setChatMessages([]); // Clear messages if no conversation is selected
+      setChatLoading(false);
+      setChatError(null);
     }
   }, [message]);
 
@@ -165,7 +161,23 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
         </header>
 
         <section className="chat-message-area">
-          {chatMessages.map((msg) => {
+          {chatLoading && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <Spin tip="加载消息中..." />
+            </div>
+          )}
+          {chatError && !chatLoading && (
+            <div style={{ padding: '20px' }}>
+              <Alert message="加载错误" description={chatError} type="error" showIcon />
+            </div>
+          )}
+          {!chatLoading && !chatError && chatMessages.length === 0 && message && (
+             <div className="empty-message" style={{height: '100%'}}>
+                <span>🤔</span>
+                暂无消息记录。
+            </div>
+          )}
+          {!chatLoading && !chatError && chatMessages.map((msg) => {
             const isSent = msg.senderId === currentUser.id;
             return (
               <div key={msg.id} className={`message-wrapper ${isSent ? 'sent' : 'received'}`}>
