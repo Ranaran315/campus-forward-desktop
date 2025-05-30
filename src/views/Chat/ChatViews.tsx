@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { formatDateTime } from '@/utils/dateUtils'
 import apiClient from '@/lib/axios'; // Import apiClient
 import { Spin, Alert } from 'antd'; // Import Spin and Alert
+import { useWebSocketContext } from '@/contexts/WebSocketProvider'; // Import WebSocket context
 
 // Renamed from Message to ConversationSummary
 export interface ConversationSummary { // 类型被 ConversationDetail.tsx 用作 ConversationSummaryMessage
@@ -56,32 +57,6 @@ interface BackendConversation {
   // 如有必要，添加其他字段，例如当前用户的未读计数
 }
 
-// Define or import your current user ID logic
-// 定义或导入获取当前用户ID的逻辑
-// For example, const currentUserId = useAuth().user?._id;
-// 例如, const currentUserId = useAuth().user?._id;
-const getCurrentUserId = (): string => {
-  // Placeholder: Replace with actual logic to get current user ID
-  // 占位符：替换为获取当前用户ID的实际逻辑
-  // This might come from a context, store, or a dedicated auth hook
-  // 这可能来自上下文（context）、状态管理库（store）或专门的认证钩子（auth hook）
-  const storedUser = localStorage.getItem('userInfo') // 示例：如果用户信息存储在localStorage中
-  if (storedUser) {
-    try {
-      const parsedUser = JSON.parse(storedUser)
-      const userIdToReturn = parsedUser?._id || 'currentUserPlaceholderId';
-      // console.log('[DEBUG] getCurrentUserId: Parsed user ID from localStorage:', userIdToReturn);
-      return userIdToReturn;
-    } catch (e) {
-      console.error("Failed to parse user from localStorage", e) // 解析localStorage中的用户信息失败
-      // console.log('[DEBUG] getCurrentUserId: Failed to parse, returning placeholder.');
-      return 'currentUserPlaceholderId'
-    }
-  }
-  // console.log('[DEBUG] getCurrentUserId: No stored user, returning placeholder.');
-  return 'currentUserPlaceholderId'
-}
-
 // Renamed from FrontendMessage to FrontendConversation
 export interface FrontendConversation {
   id: string
@@ -92,6 +67,22 @@ export interface FrontendConversation {
   unreadCount: number; // 新增：未读消息计数
   isPinned: boolean;   // 新增：是否置顶
   type: 'private' | 'group'; // 添加会话类型，方便前端逻辑处理
+}
+
+// ENSURE getCurrentUserId function is present and as per original logic
+const getCurrentUserId = (): string => {
+  const storedUser = localStorage.getItem('userInfo') 
+  if (storedUser) {
+    try {
+      const parsedUser = JSON.parse(storedUser)
+      const userIdToReturn = parsedUser?._id || 'currentUserPlaceholderId';
+      return userIdToReturn;
+    } catch (e) {
+      console.error("Failed to parse user from localStorage", e) 
+      return 'currentUserPlaceholderId'
+    }
+  }
+  return 'currentUserPlaceholderId'
 }
 
 // Renamed function
@@ -136,7 +127,6 @@ function transformBackendConversationToFrontendConversation(
 }
 
 function ChatViews() {
-  // Renamed state variables
   const [conversationList, setConversationList] = useState<FrontendConversation[]>([]) 
   const [selectedConversation, setSelectedConversation] = useState<FrontendConversation | null>(null)
   const [conversationsLoading, setConversationsLoading] = useState<boolean>(true); 
@@ -144,53 +134,35 @@ function ChatViews() {
 
   const location = useLocation()
   const navigate = useNavigate()
-  const currentUserId = getCurrentUserId() 
-  // console.log('[DEBUG] ChatViews: Initial currentUserId from getCurrentUserId():', currentUserId);
+  const currentUserId = getCurrentUserId(); // Use the local function
+  const { on: webSocketOn } = useWebSocketContext(); 
 
   useEffect(() => {
-    // Logic to fetch initial conversations list if not passed via props or state
-    // 获取初始会话列表的逻辑（如果未通过props或state传递）
-    // Example: fetchUserConversations().then(data => setConversationList(data.map(c => transformBackendConversationToFrontendConversation(c, currentUserId))));
-    // 示例: fetchUserConversations().then(data => setConversationList(data.map(c => transformBackendConversationToFrontendConversation(c, currentUserId))));
     const fetchConversations = async () => {
-      // If currentUserId is still a placeholder, we might not want to actually fetch
-      // 如果currentUserId仍然是占位符，我们可能不想实际获取数据
-      // but for debugging the "not sending request" issue, let's proceed.
-      // 但为了调试"未发送请求"的问题，我们继续执行
-      // The backend should handle unauthorized or invalid user IDs.
-      // 后端应处理未经授权或无效的用户ID
-      if (!currentUserId) { // Basic check: if currentUserId is null or empty string // 基本检查：如果currentUserId为null或空字符串
-          console.warn("Current user ID is not available, skipping fetch."); // 当前用户ID不可用，跳过获取
-          setConversationsLoading(false); // 停止加载
-          setConversationsError("无法获取当前用户ID，无法加载会话。");
-          setConversationList([]);
-          return;
-      }
-
+      // REMOVED all pre-checks for currentUserId and authIsLoading
+      // Directly proceed to fetch
       setConversationsLoading(true);
       setConversationsError(null);
       try {
+        // The API call will now proceed even if currentUserId is a placeholder or invalid
+        // This relies on the backend/apiClient to handle it, or it might fail here.
         const response = await apiClient.get<BackendConversation[]>('/chat/conversations');
-        // Linter indicates 'response' is AxiosResponse<BackendConversation[], any>.
-        // Linter提示 'response' 是 AxiosResponse<BackendConversation[], any> 类型
-        // Data should be in response.data due to Axios structure, even if interceptor modifies it.
-        // 由于Axios的结构，数据应该在 response.data 中，即使拦截器修改了它
         const actualData: BackendConversation[] = (response as any)?.data || []; 
         
         if (Array.isArray(actualData)) {
-            // Use renamed function
+            // currentUserId is used here in transformBackendConversationToFrontendConversation
             const transformedFrontendConversations = actualData.map(conv => 
               transformBackendConversationToFrontendConversation(conv, currentUserId)
             );
             setConversationList(transformedFrontendConversations);
         } else {
-            console.error("Fetched conversations data is not an array:", actualData); // 获取到的会话数据不是数组
+            console.error("Fetched conversations data is not an array:", actualData); 
             setConversationList([]);
             setConversationsError('获取到的会话数据格式不正确');
         }
       } catch (err: any) {
         const errorMsg = err.backendMessage || err.message || '获取会话列表失败';
-        console.error("Error fetching conversations:", err); // Log the full error // 记录完整错误
+        console.error("Error fetching conversations:", err); 
         setConversationsError(errorMsg);
         setConversationList([]);
       } finally {
@@ -198,41 +170,75 @@ function ChatViews() {
       }
     };
 
-    // Call fetchConversations, relying on the internal check or backend to handle invalid ID
-    // 调用 fetchConversations，依赖内部检查或后端来处理无效ID
-    // The original condition was: if (currentUserId && currentUserId !== 'currentUserPlaceholderId')
-    // 原始条件是: if (currentUserId && currentUserId !== 'currentUserPlaceholderId')
     fetchConversations();
-    
-  }, [currentUserId]); // Fetch on mount or when user ID changes // 组件挂载或用户ID更改时获取数据
+  }, [currentUserId]); // Keeping currentUserId in dep array as transform depends on it.
+                      // If you prefer it to run only once on mount regardless of currentUserId,
+                      // an empty array [] could be used, but that would mean transformBackendConversationToFrontendConversation
+                      // might use a stale or initial (potentially placeholder) currentUserId if it changes later.
 
   useEffect(() => {
+    // REMOVED pre-checks for webSocketOn and currentUserId
+    // This might lead to errors if webSocketOn is null or currentUserId is placeholder when used inside.
+    
+    // Ensure webSocketOn is available before trying to use it.
+    if (!webSocketOn) return; 
+    // It's still safer to check currentUserId if it's used for comparisons, 
+    // but per request, strict pre-check is removed. User must be aware of potential issues.
+
+    const handleUnreadCountUpdate = (data: { conversationId: string, unreadCount: number, targetUserId?: string }) => {
+      // The check for targetUserId still needs currentUserId.
+      // If currentUserId is 'currentUserPlaceholderId', this comparison might behave unexpectedly.
+      if (data.targetUserId && data.targetUserId !== currentUserId) {
+        return;
+      }
+      setConversationList(prevList =>
+        prevList.map(conv =>
+          conv.id === data.conversationId
+            ? { ...conv, unreadCount: data.unreadCount }
+            : conv
+        )
+      );
+    };
+
+    const unsubscribe = webSocketOn('unreadCountUpdated', handleUnreadCountUpdate);
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [webSocketOn, currentUserId, setConversationList]); // Dependencies remain as they are used in the effect.
+
+  useEffect(() => {
+    // REMOVED pre-checks for currentUserId
+    // If currentUserId is placeholder, transformBackendConversationToFrontendConversation will receive it.
+
+    // It is still safer to ensure currentUserId is not a placeholder before sensitive operations
+    // but per your request, the explicit blocking check is removed.
+    if (currentUserId === 'currentUserPlaceholderId') {
+        // Optionally, log a warning or handle differently if placeholder is used in critical logic
+        console.warn('[NewConversationEffect] currentUserId is a placeholder. Processing new conversation with this ID.');
+    }
+
     if (location.state?.newConversation) {
       const backendConvo = location.state.newConversation as BackendConversation
-      // Use renamed function
+      // currentUserId is used here
       const newFeConversation = transformBackendConversationToFrontendConversation(backendConvo, currentUserId)
 
       setConversationList(prevList => {
         const existingIndex = prevList.findIndex(c => c.id === newFeConversation.id)
         if (existingIndex !== -1) {
-          // Conversation exists, update it and move to top
-          // 会话已存在，更新并移到顶部
           const updatedList = [...prevList]
           updatedList.splice(existingIndex, 1)
           return [newFeConversation, ...updatedList]
         } else {
-          // New conversation, add to top
-          // 新会话，添加到顶部
           return [newFeConversation, ...prevList]
         }
       })
-      setSelectedConversation(newFeConversation) // Use renamed state setter
-
-      // Clear the state from location to prevent re-processing on refresh
-      // 从location中清除state，以防止刷新时重新处理
+      setSelectedConversation(newFeConversation)
       navigate('.', { replace: true, state: {} })
     }
-  }, [location.state, navigate, currentUserId])
+  }, [location.state, navigate, currentUserId]); // Dependencies remain.
 
   const handleConversationUpdate = (conversationId: string, updates: Partial<FrontendConversation>) => {
     setConversationList(prevList =>

@@ -131,7 +131,11 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
               </div>
               <div className="conversation-item-detail">
                 <div className="conversation-content">{conversation.content}</div>
-                {/* {conversation.unread && <span className="unread-badge">1</span>} */}
+                {conversation.unreadCount > 0 && (
+                  <span className="unread-badge">
+                    {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                  </span>
+                )}
               </div>
             </div>
           </li>
