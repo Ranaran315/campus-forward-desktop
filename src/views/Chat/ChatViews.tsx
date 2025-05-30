@@ -14,7 +14,7 @@ import { Spin, Alert } from 'antd'; // Import Spin and Alert
 export interface Message {
   id: string
   sender: string
-  avatar: string
+  avatar?: string
   timestamp: string
   content: string
   unread?: boolean
@@ -27,6 +27,14 @@ interface BackendUser {
   username: string
   nickname?: string
   avatar?: string
+}
+
+// 假设的群组资料接口 (应与后端Group schema匹配)
+interface BackendGroupProfile {
+  _id: string;
+  name: string;       // 群名
+  avatar?: string;     // 群头像
+  // 可以添加其他群相关字段，如 memberCount
 }
 
 interface BackendMessageData { // Renamed to avoid conflict with FrontendMessage // 重命名以避免与 FrontendMessage 冲突
@@ -42,6 +50,7 @@ interface BackendConversation {
   participants: BackendUser[] // 参与者列表
   lastMessage?: BackendMessageData // 最新消息
   updatedAt: string // 最后更新时间
+  displayProfile?: BackendUser | BackendGroupProfile; // 新增：用于显示的用户或群组信息
   // Add other fields if necessary, e.g., unreadCount for the current user
   // 如有必要，添加其他字段，例如当前用户的未读计数
 }
@@ -55,16 +64,20 @@ const getCurrentUserId = (): string => {
   // 占位符：替换为获取当前用户ID的实际逻辑
   // This might come from a context, store, or a dedicated auth hook
   // 这可能来自上下文（context）、状态管理库（store）或专门的认证钩子（auth hook）
-  const storedUser = localStorage.getItem('userInfo') // Example: If user info is in localStorage // 示例：如果用户信息存储在localStorage中
+  const storedUser = localStorage.getItem('userInfo') // 示例：如果用户信息存储在localStorage中
   if (storedUser) {
     try {
       const parsedUser = JSON.parse(storedUser)
-      return parsedUser?._id || 'currentUserPlaceholderId' // Fallback if _id is not found // 如果未找到_id，则返回占位符ID
+      const userIdToReturn = parsedUser?._id || 'currentUserPlaceholderId';
+      // console.log('[DEBUG] getCurrentUserId: Parsed user ID from localStorage:', userIdToReturn);
+      return userIdToReturn;
     } catch (e) {
       console.error("Failed to parse user from localStorage", e) // 解析localStorage中的用户信息失败
+      // console.log('[DEBUG] getCurrentUserId: Failed to parse, returning placeholder.');
       return 'currentUserPlaceholderId'
     }
   }
+  // console.log('[DEBUG] getCurrentUserId: No stored user, returning placeholder.');
   return 'currentUserPlaceholderId'
 }
 
@@ -82,34 +95,44 @@ export interface FrontendMessage {
   // rawConversationData?: BackendConversation;
 }
 
-// Hardcoded messageList for initial display - this should ideally come from an API
-// 用于初始显示的硬编码消息列表 - 理想情况下应来自API
-// const initialMessageListData: FrontendMessage[] = [
-//   // ... (keep existing hardcoded data or fetch from API in a separate useEffect)
-//   // ... (保留现有的硬编码数据或在单独的useEffect中从API获取)
-//   {
-//     id: '1',
-//     sender: '张三',
-//     avatar: '',
-//     timestamp: '昨天 10:30',
-//     content: '关于下个阶段的项目计划，我们明天上午开个会讨论一下。',
-//     unread: true,
-//   },
-//   // ... other hardcoded messages // 其他硬编码消息
-// ];
-
 function transformBackendConversationToFrontendMessage(
   conversation: BackendConversation,
-  currentUserId: string
+  currentUserId: string // currentUserId 仍可用于其他逻辑或验证，但主要显示信息来自displayProfile
 ): FrontendMessage {
-  const otherParticipant = conversation.participants.find(p => p._id !== currentUserId) // 找到非当前用户的参与者
+  const profileToShow = conversation.displayProfile;
+
+  let senderName = '未知会话';
+  let senderAvatar: string | undefined = undefined; // 初始化为 undefined
+
+  if (profileToShow) {
+    if ('username' in profileToShow || 'nickname' in profileToShow) { // 判断是用户类型
+      const userProfile = profileToShow as BackendUser;
+      senderName = userProfile.nickname || userProfile.username || '未知用户';
+      senderAvatar = userProfile.avatar; // 直接赋值，不使用 '' 后备
+    } else { // 判断是群组类型
+      const groupProfile = profileToShow as BackendGroupProfile;
+      senderName = groupProfile.name || '未知群组';
+      senderAvatar = groupProfile.avatar; // 直接赋值，不使用 '' 后备
+    }
+  } else {
+    // console.warn(`[DEBUG] No displayProfile for conversation ${conversation._id}, type: ${conversation.type}`);
+    // 如果没有 displayProfile，根据会话类型尝试从参与者中找一个（作为非常临时的后备）
+    if (conversation.type === 'private' && conversation.participants.length > 0) {
+      const fallbackParticipant = conversation.participants.find(p => p._id !== currentUserId) || conversation.participants[0];
+      if (fallbackParticipant) {
+        senderName = fallbackParticipant.nickname || fallbackParticipant.username || '未知用户';
+        senderAvatar = fallbackParticipant.avatar; // 直接赋值，不使用 '' 后备
+      }
+    }
+  }
+
   return {
     id: conversation._id,
-    sender: otherParticipant?.nickname || otherParticipant?.username || '未知用户',
-    avatar: otherParticipant?.avatar,
+    sender: senderName,
+    avatar: senderAvatar, // 此处 avatar 类型为 string | undefined
     timestamp: formatDateTime(conversation.lastMessage?.createdAt || conversation.updatedAt), // 格式化时间戳
     content: conversation.lastMessage?.content || '开始聊天吧...', // 最新消息内容或默认提示
-    unread: false, // Placeholder - real unread logic needed // 占位符 - 需要真实的未读逻辑
+    unread: false, // 占位符 - 需要真实的未读逻辑
   }
 }
 
@@ -122,6 +145,7 @@ function ChatViews() {
   const location = useLocation()
   const navigate = useNavigate()
   const currentUserId = getCurrentUserId() // 获取当前用户ID
+  // console.log('[DEBUG] ChatViews: Initial currentUserId from getCurrentUserId():', currentUserId);
 
   useEffect(() => {
     // Logic to fetch initial conversations list if not passed via props or state
