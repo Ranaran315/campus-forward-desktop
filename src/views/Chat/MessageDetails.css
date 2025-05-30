@@ -1,0 +1,212 @@
+.chat-detail-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--third-color);
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--primary-border-color);
+  background-color: var(--third-color);
+}
+
+.chat-header-name {
+  margin-left: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.chat-header-actions {
+  margin-left: auto;
+}
+
+.chat-message-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--third-color);
+  border: none;
+}
+
+/* Wrapper for each message row to help with potential full-width alignment needs */
+.message-wrapper {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.message-wrapper.sent {
+  justify-content: flex-end;
+}
+
+.message-wrapper.received {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 18px;
+  line-height: 1.4;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  /* display: flex; Removed, no longer needed for internal avatar */
+  /* align-items: flex-end; Removed */
+}
+
+.message-bubble.received {
+  background-color: var(--primary-background-color); /* Updated */
+  color: var(--primary-text-color); /* Updated */
+  border-top-left-radius: 4px;
+  /* align-self: flex-start; Removed, handled by message-wrapper */
+}
+
+.message-bubble.sent {
+  background-color: var(--secondary-color); /* Updated - using a light blue from theme. Was --third-color previously. */
+  color: var(--primary-text-color); /* Updated */
+  border-top-right-radius: 4px;
+  /* align-self: flex-end; Removed, handled by message-wrapper */
+}
+
+.message-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  /* margin-right: 8px; Context specific margin below */
+  flex-shrink: 0;
+}
+
+.message-wrapper.received .message-avatar {
+  margin-right: 8px;
+}
+
+.message-wrapper.sent .message-avatar {
+  margin-left: 8px;
+}
+
+/* Removed: .message-bubble.sent .message-avatar { display: none; } */
+
+.message-text-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-text {
+  word-wrap: break-word;
+}
+
+.message-timestamp {
+  font-size: 0.75em;
+  color: var(--secondary-text-color); /* Updated */
+  margin-top: 4px;
+}
+
+.message-bubble.received .message-text-content .message-timestamp {
+   text-align: left;
+}
+
+.message-bubble.sent .message-text-content .message-timestamp {
+  text-align: right;
+}
+
+
+.chat-input-area {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--primary-border-color);
+  background-color: var(--third-color);
+  overflow: hidden; /* Important for resize and to contain positioned elements */
+  /* height is now set by inline style from JS */
+}
+
+.resize-handle {
+  width: 100%;
+  height: 8px;
+  cursor: s-resize;
+  /* Optional: Add a visual cue like a grabber icon or dots if desired */
+  /* Example: background-image: url(...); background-repeat: no-repeat; background-position: center; */
+}
+
+.toolbar-icons {
+  display: flex;
+  align-items: center;
+  padding: 8px 15px;
+  /* border-bottom: 1px solid var(--primary-border-color); User removed this */
+  flex-shrink: 0; /* Prevent shrinking when footer height changes */
+}
+
+.toolbar-icons span {
+  margin-right: 15px;
+  cursor: pointer;
+  font-size: var(--normal-icon-size, 18px);
+  color: var(--secondary-text-color);
+}
+
+.toolbar-icons span:last-child {
+  margin-right: 0;
+}
+
+.input-field-wrapper {
+  position: relative; 
+  padding: 10px; 
+  flex-grow: 1; /* Allow this wrapper to take up remaining vertical space */
+  display: flex; /* To make textarea and button container align if needed, though textarea is 100% height */
+  flex-direction: column; /* So textarea can be 100% height */
+  min-height: 0; /* Important for flex children to shrink properly */
+}
+
+.message-input { /* textarea */
+  width: 100%;
+  height: 100%; /* Make textarea fill the .input-field-wrapper */
+  box-sizing: border-box; 
+  border: none; /* User updated this */
+  border-radius: 6px;
+  padding: 10px;
+  padding-right: 90px; 
+  font-size: 14px;
+  resize: none;
+  /* min-height: 40px; Will be controlled by overall footer min-height and flex behavior */
+  /* max-height: 120px; Will be controlled by overall footer max-height and flex behavior */
+  overflow-y: auto;
+  background-color: var(--third-color); /* User updated this */
+  color: var(--primary-text-color);
+}
+
+.message-input:focus {
+  outline: none;
+}
+
+.message-input::placeholder {
+  color: var(--placeholder-text-color);
+}
+
+.send-button-container {
+  position: absolute;
+  right: 15px; 
+  bottom: 15px; 
+  /* Ensure it doesn't interfere with textarea scrollbar if textarea is very short */
+  z-index: 1;
+}
+
+.empty-message {
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   height: 100%;
+   color: var(--placeholder-text-color); /* Updated */
+   font-size: 16px;
+}
+.empty-message span {
+   font-size: 48px;
+   margin-bottom: 15px;
+}
+
+.message-content-container {
+   height: 100%;
+   display: flex;
+   flex-direction: column;
+}

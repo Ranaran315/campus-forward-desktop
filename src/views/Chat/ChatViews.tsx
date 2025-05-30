@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import './ChatViews.css'
-import Avatar from '@/components/Avatar/Avatar'
+// Avatar import is no longer directly needed here if not used in ChatViews itself
+// import Avatar from '@/components/Avatar/Avatar'; 
+// import type { Message } from './ChatViews'; // Removed this problematic import
+import MessageList from './MessageList'
+import MessageDetails from './MessageDetails'
 
-interface Message {
+export interface Message {
   id: string
   sender: string
   avatar: string
@@ -62,49 +66,12 @@ function ChatViews() {
 
   return (
     <div className="message-layout">
-      <aside className="message-list-container">
-        <h2>消息</h2>
-        <ul className="message-list">
-          {messageList.map((message) => (
-            <li
-              key={message.id}
-              className={`message-item ${
-                selectedMessage?.id === message.id ? 'active' : ''
-              }`}
-              onClick={() => handleMessageClick(message)}
-            >
-              <div className="message-item-left">
-                <Avatar src={message.avatar} size="35px"></Avatar>
-              </div>
-              <div className="message-item-right">
-                <div className="message-item-desc">
-                  <div className="sender">{message.sender}</div>
-                  <div className="timestamp">{message.timestamp}</div>
-                </div>
-                <div className="message-item-detail">
-                  <div className="message-content">{message.content}</div>
-                  {/* {message.unread && <span className="unread-badge">1</span>} */}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </aside>
-      <main className="message-content-container">
-        {selectedMessage ? (
-          <div className="message-details">
-            <div className="detail-header">
-              <div className="sender-info">
-                <Avatar src={selectedMessage.avatar} size="40px"></Avatar>
-                <div className="sender-name">{selectedMessage.sender}</div>
-              </div>
-            </div>
-            <div className="detail-content">{selectedMessage.content}</div>
-          </div>
-        ) : (
-          <div className="empty-message">请选择一条消息查看详情</div>
-        )}
-      </main>
+      <MessageList 
+        messages={messageList} 
+        selectedMessageId={selectedMessage?.id || null} 
+        onMessageSelect={handleMessageClick} 
+      />
+      <MessageDetails message={selectedMessage} />
     </div>
   )
 }

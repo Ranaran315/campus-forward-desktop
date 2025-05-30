@@ -108,7 +108,7 @@
 .message-content-container {
   flex-grow: 1;
   padding: 20px;
-  background-color: var(--primary-background-color);
+  background-color: var(--third-color);
   border-radius: 8px;
   overflow-y: auto; /* 允许消息内容滚动 */
 }
