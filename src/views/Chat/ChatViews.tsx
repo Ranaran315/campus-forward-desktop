@@ -89,13 +89,15 @@ export interface FrontendConversation {
   avatar?: string; // 确保是可选的
   timestamp: string
   content: string // Last message content
-  unread?: boolean
+  unreadCount: number; // 新增：未读消息计数
+  isPinned: boolean;   // 新增：是否置顶
+  type: 'private' | 'group'; // 添加会话类型，方便前端逻辑处理
 }
 
 // Renamed function
 function transformBackendConversationToFrontendConversation(
-  conversation: BackendConversation,
-  currentUserId: string 
+  conversation: BackendConversation & { isPinned?: boolean, unreadCount?: number }, // 添加 isPinned 和 unreadCount 到 BackendConversation 的临时类型中断言
+  currentUserId: string
 ): FrontendConversation {
   const profileToShow = conversation.displayProfile;
   let senderName = '未知会话';
@@ -127,7 +129,9 @@ function transformBackendConversationToFrontendConversation(
     avatar: senderAvatar,
     timestamp: formatDateTime(conversation.lastMessage?.createdAt || conversation.updatedAt),
     content: conversation.lastMessage?.content || '开始聊天吧...',
-    unread: false, 
+    unreadCount: conversation.unreadCount || 0, // 直接使用后端提供的 unreadCount
+    isPinned: conversation.isPinned || false,     // 直接使用后端提供的 isPinned
+    type: conversation.type, // 传递会话类型
   }
 }
 
@@ -230,12 +234,40 @@ function ChatViews() {
     }
   }, [location.state, navigate, currentUserId])
 
+  const handleConversationUpdate = (conversationId: string, updates: Partial<FrontendConversation>) => {
+    setConversationList(prevList =>
+      prevList.map(conv =>
+        conv.id === conversationId ? { ...conv, ...updates } : conv
+      )
+      // 如果置顶状态改变，可能需要重新排序
+      .sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        // 对于 timestamp 的排序，可能需要转换回 Date 对象或数值进行比较
+        // 假设 formatDateTime 返回的已经是可比较的字符串或你有原始的 Date 对象
+        // 为了简化，暂时不在这里处理时间戳重排序，除非 updates 包含 timestamp
+        return 0; // 保持原有顺序，除非置顶状态改变
+      })
+    );
+    // 如果选中的会话被更新，也更新 selectedConversation
+    if (selectedConversation?.id === conversationId) {
+      setSelectedConversation(prevSel => prevSel ? { ...prevSel, ...updates } : null);
+    }
+  };
+
+  const handleConversationRemove = (conversationId: string) => {
+    setConversationList(prevList => prevList.filter(conv => conv.id !== conversationId));
+    if (selectedConversation?.id === conversationId) {
+      setSelectedConversation(null); // 如果移除的是当前选中的会话，则清空选中
+    }
+  };
+
   // Renamed handler
   const handleConversationClick = (clickedConversation: FrontendConversation) => {
     setSelectedConversation(clickedConversation) // Use renamed state setter
     setConversationList(prevList =>
       prevList.map(c =>
-        c.id === clickedConversation.id ? { ...c, unread: false } : c
+        c.id === clickedConversation.id ? { ...c, unreadCount: 0 } : c
       )
     )
   }
@@ -251,13 +283,17 @@ function ChatViews() {
           <Alert message="加载失败" description={conversationsError} type="error" showIcon />
         </div>
       ) : (
-        <ConversationList 
-          conversations={conversationList} // Use renamed state
+        <ConversationList
+          conversations={conversationList}
           selectedConversationId={selectedConversation?.id || null} // Use renamed state
           onConversationSelect={handleConversationClick} // Use renamed handler
+          onConversationUpdate={handleConversationUpdate} // 新增 prop
+          onConversationRemove={handleConversationRemove} // 新增 prop
         />
       )}
-      <ConversationDetail conversation={selectedConversation} />
+      {selectedConversation ? ( // Use renamed state
+        <ConversationDetail conversation={selectedConversation} /> // Use renamed prop and state
+      ) : null}
     </div>
   )
 }

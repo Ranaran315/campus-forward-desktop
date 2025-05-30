@@ -35,3 +35,13 @@
     }
   }
 }
+
+.context-menu-item.context-menu-item-danger {
+  color: var(--primary-danger-color);
+}
+
+/* The hover for danger item will use the default item hover background, and the text will remain red */
+.context-menu-item.context-menu-item-danger:hover:not(.disabled) {
+  /* background-color: var(--secondary-background-color); /* This is already covered by general .context-menu-item:hover */
+  /* color: var(--secondary-danger-color); /* Optional: if you want to change red on hover */
+}

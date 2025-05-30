@@ -7,6 +7,7 @@ export interface ContextMenuItem {
     onClick?: () => void;
     disabled?: boolean;
     isSeparator?: boolean;
+    customClassName?: string;
 }
 
 interface ContextMenuProps {
@@ -56,8 +57,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, visible, items, onClose
                     }
                     return (
                         <li
-                            key={item.label}
-                            className={`context-menu-item ${item.disabled ? 'disabled' : ''}`}
+                            key={item.label || `item-${index}`}
+                            className={`context-menu-item ${item.disabled ? 'disabled' : ''} ${item.customClassName || ''}`.trim()}
                             onClick={() => {
                                 if (!item.disabled) {
                                     item.onClick?.();
