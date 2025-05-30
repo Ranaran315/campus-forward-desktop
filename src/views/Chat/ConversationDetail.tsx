@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
-import type { Message as ConversationSummaryMessage } from './ChatViews'; // Renamed to avoid confusion
+import type { ConversationSummary } from './ChatViews';
 import { Button, Spin, Alert } from 'antd'; // Added Ant Design Button, Spin, Alert import
 import { DownOutlined } from '@ant-design/icons'; // Added Ant Design Icon import
 import apiClient from '@/lib/axios'; // Import apiClient
-import './MessageDetails.css';
+import './ConversationDetail.css';
 
 // Interface for individual messages in the chat
 interface DisplayMessage {
@@ -32,13 +32,13 @@ const currentUser = {
 };
 
 interface MessageDetailsProps {
-  message: ConversationSummaryMessage | null; // Using the renamed type
+  conversation: ConversationSummary | null;
 }
 
 const MIN_FOOTER_HEIGHT = 120; // Example: Toolbar + 1 row input + padding
 const MAX_FOOTER_HEIGHT = 400; // Example: Max reasonable height
 
-const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
+const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [chatMessages, setChatMessages] = useState<DisplayMessage[]>([]);
   const footerRef = useRef<HTMLElement>(null);
   const [footerHeight, setFooterHeight] = useState<number>(MIN_FOOTER_HEIGHT);
@@ -49,13 +49,12 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
   const [chatError, setChatError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (message) {
+    if (conversation) {
       const fetchMessages = async () => {
         setChatLoading(true);
         setChatError(null);
         try {
-          // Use message.id which should correspond to the conversationId
-          const response = await apiClient.get<BackendChatMessage[]>(`/chat/conversations/${message.id}/messages?limit=50`);
+          const response = await apiClient.get<BackendChatMessage[]>(`/chat/conversations/${conversation.id}/messages?limit=50`);
           
           // If 'response' is AxiosResponse<BackendChatMessage[], any>, then data is in response.data
           // If interceptor correctly makes it T, then response is BackendChatMessage[]
@@ -97,7 +96,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
       setChatLoading(false);
       setChatError(null);
     }
-  }, [message]);
+  }, [conversation]);
 
   const handleMouseDownResize = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -136,14 +135,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
     };
   }, [isResizing, startY, startHeight]);
 
-  if (!message) {
+  if (!conversation) {
     return (
       <main className="message-content-container">
         <div className="empty-message">
           <span>
             💬
           </span>
-          请选择一条消息查看详情
+          请选择一条会话查看详情
         </div>
       </main>
     );
@@ -153,8 +152,8 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
     <main className="message-content-container">
       <div className="chat-detail-view">
         <header className="chat-header">
-          <Avatar src={message.avatar || 'https://i.pravatar.cc/150?u=' + message.id} size={35} />
-          <div className="chat-header-name">{message.sender}</div>
+          <Avatar src={conversation.avatar || 'https://i.pravatar.cc/150?u=' + conversation.id} size={35} />
+          <div className="chat-header-name">{conversation.sender}</div>
           <div className="chat-header-actions">
             {/* Placeholder for more action icons e.g. <button>More</button> */}
           </div>
@@ -171,7 +170,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ message }) => {
               <Alert message="加载错误" description={chatError} type="error" showIcon />
             </div>
           )}
-          {!chatLoading && !chatError && chatMessages.length === 0 && message && (
+          {!chatLoading && !chatError && chatMessages.length === 0 && conversation && (
              <div className="empty-message" style={{height: '100%'}}>
                 <span>🤔</span>
                 暂无消息记录。
