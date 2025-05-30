@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
 import type { ConversationSummary } from './ChatViews';
-import { Button, Spin, Alert } from 'antd'; // Added Ant Design Button, Spin, Alert import
+import { Button, Spin, Alert, message as AntMessage } from 'antd'; // Added Ant Design Button, Spin, Alert, message import
 import { DownOutlined } from '@ant-design/icons'; // Added Ant Design Icon import
 import apiClient from '@/lib/axios'; // Import apiClient
 import './ConversationDetail.css';
+import { useWebSocketContext } from '@/contexts/WebSocketProvider'; // Import WebSocket context
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 // Interface for individual messages in the chat
 interface DisplayMessage {
@@ -13,6 +15,7 @@ interface DisplayMessage {
   text: string;
   timestamp: string;
   avatar?: string;
+  isSent: boolean;
 }
 
 // Define BackendChatMessage interface (adjust based on actual backend response)
@@ -21,22 +24,18 @@ interface BackendChatMessage {
   sender: string | { _id: string; username?: string; realname?: string; avatar?: string }; // Sender can be ID or populated object
   content: string;
   createdAt: string; // ISO date string
+  isSent: boolean; // Added isSent from backend
+  conversation?: string | { _id: string }; // For WebSocket message structure
+  conversationId?: string; // Alternative for WebSocket message structure
   // Add any other fields your backend sends for a chat message
 }
-
-// Current user definition (replace with actual logged-in user data)
-const currentUser = {
-  id: 'currentUser123',
-  name: '我',
-  avatar: 'https://i.pravatar.cc/150?u=currentUser123', // Example avatar
-};
 
 interface MessageDetailsProps {
   conversation: ConversationSummary | null;
 }
 
-const MIN_FOOTER_HEIGHT = 120; // Example: Toolbar + 1 row input + padding
-const MAX_FOOTER_HEIGHT = 400; // Example: Max reasonable height
+const MIN_FOOTER_HEIGHT = 200; // Example: Toolbar + 1 row input + padding
+const MAX_FOOTER_HEIGHT = 600; // Example: Max reasonable height
 
 const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [chatMessages, setChatMessages] = useState<DisplayMessage[]>([]);
@@ -47,6 +46,23 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [startHeight, setStartHeight] = useState(0);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
+
+  const [newMessageText, setNewMessageText] = useState<string>(''); // State for new message input
+  const { on, isConnected } = useWebSocketContext(); // Get WebSocket context
+  const chatMessageAreaRef = useRef<HTMLElement>(null); // Ref for chat message area
+  const { user: authenticatedUser } = useAuth(); // Get authenticated user, removed unused authIsLoading
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    if (chatMessageAreaRef.current) {
+      chatMessageAreaRef.current.scrollTop = chatMessageAreaRef.current.scrollHeight;
+    }
+  };
+
+  // Effect to scroll to bottom when chatMessages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
 
   useEffect(() => {
     if (conversation) {
@@ -59,28 +75,37 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
           // If 'response' is AxiosResponse<BackendChatMessage[], any>, then data is in response.data
           // If interceptor correctly makes it T, then response is BackendChatMessage[]
           // Linter suggests response is AxiosResponse, so use response.data
+          // Assuming the backend directly returns an array of messages. If it's nested (e.g., { messages: [...] }), adjust accordingly.
           const backendMessages: BackendChatMessage[] = (response as any).data || []; 
 
           const transformedMessages: DisplayMessage[] = backendMessages.map((msg: BackendChatMessage) => {
             let senderId = '';
-            let senderAvatar = undefined;
+            let senderName = '未知用户'; // Fallback name
+            let senderAvatar: string | undefined = undefined; // Default avatar
 
             if (typeof msg.sender === 'string') {
               senderId = msg.sender;
+              // senderName might remain '未知用户' or you might have a way to fetch it if needed
             } else if (msg.sender && typeof msg.sender === 'object') {
               senderId = msg.sender._id;
-              senderAvatar = msg.sender.avatar; // Use avatar from sender object if available
+              senderName = msg.sender.username || msg.sender.realname || '未知用户';
+              senderAvatar = msg.sender.avatar; 
             }
 
             return {
               id: msg._id,
               senderId: senderId,
-              text: msg.content,
-              timestamp: new Date(msg.createdAt).toLocaleString(), // Basic timestamp formatting
-              avatar: senderAvatar || `https://i.pravatar.cc/150?u=${senderId}`, // Fallback to pravatar
+              text: msg.content, // msg.content maps to text
+              timestamp: new Date(msg.createdAt).toLocaleString(),
+              avatar: senderAvatar, // Fallback avatar
+              isSent: msg.isSent, // Directly use isSent from backend
+              // If you want to display senderName, add it to DisplayMessage interface and here
+              // senderName: senderName, 
             };
           });
-          setChatMessages(transformedMessages);
+          // Reverse the messages so that oldest are first, newest are last (for flex-direction: column-reverse)
+          const reversedMessages = transformedMessages.reverse(); 
+          setChatMessages(reversedMessages);
         } catch (err: any) {
           const errorMsg = err.backendMessage || err.message || '获取聊天记录失败';
           setChatError(errorMsg);
@@ -111,12 +136,11 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     const handleMouseMoveResize = (e: MouseEvent) => {
       if (!isResizing || !footerRef.current) return;
       const deltaY = e.clientY - startY;
-      let newHeight = startHeight - deltaY; // Drag up = smaller height, Drag down = larger
+      let newHeight = startHeight - deltaY;
       
       newHeight = Math.max(MIN_FOOTER_HEIGHT, Math.min(newHeight, MAX_FOOTER_HEIGHT));
       
       setFooterHeight(newHeight);
-      // Direct style manipulation for smoother feedback during drag
       footerRef.current.style.height = `${newHeight}px`;
     };
 
@@ -135,6 +159,106 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     };
   }, [isResizing, startY, startHeight]);
 
+  // WebSocket effect for receiving new messages
+  useEffect(() => {
+    if (!on || !conversation?.id) {
+      return;
+    }
+
+    const handleNewChatMessage = (message: BackendChatMessage) => {
+      console.log('[WebSocket MSG Received] Raw message:', JSON.parse(JSON.stringify(message))); // Log a deep copy
+
+      let msgConversationId: string | undefined = undefined;
+
+      if (message.conversation && typeof message.conversation === 'object' && message.conversation._id) {
+        msgConversationId = message.conversation._id;
+        console.log('[WebSocket MSG Process] Extracted conversationId from message.conversation._id:', msgConversationId);
+      } else if (typeof message.conversation === 'string') {
+        msgConversationId = message.conversation;
+        console.log('[WebSocket MSG Process] Extracted conversationId from message.conversation (string):', msgConversationId);
+      } else if (message.conversationId) {
+        msgConversationId = message.conversationId;
+        console.log('[WebSocket MSG Process] Extracted conversationId from message.conversationId:', msgConversationId);
+      } else {
+        console.warn('[WebSocket MSG Process] Could not extract conversationId from message:', message);
+      }
+      
+      console.log('[WebSocket MSG Process] Current conversation.id:', conversation?.id);
+
+      if (msgConversationId && conversation?.id && msgConversationId === conversation.id) {
+        console.log('[WebSocket MSG Process] Conversation ID matched. Proceeding to transform message.');
+        
+        let senderId = '';
+        let senderAvatar: string | undefined = undefined;
+
+        if (typeof message.sender === 'string') {
+          senderId = message.sender;
+        } else if (message.sender && typeof message.sender === 'object' && message.sender._id) { // Ensure _id exists for objects
+          senderId = message.sender._id;
+          senderAvatar = message.sender.avatar;
+        } else {
+          console.warn('[WebSocket MSG Process] Could not determine senderId from message.sender:', message.sender);
+          // Decide on a fallback or skip if senderId is crucial
+        }
+
+        const newDisplayMessage: DisplayMessage = {
+          id: message._id, // Assuming _id is always present and is the unique message ID
+          senderId: senderId,
+          text: message.content,
+          timestamp: new Date(message.createdAt).toLocaleString(),
+          avatar: senderAvatar, // Fallback avatar
+          // For WebSocket messages, calculate isSent based on current user
+          isSent: senderId === authenticatedUser?.sub, 
+        };
+        
+        console.log('[WebSocket MSG Process] Transformed newDisplayMessage:', newDisplayMessage);
+        
+        setChatMessages(prevMessages => {
+          if (prevMessages.find(m => m.id === newDisplayMessage.id)) {
+            console.log('[WebSocket MSG Process] Message already exists, not adding:', newDisplayMessage.id);
+            return prevMessages;
+          }
+          console.log('[WebSocket MSG Process] Adding new message to chatMessages state.');
+          return [...prevMessages, newDisplayMessage];
+        });
+      } else {
+        console.log(`[WebSocket MSG Process] Conversation ID did NOT match or was missing. Received: ${msgConversationId}, Current: ${conversation?.id}`);
+      }
+    };
+
+    const unsubscribe = on('chat:newMessage', handleNewChatMessage);
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [on, conversation?.id, setChatMessages, authenticatedUser?.sub]);
+
+  const handleSendMessage = async () => {
+    const trimmedText = newMessageText.trim();
+    if (!trimmedText || !conversation) {
+      return;
+    }
+
+    const payload = {
+      type: 'text',
+      content: trimmedText,
+      conversationId: conversation.id,
+    };
+
+    try {
+      // Optimistic update can be added here if desired
+      // For now, wait for WebSocket to deliver the message
+      await apiClient.post('/chat/messages', payload);
+      setNewMessageText('');
+      // scrollToBottom(); // Let useEffect handle scroll on chatMessages change
+    } catch (error: any) {
+      console.error('Failed to send message:', error);
+      AntMessage.error(error?.response?.data?.message || error?.backendMessage || '发送消息失败');
+    }
+  };
+
   if (!conversation) {
     return (
       <main className="message-content-container">
@@ -152,14 +276,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     <main className="message-content-container">
       <div className="chat-detail-view">
         <header className="chat-header">
-          <Avatar src={conversation.avatar || 'https://i.pravatar.cc/150?u=' + conversation.id} size={35} />
+          <Avatar src={conversation.avatar} size={35} />
           <div className="chat-header-name">{conversation.sender}</div>
           <div className="chat-header-actions">
             {/* Placeholder for more action icons e.g. <button>More</button> */}
           </div>
         </header>
 
-        <section className="chat-message-area">
+        <section className="chat-message-area" ref={chatMessageAreaRef}>
           {chatLoading && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spin tip="加载消息中..." />
@@ -177,19 +301,20 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
             </div>
           )}
           {!chatLoading && !chatError && chatMessages.map((msg) => {
-            const isSent = msg.senderId === currentUser.id;
+            console.log(`Message ID: ${msg.id}, Sender ID: ${msg.senderId}, IsSent from backend: ${msg.isSent}`);
+
             return (
-              <div key={msg.id} className={`message-wrapper ${isSent ? 'sent' : 'received'}`}>
-                {!isSent && (
+              <div key={msg.id} className={`message-wrapper ${msg.isSent ? 'sent' : 'received'}`}>
+                {!msg.isSent && (
                   <Avatar src={msg.avatar} size={30} className="message-avatar" />
                 )}
-                <div className={`message-bubble ${isSent ? 'sent' : 'received'}`}>
+                <div className={`message-bubble ${msg.isSent ? 'sent' : 'received'}`}>
                   <div className="message-text-content">
                     <div className="message-text">{msg.text}</div>
                     <div className="message-timestamp">{msg.timestamp}</div>
                   </div>
                 </div>
-                {isSent && (
+                {msg.isSent && (
                   <Avatar src={msg.avatar} size={30} className="message-avatar" />
                 )}
               </div>
@@ -217,9 +342,17 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
               className="message-input" 
               placeholder="输入消息..." 
               rows={3}
+              value={newMessageText}
+              onChange={(e) => setNewMessageText(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
             ></textarea>
             <div className="send-button-container">
-              <Button type="primary" className="antd-send-button">
+              <Button type="primary" className="antd-send-button" onClick={handleSendMessage}>
                 发送
                 <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
               </Button>
