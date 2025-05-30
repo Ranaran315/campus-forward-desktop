@@ -14,6 +14,7 @@ import { normalizeAge, normalizeGender } from '@/utils/normalizationUtils'
 import { formatDateTime } from '@/utils/dateUtils'
 import { SelectField } from '@/components/Form/Form'
 import { getAvatarUrl } from '@/utils/imageHelper'
+import { useNavigate } from 'react-router-dom'
 
 interface FriendProfileProps {
   friendInitial: Friend
@@ -34,12 +35,15 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
     friendInitial
   )
   const [isLoading, setIsLoading] = useState(false)
+  const [isStartingConversation, setIsStartingConversation] = useState(false)
   // 好友分类状态管理
   const [availableCategories, setAvailableCategories] = useState<
     FriendCategoryInfo[]
   >([])
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(false)
   const [isUpdatingCategory, setIsUpdatingCategory] = useState(false)
+
+  const navigate = useNavigate()
 
   // 获取最新好友信息
   const fetchLatestFriendInfo = useCallback(
@@ -97,7 +101,7 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
 
   // 好友分类选择器
   const handleCategoryChange = async (
-    name: string,
+    _name: string,
     newCategoryId: string | string[] | number | number[]
   ) => {
     if (
@@ -133,6 +137,25 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
       showMessage.error(error.response?.data?.message || '更新好友分组失败')
     } finally {
       setIsUpdatingCategory(false)
+    }
+  }
+
+  const handleStartConversation = async (targetUserId: string) => {
+    setIsStartingConversation(true)
+    try {
+      const response = await axios.post('/chat/conversations/private', { targetUserId })
+      const backendConversationData = response.data
+      
+      if (backendConversationData) {
+        navigate('/chat', { state: { newConversation: backendConversationData } })
+      } else {
+        showMessage.error('无法创建或获取会话')
+      }
+    } catch (error: any) {
+      console.error('Failed to start conversation:', error)
+      showMessage.error(error.response?.data?.message || '发起聊天失败，请稍后再试')
+    } finally {
+      setIsStartingConversation(false)
     }
   }
 
@@ -230,8 +253,9 @@ const FriendProfile: React.FC<FriendProfileProps> = ({
       <div className="profile-actions">
         <Button
           theme="primary"
-          onClick={() => onSendMessage(friendDetails._id)} // friendDetails._id is the friend's User ID
+          onClick={() => handleStartConversation(friendDetails._id)}
           className="action-button"
+          disabled={isStartingConversation}
         >
           <MessageIcon /> 发消息
         </Button>

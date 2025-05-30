@@ -94,9 +94,9 @@ function AppLayout() {
         <aside className="sidebar">
           <div className="sidebar-item sidebar-top">
             <Link
-              to="/"
+              to="/chat"
               className={`sidebar-button ${
-                currentPath === '/' ? 'active' : ''
+                currentPath.startsWith('/chat') || (currentPath === '/') ? 'active' : ''
               }`}
             >
               <MessageIcon className="sidebar-icon" />
@@ -213,13 +213,14 @@ function App() {
               </WebSocketProvider>
             }
           >
-            <Route index element={<ChatViews />} /> {/* 默认子路由 */}
+            <Route path="chat" element={<ChatViews />} />
             <Route path="notifications/*" element={<NotificationViews />} />
             <Route path="calendar" element={<CalendarViews />} />
             <Route path="contacts" element={<FriendsViews />} />
             <Route path="profile" element={<ProfileViwes />} />
             <Route path="skin" element={<SkinViews />} />
             <Route path="setting" element={<SettingViews />} />
+            <Route index element={<Navigate to="/chat" replace />} />
           </Route>
         </Route>
 

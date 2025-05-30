@@ -1,6 +1,6 @@
 import React from 'react';
 import Avatar from '@/components/Avatar/Avatar';
-import type { Message } from './ChatViews';
+import type { FrontendMessage as Message } from './ChatViews';
 import './MessageList.css';
 
 interface MessageListProps {
