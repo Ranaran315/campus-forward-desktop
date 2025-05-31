@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
 import type { ConversationSummary } from './ChatViews';
-import { Button, Spin, Alert, message as AntMessage } from 'antd';
+import { Button, Spin, Alert, message as AntMessage, Image } from 'antd';
 import { DownOutlined, FileOutlined, LoadingOutlined } from '@ant-design/icons';
 import apiClient from '@/lib/axios';
 import './ConversationDetail.css';
@@ -348,10 +348,16 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       case 'image':
         return message.attachments?.map((attachment, index) => (
           <div key={index} className="message-image">
-            <img 
-              src={getImageUrl(attachment.url)} 
-              alt="图片消息" 
-              onClick={() => window.open(getImageUrl(attachment.url), '_blank')}
+            <Image
+              src={getImageUrl(attachment.url)}
+              alt="图片消息"
+              width={200}
+              style={{ borderRadius: '8px' }}
+              preview={{
+                mask: '预览图片',
+                maskClassName: 'image-preview-mask',
+                rootClassName: 'preview-root'
+              }}
             />
           </div>
         ));

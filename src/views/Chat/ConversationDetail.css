@@ -131,16 +131,25 @@
               max-width: 300px;
               margin: 4px 0;
               
-              img {
-                width: 100%;
-                height: auto;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: transform 0.2s ease;
-
-                &:hover {
-                  transform: scale(1.02);
+              .ant-image {
+                display: block;
+                
+                .ant-image-img {
+                  transition: filter 0.3s ease;
                 }
+
+                .ant-image-mask {
+                  border-radius: 8px;
+                  font-size: 14px;
+                  
+                  &:hover {
+                    opacity: 1;
+                  }
+                }
+              }
+
+              &:hover .ant-image-img {
+                filter: brightness(0.9);
               }
             }
 
@@ -148,7 +157,7 @@
               display: flex;
               align-items: center;
               gap: 8px;
-              padding: 8px;
+              padding: 8px 12px;
               background-color: rgba(0, 0, 0, 0.05);
               border-radius: 4px;
               margin: 4px 0;
@@ -179,6 +188,7 @@
               .file-size {
                 font-size: 12px;
                 color: var(--secondary-text-color);
+                margin-left: auto;
               }
             }
           }
@@ -218,7 +228,11 @@
         span {
           margin-right: 15px;
           cursor: pointer;
-          font-size: var(--larger-icon-size);
+          font-size: var(--large-icon-size);
+          svg {
+            width: 1em;
+            height: 1em;
+          }
 
           &:last-child {
             margin-right: 0;
@@ -303,5 +317,40 @@
   span {
     font-size: 48px;
     margin-bottom: 15px;
+  }
+}
+
+.image-preview-mask {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 14px;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* 预览模式样式 */
+.preview-root {
+  .ant-image-preview-mask {
+    background-color: rgba(0, 0, 0, 0.85);
+  }
+
+  .ant-image-preview-wrap {
+    .ant-image-preview-content {
+      .ant-image-preview-body {
+        .ant-image-preview-img {
+          max-width: 70vw;
+          max-height: 80vh;
+          object-fit: contain;
+        }
+
+        .ant-image-preview-operations {
+          .ant-image-preview-operations-progress {
+            color: white;
+          }
+        }
+      }
+    }
   }
 }
