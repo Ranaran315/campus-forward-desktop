@@ -18,6 +18,7 @@
   .custom-header-right {
     display: flex;
     align-items: center;
+    cursor: pointer;
     -webkit-app-region: no-drag; /* Ensure this entire section is not draggable */
 
     .user-info-container {

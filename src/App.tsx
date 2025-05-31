@@ -174,7 +174,7 @@ function AppLayout() {
             <Link
               to="/setting"
               className={`sidebar-button ${
-                currentPath === '/setting' ? 'active' : ''
+                currentPath.startsWith('/setting') ? 'active' : ''
               }`}
             >
               <SettingIcon className="sidebar-icon" />
@@ -219,7 +219,7 @@ function App() {
             <Route path="contacts" element={<FriendsViews />} />
             <Route path="profile" element={<ProfileViwes />} />
             <Route path="skin" element={<SkinViews />} />
-            <Route path="setting" element={<SettingViews />} />
+            <Route path="setting/*" element={<SettingViews />} />
             <Route index element={<Navigate to="/chat" replace />} />
           </Route>
         </Route>

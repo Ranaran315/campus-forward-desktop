@@ -27,6 +27,7 @@
 
 .settings-sidebar-item:hover {
   background-color: var(--third-background-color);
+  color: var(--primary-text-color);
 }
 
 .settings-sidebar-item.active {
