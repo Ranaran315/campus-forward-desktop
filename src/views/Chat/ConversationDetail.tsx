@@ -13,6 +13,7 @@ import ImageIcon from '@/assets/icons/image.svg?react'
 import FileIcon from '@/assets/icons/file.svg?react'
 import ExpressionIcon from '@/assets/icons/expression.svg?react'
 import AtIcon from '@/assets/icons/at.svg?react'
+import { getFileIcon } from '@/utils/fileIconHelper';
 
 // Interface for individual messages in the chat
 interface MessageAttachment {
@@ -56,6 +57,19 @@ interface PreviewFile {
 
 const MIN_FOOTER_HEIGHT = 200; // Example: Toolbar + 1 row input + padding
 const MAX_FOOTER_HEIGHT = 500; // Example: Max reasonable height
+
+// 格式化文件大小
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) {
+    return bytes + ' B';
+  } else if (bytes < 1024 * 1024) {
+    return (bytes / 1024).toFixed(1) + ' KB';
+  } else if (bytes < 1024 * 1024 * 1024) {
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  } else {
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+  }
+};
 
 const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [chatMessages, setChatMessages] = useState<DisplayMessage[]>([]);
@@ -444,13 +458,27 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       case 'file':
         return message.attachments?.map((attachment, index) => (
           <div key={index} className="message-file">
-            <FileOutlined />
-            <a href={getAttachmentUrl(attachment.url)} target="_blank" rel="noopener noreferrer">
-              {attachment.fileName}
-            </a>
-            <span className="file-size">
-              ({(attachment.size / 1024).toFixed(2)} KB)
-            </span>
+            <div className="file-content">
+              <div className="file-info">
+                <img 
+                  src={getFileIcon(attachment.fileName)} 
+                  alt="文件图标"
+                  className="file-icon"
+                />
+                <span className="file-name" title={attachment.fileName}>
+                  {attachment.fileName}
+                </span>
+              </div>
+              <div className="file-size">
+                {formatFileSize(attachment.size)}
+              </div>
+            </div>
+            <a 
+              href={getAttachmentUrl(attachment.url)} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="file-overlay"
+            />
           </div>
         ));
       default:

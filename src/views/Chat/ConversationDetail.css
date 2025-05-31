@@ -154,41 +154,57 @@
             }
 
             .message-file {
+              position: relative;
               display: flex;
-              align-items: center;
-              gap: 8px;
-              padding: 8px 12px;
-              background-color: rgba(0, 0, 0, 0.05);
-              border-radius: 4px;
-              margin: 4px 0;
-              transition: background-color 0.2s ease;
+              flex-direction: column;
+              background-color: var(--primary-background-color);
+              border-radius: 8px;
+              overflow: hidden;
+              cursor: pointer;
+              min-width: 240px;
+              max-width: 320px;
 
-              &:hover {
-                background-color: rgba(0, 0, 0, 0.08);
+              .file-content {
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                z-index: 1;
               }
 
-              .anticon {
-                font-size: 20px;
-                color: var(--secondary-text-color);
+              .file-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
               }
 
-              a {
+              .file-icon {
+                width: 32px;
+                height: 32px;
+                object-fit: contain;
+              }
+
+              .file-name {
+                font-size: 14px;
                 color: var(--primary-text-color);
-                text-decoration: none;
-                max-width: 200px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
-
-                &:hover {
-                  text-decoration: underline;
-                }
+                flex: 1;
               }
 
               .file-size {
                 font-size: 12px;
                 color: var(--secondary-text-color);
-                margin-left: auto;
+              }
+
+              .file-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 2;
               }
             }
           }
@@ -275,7 +291,6 @@
             align-items: center;
             padding: 8px 15px;
             flex-shrink: 0;
-            border-bottom: 1px solid var(--primary-border-color);
 
             span {
               margin-right: 15px;
