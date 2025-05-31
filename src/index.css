@@ -66,6 +66,38 @@
   --modal-z-index: 2000;
 }
 
+/* 暗色主题 */
+[data-theme='dark'] {
+  /* 主题色 */
+  --primary-color: #1677ff;
+  --secondary-color: #1f1f1f;
+  --third-color: #141414;
+
+  /* 背景 */
+  --secondary-background-color: #141414;
+  --primary-background-color: #1f1f1f;
+  --third-background-color: #2a2a2a;
+  --fill-color: #434343;
+
+  /* border */
+  --primary-border-color: #434343;
+
+  /* 字体 */
+  --primary-text-color: #fff;
+  --secondary-text-color: #999;
+  --header-background: #1f1f1f;
+  --active-text-color: #fff;
+  --placeholder-text-color: #666;
+
+  /* 禁用 */
+  --disabled-background-color: #2a2a2a;
+  --disabled-text-color: #666;
+
+  /* 阴影 */
+  --primary-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --secondary-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 a {
   font-weight: 500;
   text-decoration: inherit;

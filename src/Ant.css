@@ -17,3 +17,24 @@
     padding: 16px;
   }
 }
+
+/* Tab栏样式 */
+.ant-tabs-nav {
+  margin-bottom: 0;
+  .ant-tabs-tab {
+    color: var(--primary-text-color);
+    font-size: var(--normal-font-size);
+    padding: 12px 0;
+    &:hover {
+      color: var(--primary-color);
+    }
+    &.ant-tabs-tab-active .ant-tabs-tab-btn {
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+    .ant-tabs-ink-bar {
+      background-color: var(--primary-color);
+    }
+  }
+}
+

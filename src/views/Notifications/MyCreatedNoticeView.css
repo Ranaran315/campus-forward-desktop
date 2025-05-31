@@ -11,9 +11,12 @@
     background-color: var(--primary-background-color);
     z-index: 10;
     padding: 20px 20px 0;
-    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    border-bottom: 1px solid var(--primary-border-color);
   }
+}
 
+/* 其他样式 */
+.my-created-notices-view {
   .my-notices-controls {
     display: flex;
     justify-content: flex-start;
@@ -37,59 +40,209 @@
       cursor: pointer;
       border-radius: 4px;
       &:hover {
-        background-color: var(--secondary-background-color);
-        color: var(--active-text-color);
-      }
-      .ant-list-item-meta-title > a {
-        color: var(--primary-color);
-        font-size: var(--medium-font-size);
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-
-      .ant-list-item-meta-description {
-        color: var(--secondary-text-color);
-        font-size: var(--normal-font-size);
-        margin-bottom: 8px;
-      }
-
-      .item-tags .ant-tag {
-        margin-bottom: 4px;
-      }
-
-      .last-modified-date {
-        font-size: var(--small-font-size);
-        color: var(--placeholder-text-color);
+        background-color: var(--third-background-color);
       }
     }
   }
+}
 
-  .my-notices-pagination-container {
-    position: sticky;
-    bottom: 0;
-    background-color: var(--primary-background-color);
-    padding: 16px 20px;
-    display: flex;
-    justify-content: center;
-    border-top: 1px solid var(--border-color, #f0f0f0);
-    z-index: 10;
-  }
+/* Ant Design 组件样式覆盖 */
+.my-created-notices-view :global(.ant-list-item-meta-title) > :global(a) {
+  color: var(--primary-text-color);
+  font-size: var(--medium-font-size);
+}
 
-  .my-created-notices-view .ant-tabs-nav {
-    margin-bottom: 0;
-  }
+.my-created-notices-view :global(.ant-list-item-meta-title) > :global(a:hover) {
+  color: var(--primary-color);
+  text-decoration: none;
+}
 
-  .ant-list-item-action {
-    margin-left: 0;
+.my-created-notices-view :global(.ant-list-item-meta-description) {
+  color: var(--secondary-text-color);
+  font-size: var(--normal-font-size);
+  margin-bottom: 8px;
+}
 
-    > li {
-      padding: 0 8px;
+.my-created-notices-view :global(.ant-tag) {
+  margin-bottom: 4px;
+  background-color: var(--third-background-color);
+  border-color: var(--primary-border-color);
+  color: var(--secondary-text-color);
+}
 
-      &:first-child {
-        padding-left: 0;
-      }
-    }
-  }
+.my-created-notices-view :global(.ant-list-item-action) {
+  margin-left: 0;
+}
+
+.my-created-notices-view :global(.ant-list-item-action > li) {
+  padding: 0 8px;
+  color: var(--secondary-text-color);
+}
+
+.my-created-notices-view :global(.ant-list-item-action > li:first-child) {
+  padding-left: 0;
+}
+
+.my-created-notices-view :global(.ant-list-item-action > li:hover) {
+  color: var(--primary-color);
+}
+
+.my-notices-pagination-container {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--primary-background-color);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--primary-border-color);
+  z-index: 10;
+}
+
+.my-notices-container {
+  padding: 24px;
+  height: 100%;
+  background-color: var(--primary-background-color);
+  overflow-y: auto;
+}
+
+.my-notices-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-notices-title {
+  font-size: var(--large-font-size);
+  font-weight: 500;
+  color: var(--primary-text-color);
+  margin: 0;
+}
+
+.my-notices-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.my-notices-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: var(--normal-font-size);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.my-notices-button.primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+}
+
+.my-notices-button.primary:hover {
+  opacity: 0.9;
+}
+
+.my-notices-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.my-notices-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.notice-card {
+  background-color: var(--primary-background-color);
+  border: 1px solid var(--primary-border-color);
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.3s;
+}
+
+.notice-card:hover {
+  box-shadow: var(--primary-box-shadow);
+  border-color: var(--primary-color);
+}
+
+.notice-card-header {
+  margin-bottom: 12px;
+}
+
+.notice-card-title {
+  font-size: var(--medium-font-size);
+  font-weight: 500;
+  color: var(--primary-text-color);
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notice-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--secondary-text-color);
+  font-size: var(--small-font-size);
+}
+
+.notice-card-content {
+  color: var(--secondary-text-color);
+  font-size: var(--normal-font-size);
+  margin: 0 0 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+}
+
+.notice-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notice-card-status {
+  font-size: var(--small-font-size);
+}
+
+.notice-card-status.draft {
+  color: var(--secondary-text-color);
+}
+
+.notice-card-status.published {
+  color: var(--primary-success-color);
+}
+
+.notice-card-status.expired {
+  color: var(--primary-danger-color);
+}
+
+.notice-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notice-card-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: var(--small-font-size);
+  cursor: pointer;
+  transition: all 0.3s;
+  background: none;
+  border: 1px solid var(--primary-border-color);
+  color: var(--secondary-text-color);
+}
+
+.notice-card-button:hover {
+  background-color: var(--third-background-color);
+  color: var(--primary-text-color);
+  border-color: var(--primary-color);
 }

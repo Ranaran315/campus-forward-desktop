@@ -1,7 +1,7 @@
 .friends-container {
   display: flex;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--secondary-background-color);
   border-radius: 8px;
 
   .friends-layout {
@@ -9,6 +9,43 @@
     display: flex;
     padding: 10px 20px;
   }
+}
+
+.friends-content {
+  flex: 1;
+  height: 100%;
+  background-color: var(--primary-background-color);
+  border-left: 1px solid var(--primary-border-color);
+}
+
+.friends-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--secondary-text-color);
+}
+
+.friends-welcome svg {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+  color: var(--fill-color);
+}
+
+.friends-welcome h2 {
+  font-size: var(--large-font-size);
+  margin-bottom: 8px;
+  color: var(--primary-text-color);
+}
+
+.friends-welcome p {
+  font-size: var(--normal-font-size);
+  color: var(--secondary-text-color);
+  text-align: center;
+  max-width: 400px;
+  margin: 0;
 }
 
 .no-friend-selected {

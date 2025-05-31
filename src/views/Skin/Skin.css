@@ -1,0 +1,182 @@
+.skin-container {
+  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.theme-card {
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: 8px;
+  background-color: var(--primary-background-color);
+}
+
+.theme-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.theme-header h2 {
+  margin: 0;
+  color: var(--primary-text-color);
+  font-size: var(--large-font-size);
+}
+
+.theme-description {
+  margin: 8px 0 0;
+  color: var(--secondary-text-color);
+}
+
+.theme-previews {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+/* 预览部分样式 */
+.theme-preview {
+  flex: 1;
+  max-width: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--primary-border-color);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.theme-preview:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--primary-box-shadow);
+}
+
+.theme-preview.active {
+  border-color: var(--primary-color);
+}
+
+.theme-preview.active::after {
+  content: '当前主题';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.theme-preview.light {
+  background-color: #fff;
+  color: #333;
+}
+
+.theme-preview.dark {
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+.preview-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--primary-border-color);
+}
+
+.preview-title {
+  font-weight: 500;
+}
+
+.preview-content {
+  display: flex;
+  height: 300px;
+}
+
+.preview-sidebar {
+  width: 200px;
+  border-right: 1px solid var(--primary-border-color);
+  padding: 12px 0;
+}
+
+.preview-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.preview-menu-item svg {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+.preview-menu-item span {
+  font-size: 14px;
+}
+
+.theme-preview.light .preview-menu-item {
+  color: #666;
+}
+
+.theme-preview.dark .preview-menu-item {
+  color: #999;
+}
+
+.theme-preview.light .preview-menu-item.active {
+  background-color: #e6f4ff;
+  color: #1677ff;
+}
+
+.theme-preview.dark .preview-menu-item.active {
+  background-color: #111b26;
+  color: #1677ff;
+}
+
+.preview-main {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.preview-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.preview-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.preview-message.sent {
+  flex-direction: row-reverse;
+}
+
+.preview-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--primary-border-color);
+  flex-shrink: 0;
+}
+
+.preview-bubble {
+  padding: 8px 12px;
+  border-radius: 12px;
+  max-width: 200px;
+}
+
+.theme-preview.light .preview-bubble {
+  background-color: #f0f0f0;
+}
+
+.theme-preview.dark .preview-bubble {
+  background-color: #2a2a2a;
+}
+
+.preview-message.sent .preview-bubble {
+  background-color: #1677ff;
+  color: #fff;
+}
