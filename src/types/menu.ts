@@ -22,4 +22,24 @@ export interface MessageContextMenuProps {
   x: number;
   y: number;
   onClose: () => void;
+}
+
+export interface DisplayProfile {
+  name?: string;
+  nickname?: string;
+  username?: string;
+  avatar?: string;
+}
+
+export interface FrontendConversation {
+  id: string;
+  type: 'private' | 'group';
+  sender: string;
+  content: string;
+  timestamp: string;
+  avatar?: string;
+  unreadCount: number;
+  isPinned: boolean;
+  customName?: string;
+  displayProfile?: DisplayProfile;
 } 

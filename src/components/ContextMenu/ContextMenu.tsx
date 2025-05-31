@@ -2,12 +2,14 @@ import React, { useEffect, useRef } from 'react';
 import './ContextMenu.css'; // We'll add some basic CSS
 
 export interface ContextMenuItem {
-    icon?: React.ReactNode;
     label?: string;
+    icon?: React.ReactNode;
     onClick?: () => void;
-    disabled?: boolean;
     isSeparator?: boolean;
     customClassName?: string;
+    danger?: boolean;
+    key?: string;
+    disabled?: boolean;
 }
 
 interface ContextMenuProps {

@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
 import type { FrontendConversation as Conversation } from './ChatViews';
 import ContextMenu, { ContextMenuItem } from '@/components/ContextMenu/ContextMenu';
 import { PushpinOutlined, PushpinFilled, DeleteOutlined } from '@ant-design/icons';
 import MessageReadIcon from '@/assets/icons/message_read.svg?react';
 import MessageUnreadIcon from '@/assets/icons/message_unread.svg?react';
-import './ConversationList.css';
+import AddIcon from '@/assets/icons/add.svg?react';
+import GroupIcon from '@/assets/icons/group.svg?react';
+import { InputField } from '@/components/Form/Form';
+import './ConversationSidebar.css';
 import { formatMessageTime } from '@/utils/dateUtils';
 import apiClient from '@/lib/axios';
 import { message as antdMessage } from 'antd';
@@ -27,6 +30,8 @@ interface ContextMenuState {
 
 const ConversationList: React.FC<ConversationListProps> = ({ conversations, selectedConversationId, onConversationSelect, onConversationUpdate, onConversationRemove }) => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const handleItemContextMenu = (event: React.MouseEvent, conversation: Conversation) => {
     event.preventDefault();
@@ -108,11 +113,68 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
     },
   ] : [];
 
+  // 处理搜索输入变化
+  const handleSearchChange = (_name: string, value: string) => {
+    setSearchQuery(value);
+  };
+
+  // 过滤会话列表
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return conversations;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return conversations.filter(conversation => {
+      // 搜索发送者名称
+      const senderMatch = conversation.sender.toLowerCase().includes(query);
+      
+      // 搜索最后一条消息内容
+      const contentMatch = conversation.content.toLowerCase().includes(query);
+
+      return senderMatch || contentMatch;
+    });
+  }, [conversations, searchQuery]);
+
+  // 处理添加按钮点击
+  const handleAddClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setShowAddMenu(true);
+  };
+
+  // 添加菜单项
+  const addMenuItems: ContextMenuItem[] = [
+    {
+      key: 'createGroup',
+      icon: <GroupIcon />,
+      label: '创建群聊',
+      onClick: () => {
+        // TODO: 实现创建群聊功能
+        setShowAddMenu(false);
+      },
+    }
+  ];
+
   return (
-    <aside className="conversation-list-container">
-      <h2>会话</h2>
+    <aside className="conversation-sidebar">
+      <div className="conversation-header">
+        <div className="search-box">
+          <InputField
+            name="searchConversations"
+            type="text"
+            placeholder="搜索会话"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            theme="search"
+          />
+        </div>
+        <button className="add-btn" title="创建会话" onClick={handleAddClick}>
+          <AddIcon />
+        </button>
+      </div>
+
       <ul className="conversation-list">
-        {conversations.map((conversation) => (
+        {filteredConversations.map((conversation) => (
           <li
             key={conversation.id}
             className={`conversation-item ${
@@ -140,7 +202,13 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
             </div>
           </li>
         ))}
+        {filteredConversations.length === 0 && searchQuery && (
+          <li className="no-results">
+            没有找到相关会话
+          </li>
+        )}
       </ul>
+
       {contextMenu?.visible && (
         <ContextMenu
           x={contextMenu.x}
@@ -148,6 +216,16 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
           visible={contextMenu.visible}
           items={menuItems}
           onClose={handleCloseContextMenu}
+        />
+      )}
+
+      {showAddMenu && (
+        <ContextMenu
+          x={document.querySelector('.add-btn')?.getBoundingClientRect().left || 0}
+          y={(document.querySelector('.add-btn')?.getBoundingClientRect().bottom || 0) + 5}
+          visible={showAddMenu}
+          items={addMenuItems}
+          onClose={() => setShowAddMenu(false)}
         />
       )}
     </aside>

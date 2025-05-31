@@ -4,7 +4,7 @@ import './ChatViews.css'
 // 如果ChatViews本身未使用Avatar，则不再需要在此处直接导入Avatar组件
 // import Avatar from '@/components/Avatar/Avatar'; 
 // import type { Message } from './ChatViews'; // Removed this problematic import // 移除了这个有问题的导入
-import ConversationList from './ConversationList'
+import ConversationSidebar from './ConversationSidebar'
 import ConversationDetail from './ConversationDetail'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { formatDateTime } from '@/utils/dateUtils'
@@ -336,7 +336,7 @@ function ChatViews() {
           <Alert message="加载失败" description={conversationsError} type="error" showIcon />
         </div>
       ) : (
-        <ConversationList
+        <ConversationSidebar
           conversations={conversationList}
           selectedConversationId={selectedConversation?.id || null} // Use renamed state
           onConversationSelect={handleConversationClick} // Use renamed handler
