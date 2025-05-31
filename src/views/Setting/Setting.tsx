@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, message } from 'antd';
 import { FolderOpenOutlined } from '@ant-design/icons';
+import storage from '@/assets/icons/storage.svg?react';
 import './Setting.css';
 
 const Setting: React.FC = () => {
   const [filePath, setFilePath] = useState<string>('');
   const [imagePath, setImagePath] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('storage');
+
+  // 菜单项配置
+  const menuItems = [
+    {
+      key: 'storage',
+      icon: storage,
+      label: '存储管理'
+    }
+  ];
 
   // 初始化默认路径
   const initializeDefaultPaths = async () => {
@@ -38,23 +49,6 @@ const Setting: React.FC = () => {
     } catch (error) {
       console.error('初始化默认路径失败:', error);
       message.error('初始化默认路径失败');
-    }
-  };
-
-  // 从 store 获取保存的路径
-  const getStoredPaths = async () => {
-    try {
-      const savedFilePath = await window.electron.ipcRenderer.invoke('get-store-value', 'filePath');
-      const savedImagePath = await window.electron.ipcRenderer.invoke('get-store-value', 'imagePath');
-      
-      if (savedFilePath) {
-        setFilePath(savedFilePath);
-      }
-      if (savedImagePath) {
-        setImagePath(savedImagePath);
-      }
-    } catch (error) {
-      console.error('获取保存的路径失败:', error);
     }
   };
 
@@ -102,8 +96,10 @@ const Setting: React.FC = () => {
     }
   };
 
-  return (
-    <div className="settings-container">
+  // 渲染存储管理内容
+  const renderStorageContent = () => (
+    <div className="settings-content">
+      <h2>存储管理</h2>
       <Form layout="vertical">
         <Form.Item
           label="文件保存路径"
@@ -149,6 +145,38 @@ const Setting: React.FC = () => {
           </Input.Group>
         </Form.Item>
       </Form>
+    </div>
+  );
+
+  // 根据当前选中的标签渲染对应的内容
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'storage':
+        return renderStorageContent();
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="settings-container">
+      <div className="settings-sidebar">
+        {menuItems.map(item => (
+          <div
+            key={item.key}
+            className={`settings-sidebar-item ${activeTab === item.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(item.key)}
+          >
+            <span className="settings-sidebar-icon">
+              <item.icon />
+            </span>
+            <span className="settings-sidebar-label">{item.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="settings-main">
+        {renderContent()}
+      </div>
     </div>
   );
 };
