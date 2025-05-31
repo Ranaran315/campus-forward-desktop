@@ -439,3 +439,28 @@
     }
   }
 }
+
+.message-text,
+.message-image,
+.message-file {
+  user-select: text;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.message-text:hover,
+.message-image:hover,
+.message-file:hover {
+  cursor: default;
+}
+
+.message-text.active,
+.message-image.active,
+.message-file.active {
+  background-color: var(--third-background-color);
+  border-radius: 8px;
+}
+
+.message-file.clickable {
+  cursor: pointer;
+}

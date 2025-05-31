@@ -14,6 +14,7 @@ import FileIcon from '@/assets/icons/file.svg?react'
 import ExpressionIcon from '@/assets/icons/expression.svg?react'
 import AtIcon from '@/assets/icons/at.svg?react'
 import { getFileIcon } from '@/utils/fileIconHelper';
+import MessageContextMenu from '@/components/MessageContextMenu/MessageContextMenu';
 
 // Interface for individual messages in the chat
 interface MessageAttachment {
@@ -89,6 +90,22 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    type: 'text' | 'image' | 'file';
+    isSent: boolean;
+    fileName?: string;
+    filePath?: string;
+  }>({
+    visible: false,
+    x: 0,
+    y: 0,
+    type: 'text',
+    isSent: false
+  });
+  const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
 
   // Scroll to bottom function
   const scrollToBottom = () => {
@@ -454,12 +471,43 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     }
   };
 
-  // 修改文件消息渲染
+  // 处理右键菜单
+  const handleContextMenu = (
+    e: React.MouseEvent,
+    type: 'text' | 'image' | 'file',
+    isSent: boolean,
+    messageId: string,
+    fileName?: string,
+    filePath?: string
+  ) => {
+    e.preventDefault();
+    setActiveMessageId(messageId);
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      type,
+      isSent,
+      fileName,
+      filePath
+    });
+  };
+
+  // 关闭右键菜单
+  const handleCloseContextMenu = () => {
+    setContextMenu(prev => ({ ...prev, visible: false }));
+    setActiveMessageId(null);
+  };
+
+  // 修改消息渲染部分
   const renderMessageContent = (message: DisplayMessage) => {
     switch (message.type) {
       case 'image':
         return message.attachments?.map((attachment, index) => (
-          <div key={index} className="message-image">
+          <div 
+            key={index} 
+            className="message-image"
+          >
             <Image
               src={getImageUrl(attachment.url)}
               alt="图片消息"
@@ -499,7 +547,11 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
           </div>
         ));
       default:
-        return <div className="message-text">{message.text}</div>;
+        return (
+          <div className="message-text">
+            {message.text}
+          </div>
+        );
     }
   };
 
@@ -545,13 +597,25 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
             </div>
           )}
           {!chatLoading && !chatError && chatMessages.map((msg) => {
-
             return (
-              <div key={msg.id} className={`message-wrapper ${msg.isSent ? 'sent' : 'received'}`}>
+              <div 
+                key={msg.id} 
+                className={`message-wrapper ${msg.isSent ? 'sent' : 'received'} ${msg.id === activeMessageId ? 'active' : ''}`}
+              >
                 {!msg.isSent && (
                   <Avatar src={msg.avatar} size={30} className="message-avatar" />
                 )}
-                <div className={`message-bubble ${msg.isSent ? 'sent' : 'received'}`}>
+                <div 
+                  className={`message-bubble ${msg.isSent ? 'sent' : 'received'}`}
+                  onContextMenu={(e) => handleContextMenu(
+                    e,
+                    msg.type,
+                    msg.isSent,
+                    msg.id,
+                    msg.attachments?.[0]?.fileName,
+                    msg.attachments?.[0]?.url ? getAttachmentUrl(msg.attachments[0].url) : undefined
+                  )}
+                >
                   <div className="message-text-content">
                     {renderMessageContent(msg)}
                     <div className="message-timestamp">{msg.timestamp}</div>
@@ -665,6 +729,12 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
           </div>
         </footer>
       </div>
+      {contextMenu.visible && (
+        <MessageContextMenu
+          {...contextMenu}
+          onClose={handleCloseContextMenu}
+        />
+      )}
     </main>
   );
 };
