@@ -210,95 +210,150 @@
       border-top: 1px solid var(--primary-border-color);
       background-color: var(--third-color);
       overflow: hidden;
-      min-height: 200px;
       flex-shrink: 0;
 
       .resize-handle {
         width: 100%;
         height: 8px;
         cursor: s-resize;
+        flex-shrink: 0;
       }
 
-      .toolbar-icons {
+      .input-container {
         display: flex;
-        align-items: center;
-        padding: 8px 15px;
-        flex-shrink: 0;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
 
-        span {
-          margin-right: 15px;
-          cursor: pointer;
-          font-size: var(--large-icon-size);
-          svg {
-            width: 1em;
-            height: 1em;
-          }
+        .preview-area {
+          padding: 8px 15px;
+          display: flex;
+          gap: 8px;
+          border-bottom: 1px solid var(--primary-border-color);
+          background-color: var(--third-color);
+          flex-shrink: 0;
+          height: 96px;
 
-          &:last-child {
-            margin-right: 0;
-          }
+          .preview-item {
+            position: relative;
+            display: inline-block;
 
-          &.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
+            .remove-preview {
+              position: absolute;
+              top: -6px;
+              right: -6px;
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+              background-color: rgba(0, 0, 0, 0.5);
+              color: white;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              font-size: 14px;
+              transition: background-color 0.2s ease;
+              z-index: 1;
 
-          .anticon {
-            font-size: 20px;
-            transition: color 0.2s ease;
-          }
-
-          &:hover:not(.disabled) {
-            color: var(--primary-color);
-
-            .anticon {
-              color: var(--primary-color);
+              &:hover {
+                background-color: rgba(0, 0, 0, 0.7);
+              }
             }
           }
         }
-      }
 
-      .input-field-wrapper {
-        position: relative;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-
-        .message-input {
-          width: 100%;
-          height: 100%;
-          box-sizing: border-box;
-          border: none;
-          border-radius: 6px;
-          padding: 10px;
-          padding-right: 90px;
-          font-size: 14px;
-          resize: none;
-          overflow-y: auto;
-          background-color: var(--third-color);
-          color: var(--primary-text-color);
+        .main-input-area {
+          display: flex;
+          flex-direction: column;
           flex: 1;
+          min-height: 0;
+          overflow: hidden;
 
-          &:focus {
-            outline: none;
+          .toolbar-icons {
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--primary-border-color);
+
+            span {
+              margin-right: 15px;
+              cursor: pointer;
+              font-size: var(--large-icon-size);
+              
+              svg {
+                width: 1em;
+                height: 1em;
+              }
+
+              &:last-child {
+                margin-right: 0;
+              }
+
+              &.disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+              }
+
+              .anticon {
+                font-size: 20px;
+                transition: color 0.2s ease;
+              }
+
+              &:hover:not(.disabled) {
+                color: var(--primary-color);
+
+                .anticon {
+                  color: var(--primary-color);
+                }
+              }
+            }
           }
 
-          &::placeholder {
-            color: var(--placeholder-text-color);
-          }
+          .input-field-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
 
-          &:disabled {
-            background-color: var(--disabled-background-color);
-            cursor: not-allowed;
-          }
-        }
+            .message-input {
+              width: 100%;
+              height: 100%;
+              box-sizing: border-box;
+              border: none;
+              border-radius: 6px;
+              padding: 10px;
+              padding-right: 90px;
+              font-size: 14px;
+              resize: none;
+              overflow-y: auto;
+              background-color: var(--third-color);
+              color: var(--primary-text-color);
+              flex: 1;
 
-        .send-button-container {
-          position: absolute;
-          right: 15px;
-          bottom: 15px;
-          z-index: 1;
+              &:focus {
+                outline: none;
+              }
+
+              &::placeholder {
+                color: var(--placeholder-text-color);
+              }
+
+              &:disabled {
+                background-color: var(--disabled-background-color);
+                cursor: not-allowed;
+              }
+            }
+
+            .send-button-container {
+              position: absolute;
+              right: 15px;
+              bottom: 15px;
+              z-index: 1;
+            }
+          }
         }
       }
     }

@@ -48,6 +48,12 @@ interface MessageDetailsProps {
   conversation: ConversationSummary | null;
 }
 
+interface PreviewFile {
+  file: File;
+  previewUrl: string;
+  type: 'image' | 'file';
+}
+
 const MIN_FOOTER_HEIGHT = 200; // Example: Toolbar + 1 row input + padding
 const MAX_FOOTER_HEIGHT = 500; // Example: Max reasonable height
 
@@ -68,6 +74,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([]);
 
   // Scroll to bottom function
   const scrollToBottom = () => {
@@ -117,13 +124,25 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       return;
     }
 
+    // 如果是图片，创建预览
+    if (type === 'image') {
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewFiles([{ file, previewUrl, type }]); // 只保留最新的一张图片
+      
+      // 清空文件输入
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+      return;
+    }
+
+    // 如果是文件，直接上传
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
       
-      // 根据类型选择不同的上传端点
-      const uploadEndpoint = type === 'image' ? '/chat/upload/image' : '/chat/upload/file';
+      const uploadEndpoint = '/chat/upload/file';
       const uploadResponse = await apiClient.post(uploadEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -138,8 +157,8 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
 
       // 发送消息
       const messagePayload = {
-        type,
-        content: type === 'image' ? '[图片消息]' : `[文件] ${file.name}`,
+        type: 'file',
+        content: `[文件] ${file.name}`,
         conversationId: conversation.id,
         attachments: [{
           url: fileData.url,
@@ -148,21 +167,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
         }]
       };
 
-      console.log('Sending message payload:', messagePayload);
-
-      const response = await apiClient.post('/chat/messages', messagePayload);
-      console.log('Message sent response:', response.data);
+      await apiClient.post('/chat/messages', messagePayload);
       
       // 清空文件输入
-      if (type === 'image' && imageInputRef.current) {
-        imageInputRef.current.value = '';
-      }
-      if (type === 'file' && fileInputRef.current) {
+      if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
 
-      // 显示上传成功提示
-      AntMessage.success(type === 'image' ? '图片发送成功' : '文件发送成功');
+      AntMessage.success('文件发送成功');
       
     } catch (error: any) {
       console.error('Failed to upload file:', error);
@@ -318,29 +330,97 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     };
   }, [on, conversation?.id, authenticatedUser?.sub]);
 
+  // 发送带预览图片的消息
   const handleSendMessage = async () => {
-    const trimmedText = newMessageText.trim();
-    if (!trimmedText || !conversation) {
-      return;
+    if (!conversation) return;
+
+    // 如果有预览图片，先上传图片
+    if (previewFiles.length > 0) {
+      setUploading(true);
+      try {
+        for (const previewFile of previewFiles) {
+          const formData = new FormData();
+          formData.append('file', previewFile.file);
+          
+          const uploadEndpoint = '/chat/upload/image';
+          const uploadResponse = await apiClient.post(uploadEndpoint, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          
+          if (!uploadResponse.data.success) {
+            throw new Error(uploadResponse.data.message || '上传失败');
+          }
+
+          const fileData = uploadResponse.data;
+
+          // 发送消息
+          const messagePayload = {
+            type: 'image',
+            content: '[图片消息]',
+            conversationId: conversation.id,
+            attachments: [{
+              url: fileData.url,
+              fileName: previewFile.file.name,
+              size: previewFile.file.size
+            }]
+          };
+
+          await apiClient.post('/chat/messages', messagePayload);
+        }
+
+        // 清除所有预览
+        setPreviewFiles([]);
+        AntMessage.success('图片发送成功');
+      } catch (error: any) {
+        console.error('Failed to upload image:', error);
+        const errorMessage = error?.response?.data?.message || 
+                           (Array.isArray(error?.response?.data) ? error.response.data.join(', ') : error?.message) || 
+                           '图片上传失败';
+        AntMessage.error(errorMessage);
+      } finally {
+        setUploading(false);
+      }
     }
 
-    const payload = {
-      type: 'text',
-      content: trimmedText,
-      conversationId: conversation.id,
-    };
+    // 如果有文本消息，发送文本
+    const trimmedText = newMessageText.trim();
+    if (trimmedText) {
+      const payload = {
+        type: 'text',
+        content: trimmedText,
+        conversationId: conversation.id,
+      };
 
-    try {
-      // Optimistic update can be added here if desired
-      // For now, wait for WebSocket to deliver the message
-      await apiClient.post('/chat/messages', payload);
-      setNewMessageText('');
-      // scrollToBottom(); // Let useEffect handle scroll on chatMessages change
-    } catch (error: any) {
-      console.error('Failed to send message:', error);
-      AntMessage.error(error?.response?.data?.message || error?.backendMessage || '发送消息失败');
+      try {
+        await apiClient.post('/chat/messages', payload);
+        setNewMessageText('');
+      } catch (error: any) {
+        console.error('Failed to send message:', error);
+        AntMessage.error(error?.response?.data?.message || error?.message || '发送消息失败');
+      }
     }
   };
+
+  // 移除预览图片
+  const handleRemovePreview = (index: number) => {
+    setPreviewFiles(prev => {
+      const newFiles = [...prev];
+      URL.revokeObjectURL(newFiles[index].previewUrl);
+      newFiles.splice(index, 1);
+      return newFiles;
+    });
+  };
+
+  // 在组件卸载时清理预览URL
+  useEffect(() => {
+    return () => {
+      previewFiles.forEach(file => {
+        URL.revokeObjectURL(file.previewUrl);
+      });
+    };
+  }, []);
 
   // 渲染消息内容
   const renderMessageContent = (message: DisplayMessage) => {
@@ -446,67 +526,96 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
           style={{ height: `${footerHeight}px` }}
         >
           <div className="resize-handle" onMouseDown={handleMouseDownResize}></div>
-          <div className="toolbar-icons">
-            <span>
-              <ExpressionIcon />
-            </span>
-            <span 
-              onClick={() => !uploading && imageInputRef.current?.click()}
-              className={uploading ? 'disabled' : ''}
-            >
-              {uploading ? <LoadingOutlined /> : <ImageIcon />}
-              <input
-                type="file"
-                ref={imageInputRef}
-                style={{ display: 'none' }}
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={(e) => handleFileUpload(e.target.files, 'image')}
-                disabled={uploading}
-              />
-            </span>
-            <span 
-              onClick={() => !uploading && fileInputRef.current?.click()}
-              className={uploading ? 'disabled' : ''}
-            >
-              {uploading ? <LoadingOutlined /> : <FileIcon />}
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
-                onChange={(e) => handleFileUpload(e.target.files, 'file')}
-                disabled={uploading}
-              />
-            </span>
-            <span>
-              <AtIcon />
-            </span>
-          </div>
-          <div className="input-field-wrapper">
-            <textarea 
-              className="message-input" 
-              placeholder="输入消息..." 
-              rows={3}
-              value={newMessageText}
-              onChange={(e) => setNewMessageText(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              disabled={uploading}
-            ></textarea>
-            <div className="send-button-container">
-              <Button 
-                type="primary" 
-                className="antd-send-button" 
-                onClick={handleSendMessage}
-                disabled={uploading}
-              >
-                发送
-                <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
-              </Button>
+          <div className="input-container">
+            {previewFiles.length > 0 && (
+              <div className="preview-area">
+                {previewFiles.map((file, index) => (
+                  <div key={index} className="preview-item">
+                    <Image
+                      src={file.previewUrl}
+                      alt="预览图片"
+                      width={80}
+                      style={{ borderRadius: '8px' }}
+                      preview={{
+                        mask: '预览图片',
+                        maskClassName: 'image-preview-mask',
+                        rootClassName: 'preview-root'
+                      }}
+                    />
+                    <div 
+                      className="remove-preview"
+                      onClick={() => handleRemovePreview(index)}
+                    >
+                      ×
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="main-input-area">
+              <div className="toolbar-icons">
+                <span>
+                  <ExpressionIcon />
+                </span>
+                <span 
+                  onClick={() => !uploading && imageInputRef.current?.click()}
+                  className={uploading ? 'disabled' : ''}
+                >
+                  {uploading ? <LoadingOutlined /> : <ImageIcon />}
+                  <input
+                    type="file"
+                    ref={imageInputRef}
+                    style={{ display: 'none' }}
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={(e) => handleFileUpload(e.target.files, 'image')}
+                    disabled={uploading}
+                  />
+                </span>
+                <span 
+                  onClick={() => !uploading && fileInputRef.current?.click()}
+                  className={uploading ? 'disabled' : ''}
+                >
+                  {uploading ? <LoadingOutlined /> : <FileIcon />}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                    onChange={(e) => handleFileUpload(e.target.files, 'file')}
+                    disabled={uploading}
+                  />
+                </span>
+                <span>
+                  <AtIcon />
+                </span>
+              </div>
+              <div className="input-field-wrapper">
+                <textarea 
+                  className="message-input" 
+                  placeholder="输入消息..." 
+                  rows={3}
+                  value={newMessageText}
+                  onChange={(e) => setNewMessageText(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={uploading}
+                ></textarea>
+                <div className="send-button-container">
+                  <Button 
+                    type="primary" 
+                    className="antd-send-button" 
+                    onClick={handleSendMessage}
+                    disabled={uploading}
+                  >
+                    发送
+                    <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </footer>
