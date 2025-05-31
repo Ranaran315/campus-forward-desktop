@@ -565,14 +565,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   };
 
   if (!conversation) {
-    return (
-      <main className="message-content-container">
-        <div className="chat-welcome">
-          <span>💬</span>
-          <p>请选择一个会话或发起新的会话</p>
-        </div>
-      </main>
-    );
+    return null;
   }
 
   return (

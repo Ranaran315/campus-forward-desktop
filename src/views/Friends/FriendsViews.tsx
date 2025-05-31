@@ -18,6 +18,15 @@ import {
 } from '@/types/friends.type'
 import { useAppNotificationsContext } from '@/contexts/AppNotificationsContext'
 
+function FriendWelcomViews() {
+  return (
+    <div className="no-friend-selected">
+      <div className="placeholder-icon">🤝</div>
+      <div className="placeholder-message">选择一个好友查看详情</div>
+    </div>
+  )
+}
+
 function FriendsViews() {
   // 状态定义
   const [categoryGroups, setCategoryGroups] = useState<CategoryGroup[]>([])
@@ -82,7 +91,7 @@ function FriendsViews() {
   // --- 使用 WebSocket Hook ---
   // const { on: socketOn } = useWebSocketContext()
 
-    // 获取好友列表(按分类)
+  // 获取好友列表(按分类)
   const fetchFriends = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -596,10 +605,7 @@ function FriendsViews() {
         {selectedTab !== 'addFriend' &&
           !selectedFriend &&
           selectedTab !== 'requests' && (
-            <div className="no-friend-selected">
-              <div className="placeholder-icon">🤝</div>
-              <div className="placeholder-message">选择一个好友查看详情</div>
-            </div>
+            <FriendWelcomViews></FriendWelcomViews>
           )}
       </main>
 
@@ -607,9 +613,8 @@ function FriendsViews() {
       <ConfirmDialog
         isOpen={isConfirmDeleteFriendOpen}
         title="删除好友"
-        message={`确定要删除好友 "${
-          friendToDelete?.name || ''
-        }" 吗？此操作会解除双方的好友关系。`}
+        message={`确定要删除好友 "${friendToDelete?.name || ''
+          }" 吗？此操作会解除双方的好友关系。`}
         onConfirm={handleDeleteFriendConfirmed}
         onCancel={handleCloseDeleteFriendConfirm}
         confirmText="删除"
@@ -669,9 +674,8 @@ function FriendsViews() {
       <ConfirmDialog
         isOpen={isConfirmDeleteCategoryOpen}
         title="删除好友分组"
-        message={`确定要删除分组 "${
-          categoryToDelete?.name || ''
-        }" 吗？分组内的好友将移至 "我的好友"。`}
+        message={`确定要删除分组 "${categoryToDelete?.name || ''
+          }" 吗？分组内的好友将移至 "我的好友"。`}
         onConfirm={handleDeleteCategoryConfirmed}
         onCancel={() => {
           setIsConfirmDeleteCategoryOpen(false)

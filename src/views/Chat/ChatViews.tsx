@@ -111,6 +111,18 @@ function transformBackendConversationToFrontendConversation(
   }
 }
 
+// 添加欢迎组件
+function ChatWelcome() {
+  return (
+    <main className="chat-content-container">
+      <div className="chat-welcome">
+        <span>💬</span>
+        <p>请选择一个会话以查看详情</p>
+      </div>
+    </main>
+  );
+}
+
 // 使用 AuthContext 中的用户信息
 function ChatViews() {
   const [conversationList, setConversationList] = useState<FrontendConversation[]>([])
@@ -338,15 +350,17 @@ function ChatViews() {
       ) : (
         <ConversationSidebar
           conversations={conversationList}
-          selectedConversationId={selectedConversation?.id || null} // Use renamed state
-          onConversationSelect={handleConversationClick} // Use renamed handler
-          onConversationUpdate={handleConversationUpdate} // 新增 prop
-          onConversationRemove={handleConversationRemove} // 新增 prop
+          selectedConversationId={selectedConversation?.id || null}
+          onConversationSelect={handleConversationClick}
+          onConversationUpdate={handleConversationUpdate}
+          onConversationRemove={handleConversationRemove}
         />
       )}
-      {selectedConversation ? ( // Use renamed state
-        <ConversationDetail conversation={selectedConversation} /> // Use renamed prop and state
-      ) : null}
+      {selectedConversation ? (
+        <ConversationDetail conversation={selectedConversation} />
+      ) : (
+        <ChatWelcome />
+      )}
     </div>
   )
 }

@@ -482,7 +482,9 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #00000073;
+  color: var(--secondary-text-color);
+  font-size: var(--medium-font-size);
+  text-align: center;
 }
 
 .chat-welcome span {
@@ -491,6 +493,6 @@
 }
 
 .chat-welcome p {
-  font-size: 16px;
   margin: 0;
+  color: var(--secondary-text-color);
 }
