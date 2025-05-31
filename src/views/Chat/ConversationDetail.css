@@ -113,6 +113,17 @@
             border-top-right-radius: 4px;
           }
 
+          /* 添加活跃状态样式 */
+          &.active {
+            &.received {
+              background-color: var(--third-background-color);
+            }
+
+            &.sent {
+              background-color: var(--third-background-color);
+            }
+          }
+
           .message-text-content {
             display: flex;
             flex-direction: column;

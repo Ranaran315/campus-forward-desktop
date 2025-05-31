@@ -1,6 +1,7 @@
 import React from 'react';
 import { MenuItemType, MessageContextMenuProps } from '@/types/menu';
 import ContextMenu from '@/components/ContextMenu/ContextMenu';
+import { message } from 'antd';
 
 // 导入本地图标
 import CopyIcon from '@/assets/icons/copy.svg?react';
@@ -22,16 +23,106 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   x,
   y,
   onClose,
+  text,
 }) => {
+  // 处理复制功能
+  const handleCopy = async () => {
+    try {
+      if (type === 'text' && text) {
+        // 复制文本
+        await navigator.clipboard.writeText(text);
+        message.success('文本已复制到剪贴板');
+      } else if (type === 'file' && fileName) {
+        // 复制文件名
+        await navigator.clipboard.writeText(fileName);
+        message.success('文件名已复制到剪贴板');
+      } else if (type === 'image' && filePath) {
+        // 复制图片链接
+        await navigator.clipboard.writeText(filePath);
+        message.success('图片链接已复制到剪贴板');
+      }
+    } catch (error) {
+      console.error('复制失败:', error);
+      message.error('复制失败');
+    }
+    onClose();
+  };
+
+  // 处理文件保存
+  const handleSaveFile = async (saveType: 'default' | 'saveAs') => {
+    try {
+      if (!filePath) {
+        throw new Error('文件路径不存在');
+      }
+
+      const result = await window.electron.ipcRenderer.invoke('save-file', {
+        url: filePath,
+        fileName: fileName || 'unknown',
+        saveType,
+        fileType: type
+      });
+
+      if (result.success) {
+        message.success(saveType === 'default' ? '文件保存成功' : '文件另存为成功');
+      } else {
+        throw new Error(result.error || '保存失败');
+      }
+    } catch (error: any) {
+      console.error('保存文件失败:', error);
+      message.error(error.message || '保存文件失败');
+    }
+    onClose();
+  };
+
+  // 处理使用默认应用打开文件
+  const handleOpenWithDefaultApp = async () => {
+    try {
+      if (!filePath) {
+        throw new Error('文件路径不存在');
+      }
+
+      const result = await window.electron.ipcRenderer.invoke('open-file', {
+        filePath
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || '打开失败');
+      }
+    } catch (error: any) {
+      console.error('打开文件失败:', error);
+      message.error(error.message || '打开文件失败');
+    }
+    onClose();
+  };
+
+  // 处理打开文件所在文件夹
+  const handleOpenContainingFolder = async () => {
+    try {
+      if (!filePath) {
+        throw new Error('文件路径不存在');
+      }
+
+      const result = await window.electron.ipcRenderer.invoke('show-in-folder', {
+        filePath
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || '打开文件夹失败');
+      }
+    } catch (error: any) {
+      console.error('打开文件夹失败:', error);
+      message.error(error.message || '打开文件夹失败');
+    }
+    onClose();
+  };
+
   // 基础菜单项
   const baseMenuItems: MenuItemType[] = [
     {
       key: 'copy',
-      label: '复制',
+      label: type === 'text' ? '复制' : type === 'file' ? '复制文件名' : '复制图片链接',
       icon: <CopyIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: handleCopy,
     },
     {
       key: 'forward',
@@ -68,35 +159,27 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
   const fileMenuItems: MenuItemType[] = [
     {
       key: 'open',
-      label: '使用默认应用打开',
+      label: '打开方式...',
       icon: <OpenFileIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: handleOpenWithDefaultApp,
     },
     {
       key: 'save',
       label: '保存',
       icon: <DownloadIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: () => handleSaveFile('default'),
     },
     {
       key: 'saveAs',
       label: '另存为',
       icon: <SaveAsIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: () => handleSaveFile('saveAs'),
     },
     {
       key: 'openFolder',
       label: '打开所在文件夹',
       icon: <FolderIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: handleOpenContainingFolder,
     },
   ];
 
@@ -106,17 +189,13 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
       key: 'save',
       label: '保存图片',
       icon: <SaveAsIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: () => handleSaveFile('default'),
     },
     {
       key: 'openFolder',
       label: '打开所在文件夹',
       icon: <FolderIcon />,
-      onClick: () => {
-        onClose();
-      },
+      onClick: handleOpenContainingFolder,
     },
   ];
 

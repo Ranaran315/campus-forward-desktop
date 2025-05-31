@@ -600,13 +600,13 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
             return (
               <div 
                 key={msg.id} 
-                className={`message-wrapper ${msg.isSent ? 'sent' : 'received'} ${msg.id === activeMessageId ? 'active' : ''}`}
+                className={`message-wrapper ${msg.isSent ? 'sent' : 'received'}`}
               >
                 {!msg.isSent && (
                   <Avatar src={msg.avatar} size={30} className="message-avatar" />
                 )}
                 <div 
-                  className={`message-bubble ${msg.isSent ? 'sent' : 'received'}`}
+                  className={`message-bubble ${msg.isSent ? 'sent' : 'received'} ${msg.id === activeMessageId ? 'active' : ''}`}
                   onContextMenu={(e) => handleContextMenu(
                     e,
                     msg.type,
@@ -732,6 +732,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       {contextMenu.visible && (
         <MessageContextMenu
           {...contextMenu}
+          text={chatMessages.find(msg => msg.id === activeMessageId)?.text}
           onClose={handleCloseContextMenu}
         />
       )}

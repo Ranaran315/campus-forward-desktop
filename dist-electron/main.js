@@ -10459,47 +10459,96 @@ app$1.whenReady().then(() => {
   });
   createLoginWindow();
   ipcMain$1.handle("select-folder", async () => {
-    const window = BrowserWindow.getFocusedWindow();
-    if (!window) {
-      throw new Error("No focused window");
-    }
-    const result = await dialog.showOpenDialog(window, {
+    const result = await dialog.showOpenDialog({
       properties: ["openDirectory"]
     });
     return result;
   });
-  ipcMain$1.handle("download-file", async (event, { url, fileName }) => {
+  ipcMain$1.handle("save-file", async (_, args) => {
     try {
-      const savedPath = store.get("downloadPath") || app$1.getPath("downloads");
-      const filePath = path.join(savedPath, fileName);
-      const fileStream = fs.createWriteStream(filePath);
-      const httpModule = url.startsWith("https") ? https$1 : http$1;
-      return new Promise((resolve2, reject) => {
-        const request = httpModule.get(url, (response) => {
+      const { url, fileName, saveType, fileType } = args;
+      let savePath;
+      if (saveType === "default") {
+        const defaultPath = store.get(`${fileType}Path`);
+        if (!defaultPath) {
+          throw new Error(`请先在设置中配置${fileType === "file" ? "文件" : "图片"}保存路径`);
+        }
+        savePath = path.join(defaultPath, fileName);
+      } else {
+        const result = await dialog.showSaveDialog({
+          defaultPath: fileName,
+          filters: fileType === "image" ? [{ name: "图片", extensions: ["jpg", "jpeg", "png", "gif", "webp"] }] : [{ name: "所有文件", extensions: ["*"] }]
+        });
+        if (result.canceled || !result.filePath) {
+          return { success: false, error: "用户取消保存" };
+        }
+        savePath = result.filePath;
+      }
+      return new Promise((resolve2) => {
+        const protocol = url.startsWith("https") ? https$1 : http$1;
+        protocol.get(url, (response) => {
           if (response.statusCode !== 200) {
-            reject(new Error(`Failed to download file: ${response.statusCode}`));
+            resolve2({ success: false, error: `下载失败: ${response.statusCode}` });
             return;
           }
-          response.pipe(fileStream);
-          fileStream.on("finish", () => {
-            fileStream.close();
-            resolve2({ success: true, filePath });
+          const file = fs.createWriteStream(savePath);
+          response.pipe(file);
+          file.on("finish", () => {
+            file.close();
+            resolve2({ success: true });
           });
-        });
-        request.on("error", (err) => {
-          fs.unlink(filePath, () => {
+          file.on("error", (err) => {
+            fs.unlink(savePath, () => {
+            });
+            resolve2({ success: false, error: err.message });
           });
-          reject(err);
-        });
-        fileStream.on("error", (err) => {
-          fs.unlink(filePath, () => {
-          });
-          reject(err);
+        }).on("error", (err) => {
+          resolve2({ success: false, error: err.message });
         });
       });
     } catch (error2) {
-      const errorMessage = error2 instanceof Error ? error2.message : String(error2);
-      throw new Error(`Download failed: ${errorMessage}`);
+      return { success: false, error: error2.message };
+    }
+  });
+  ipcMain$1.handle("open-file", async (_, args) => {
+    try {
+      const tempFile = path.join(app$1.getPath("temp"), path.basename(args.filePath));
+      await new Promise((resolve2, reject) => {
+        const protocol = args.filePath.startsWith("https") ? https$1 : http$1;
+        protocol.get(args.filePath, (response) => {
+          if (response.statusCode !== 200) {
+            reject(new Error(`下载失败: ${response.statusCode}`));
+            return;
+          }
+          const file = fs.createWriteStream(tempFile);
+          response.pipe(file);
+          file.on("finish", () => {
+            file.close();
+            resolve2();
+          });
+          file.on("error", (err) => {
+            fs.unlink(tempFile, () => {
+            });
+            reject(err);
+          });
+        }).on("error", reject);
+      });
+      if (process.platform === "win32") {
+        await shell$1.openExternal(`shell:AppsFolder\\Windows.SystemApps.OpenWith_cw5n1h2txyewy!App ${tempFile}`);
+      } else {
+        await shell$1.openPath(tempFile);
+      }
+      return { success: true };
+    } catch (error2) {
+      return { success: false, error: error2.message };
+    }
+  });
+  ipcMain$1.handle("show-in-folder", async (_, args) => {
+    try {
+      await shell$1.showItemInFolder(args.filePath);
+      return { success: true };
+    } catch (error2) {
+      return { success: false, error: error2.message };
     }
   });
   ipcMain$1.handle("get-store-value", (event, key) => {

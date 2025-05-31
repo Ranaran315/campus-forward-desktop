@@ -232,65 +232,126 @@ app.whenReady().then(() => {
   createLoginWindow()
   // ------------------------------------------
 
-  // 处理选择文件夹
+  // 选择文件夹
   ipcMain.handle('select-folder', async () => {
-    const window = BrowserWindow.getFocusedWindow()
-    if (!window) {
-      throw new Error('No focused window')
-    }
-
-    const result = await dialog.showOpenDialog(window, {
+    const result = await dialog.showOpenDialog({
       properties: ['openDirectory']
     })
-
     return result
   })
 
-  // 处理文件下载
-  ipcMain.handle('download-file', async (event, { url, fileName }) => {
+  // 保存文件
+  ipcMain.handle('save-file', async (_, args: { url: string; fileName: string; saveType: 'default' | 'saveAs'; fileType: 'file' | 'image' }) => {
     try {
-      // 使用 electron-store 获取下载路径，如果没有则使用默认的下载文件夹
-      const savedPath = store.get('downloadPath') as string || app.getPath('downloads')
-      const filePath = path.join(savedPath, fileName)
+      const { url, fileName, saveType, fileType } = args;
+      
+      // 获取保存路径
+      let savePath: string;
+      if (saveType === 'default') {
+        // 使用默认路径
+        const defaultPath = store.get(`${fileType}Path`) as string;
+        if (!defaultPath) {
+          throw new Error(`请先在设置中配置${fileType === 'file' ? '文件' : '图片'}保存路径`);
+        }
+        savePath = path.join(defaultPath, fileName);
+      } else {
+        // 让用户选择保存位置
+        const result = await dialog.showSaveDialog({
+          defaultPath: fileName,
+          filters: fileType === 'image' 
+            ? [{ name: '图片', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }]
+            : [{ name: '所有文件', extensions: ['*'] }]
+        });
+        
+        if (result.canceled || !result.filePath) {
+          return { success: false, error: '用户取消保存' };
+        }
+        savePath = result.filePath;
+      }
 
-      // 创建写入流
-      const fileStream = fs.createWriteStream(filePath)
-
-      // 根据URL选择使用http还是https模块
-      const httpModule = url.startsWith('https') ? https : http
-
-      return new Promise((resolve, reject) => {
-        const request = httpModule.get(url, (response) => {
-          // 检查响应状态码
+      // 下载文件
+      return new Promise((resolve) => {
+        const protocol = url.startsWith('https') ? https : http;
+        protocol.get(url, (response) => {
           if (response.statusCode !== 200) {
-            reject(new Error(`Failed to download file: ${response.statusCode}`))
-            return
+            resolve({ success: false, error: `下载失败: ${response.statusCode}` });
+            return;
           }
 
-          // 将响应流写入文件
-          response.pipe(fileStream)
+          const file = fs.createWriteStream(savePath);
+          response.pipe(file);
 
-          fileStream.on('finish', () => {
-            fileStream.close()
-            resolve({ success: true, filePath })
-          })
-        })
+          file.on('finish', () => {
+            file.close();
+            resolve({ success: true });
+          });
 
-        request.on('error', (err) => {
-          fs.unlink(filePath, () => {}) // 删除未完成的文件
-          reject(err)
-        })
-
-        fileStream.on('error', (err) => {
-          fs.unlink(filePath, () => {}) // 删除未完成的文件
-          reject(err)
-        })
-      })
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      throw new Error(`Download failed: ${errorMessage}`)
+          file.on('error', (err) => {
+            fs.unlink(savePath, () => {});
+            resolve({ success: false, error: err.message });
+          });
+        }).on('error', (err) => {
+          resolve({ success: false, error: err.message });
+        });
+      });
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
-  })
+  });
+
+  // 使用默认应用打开文件
+  ipcMain.handle('open-file', async (_, args: { filePath: string }) => {
+    try {
+      // 首先下载文件到临时目录
+      const tempFile = path.join(app.getPath('temp'), path.basename(args.filePath));
+      
+      // 下载文件
+      await new Promise<void>((resolve, reject) => {
+        const protocol = args.filePath.startsWith('https') ? https : http;
+        protocol.get(args.filePath, (response) => {
+          if (response.statusCode !== 200) {
+            reject(new Error(`下载失败: ${response.statusCode}`));
+            return;
+          }
+
+          const file = fs.createWriteStream(tempFile);
+          response.pipe(file);
+
+          file.on('finish', () => {
+            file.close();
+            resolve();
+          });
+
+          file.on('error', (err) => {
+            fs.unlink(tempFile, () => {});
+            reject(err);
+          });
+        }).on('error', reject);
+      });
+
+      // 在 Windows 上使用 shell.openExternal 来显示"打开方式"对话框
+      if (process.platform === 'win32') {
+        await shell.openExternal(`shell:AppsFolder\\Windows.SystemApps.OpenWith_cw5n1h2txyewy!App ${tempFile}`);
+      } else {
+        // 在其他平台上使用默认的打开方式
+        await shell.openPath(tempFile);
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  // 在文件夹中显示
+  ipcMain.handle('show-in-folder', async (_, args: { filePath: string }) => {
+    try {
+      await shell.showItemInFolder(args.filePath);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
 
   // 处理 electron-store 操作
   ipcMain.handle('get-store-value', (event, key: string) => {

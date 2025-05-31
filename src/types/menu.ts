@@ -17,6 +17,7 @@ export interface MessageContextMenuProps {
   isSent: boolean;
   fileName?: string;
   filePath?: string;
+  text?: string;
   visible: boolean;
   x: number;
   y: number;
