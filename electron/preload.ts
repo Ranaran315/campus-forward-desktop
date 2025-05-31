@@ -1,6 +1,23 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
 // --------- 暴露一些 ipcRender 给渲染进程  ---------
+contextBridge.exposeInMainWorld('electron', {
+  ipcRenderer: {
+    invoke: (channel: string, ...args: any[]) => {
+      const validChannels = [
+        'select-folder', 
+        'download-file',
+        'get-store-value',
+        'set-store-value'
+      ];
+      if (validChannels.includes(channel)) {
+        return ipcRenderer.invoke(channel, ...args);
+      }
+      return Promise.reject(new Error(`Invalid channel: ${channel}`));
+    }
+  }
+})
+
 contextBridge.exposeInMainWorld('ipcRenderer', {
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args

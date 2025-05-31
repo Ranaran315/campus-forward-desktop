@@ -1,8 +1,11 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import Store from 'electron-store'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
+import * as fs from 'fs'
+import * as https from 'https'
+import * as http from 'http'
 
 const store = new Store()
 console.log('Electron Store Path:', store.path)
@@ -228,4 +231,74 @@ app.whenReady().then(() => {
   // --- 启动逻辑：始终创建登录窗口 ---
   createLoginWindow()
   // ------------------------------------------
+
+  // 处理选择文件夹
+  ipcMain.handle('select-folder', async () => {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) {
+      throw new Error('No focused window')
+    }
+
+    const result = await dialog.showOpenDialog(window, {
+      properties: ['openDirectory']
+    })
+
+    return result
+  })
+
+  // 处理文件下载
+  ipcMain.handle('download-file', async (event, { url, fileName }) => {
+    try {
+      // 使用 electron-store 获取下载路径，如果没有则使用默认的下载文件夹
+      const savedPath = store.get('downloadPath') as string || app.getPath('downloads')
+      const filePath = path.join(savedPath, fileName)
+
+      // 创建写入流
+      const fileStream = fs.createWriteStream(filePath)
+
+      // 根据URL选择使用http还是https模块
+      const httpModule = url.startsWith('https') ? https : http
+
+      return new Promise((resolve, reject) => {
+        const request = httpModule.get(url, (response) => {
+          // 检查响应状态码
+          if (response.statusCode !== 200) {
+            reject(new Error(`Failed to download file: ${response.statusCode}`))
+            return
+          }
+
+          // 将响应流写入文件
+          response.pipe(fileStream)
+
+          fileStream.on('finish', () => {
+            fileStream.close()
+            resolve({ success: true, filePath })
+          })
+        })
+
+        request.on('error', (err) => {
+          fs.unlink(filePath, () => {}) // 删除未完成的文件
+          reject(err)
+        })
+
+        fileStream.on('error', (err) => {
+          fs.unlink(filePath, () => {}) // 删除未完成的文件
+          reject(err)
+        })
+      })
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      throw new Error(`Download failed: ${errorMessage}`)
+    }
+  })
+
+  // 处理 electron-store 操作
+  ipcMain.handle('get-store-value', (event, key: string) => {
+    return store.get(key);
+  });
+
+  ipcMain.handle('set-store-value', (event, key: string, value: any) => {
+    store.set(key, value);
+    return true;
+  });
 })

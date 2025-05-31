@@ -9,15 +9,18 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var _validator, _encryptionKey, _options, _defaultValues;
-import electron, { app as app$1, session, ipcMain as ipcMain$1, BrowserWindow, shell as shell$1 } from "electron";
+import electron, { app as app$1, session, ipcMain as ipcMain$1, BrowserWindow, dialog, shell as shell$1 } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import process$1 from "node:process";
 import { promisify, isDeepStrictEqual } from "node:util";
-import fs from "node:fs";
+import fs$1 from "node:fs";
 import crypto from "node:crypto";
 import assert from "node:assert";
 import os from "node:os";
+import * as fs from "fs";
+import * as https$1 from "https";
+import * as http$1 from "http";
 const isObject = (value) => {
   const type2 = typeof value;
   return value !== null && (type2 === "object" || type2 === "function");
@@ -425,44 +428,44 @@ const retryifySync = (fn, isRetriableError) => {
 const FS = {
   attempt: {
     /* ASYNC */
-    chmod: attemptifyAsync(promisify(fs.chmod), Handlers.onChangeError),
-    chown: attemptifyAsync(promisify(fs.chown), Handlers.onChangeError),
-    close: attemptifyAsync(promisify(fs.close), NOOP),
-    fsync: attemptifyAsync(promisify(fs.fsync), NOOP),
-    mkdir: attemptifyAsync(promisify(fs.mkdir), NOOP),
-    realpath: attemptifyAsync(promisify(fs.realpath), NOOP),
-    stat: attemptifyAsync(promisify(fs.stat), NOOP),
-    unlink: attemptifyAsync(promisify(fs.unlink), NOOP),
+    chmod: attemptifyAsync(promisify(fs$1.chmod), Handlers.onChangeError),
+    chown: attemptifyAsync(promisify(fs$1.chown), Handlers.onChangeError),
+    close: attemptifyAsync(promisify(fs$1.close), NOOP),
+    fsync: attemptifyAsync(promisify(fs$1.fsync), NOOP),
+    mkdir: attemptifyAsync(promisify(fs$1.mkdir), NOOP),
+    realpath: attemptifyAsync(promisify(fs$1.realpath), NOOP),
+    stat: attemptifyAsync(promisify(fs$1.stat), NOOP),
+    unlink: attemptifyAsync(promisify(fs$1.unlink), NOOP),
     /* SYNC */
-    chmodSync: attemptifySync(fs.chmodSync, Handlers.onChangeError),
-    chownSync: attemptifySync(fs.chownSync, Handlers.onChangeError),
-    closeSync: attemptifySync(fs.closeSync, NOOP),
-    existsSync: attemptifySync(fs.existsSync, NOOP),
-    fsyncSync: attemptifySync(fs.fsync, NOOP),
-    mkdirSync: attemptifySync(fs.mkdirSync, NOOP),
-    realpathSync: attemptifySync(fs.realpathSync, NOOP),
-    statSync: attemptifySync(fs.statSync, NOOP),
-    unlinkSync: attemptifySync(fs.unlinkSync, NOOP)
+    chmodSync: attemptifySync(fs$1.chmodSync, Handlers.onChangeError),
+    chownSync: attemptifySync(fs$1.chownSync, Handlers.onChangeError),
+    closeSync: attemptifySync(fs$1.closeSync, NOOP),
+    existsSync: attemptifySync(fs$1.existsSync, NOOP),
+    fsyncSync: attemptifySync(fs$1.fsync, NOOP),
+    mkdirSync: attemptifySync(fs$1.mkdirSync, NOOP),
+    realpathSync: attemptifySync(fs$1.realpathSync, NOOP),
+    statSync: attemptifySync(fs$1.statSync, NOOP),
+    unlinkSync: attemptifySync(fs$1.unlinkSync, NOOP)
   },
   retry: {
     /* ASYNC */
-    close: retryifyAsync(promisify(fs.close), Handlers.isRetriableError),
-    fsync: retryifyAsync(promisify(fs.fsync), Handlers.isRetriableError),
-    open: retryifyAsync(promisify(fs.open), Handlers.isRetriableError),
-    readFile: retryifyAsync(promisify(fs.readFile), Handlers.isRetriableError),
-    rename: retryifyAsync(promisify(fs.rename), Handlers.isRetriableError),
-    stat: retryifyAsync(promisify(fs.stat), Handlers.isRetriableError),
-    write: retryifyAsync(promisify(fs.write), Handlers.isRetriableError),
-    writeFile: retryifyAsync(promisify(fs.writeFile), Handlers.isRetriableError),
+    close: retryifyAsync(promisify(fs$1.close), Handlers.isRetriableError),
+    fsync: retryifyAsync(promisify(fs$1.fsync), Handlers.isRetriableError),
+    open: retryifyAsync(promisify(fs$1.open), Handlers.isRetriableError),
+    readFile: retryifyAsync(promisify(fs$1.readFile), Handlers.isRetriableError),
+    rename: retryifyAsync(promisify(fs$1.rename), Handlers.isRetriableError),
+    stat: retryifyAsync(promisify(fs$1.stat), Handlers.isRetriableError),
+    write: retryifyAsync(promisify(fs$1.write), Handlers.isRetriableError),
+    writeFile: retryifyAsync(promisify(fs$1.writeFile), Handlers.isRetriableError),
     /* SYNC */
-    closeSync: retryifySync(fs.closeSync, Handlers.isRetriableError),
-    fsyncSync: retryifySync(fs.fsyncSync, Handlers.isRetriableError),
-    openSync: retryifySync(fs.openSync, Handlers.isRetriableError),
-    readFileSync: retryifySync(fs.readFileSync, Handlers.isRetriableError),
-    renameSync: retryifySync(fs.renameSync, Handlers.isRetriableError),
-    statSync: retryifySync(fs.statSync, Handlers.isRetriableError),
-    writeSync: retryifySync(fs.writeSync, Handlers.isRetriableError),
-    writeFileSync: retryifySync(fs.writeFileSync, Handlers.isRetriableError)
+    closeSync: retryifySync(fs$1.closeSync, Handlers.isRetriableError),
+    fsyncSync: retryifySync(fs$1.fsyncSync, Handlers.isRetriableError),
+    openSync: retryifySync(fs$1.openSync, Handlers.isRetriableError),
+    readFileSync: retryifySync(fs$1.readFileSync, Handlers.isRetriableError),
+    renameSync: retryifySync(fs$1.renameSync, Handlers.isRetriableError),
+    statSync: retryifySync(fs$1.statSync, Handlers.isRetriableError),
+    writeSync: retryifySync(fs$1.writeSync, Handlers.isRetriableError),
+    writeFileSync: retryifySync(fs$1.writeFileSync, Handlers.isRetriableError)
   }
 };
 const DEFAULT_ENCODING = "utf8";
@@ -9943,7 +9946,7 @@ class Conf {
   }
   get store() {
     try {
-      const data = fs.readFileSync(this.path, __privateGet(this, _encryptionKey) ? null : "utf8");
+      const data = fs$1.readFileSync(this.path, __privateGet(this, _encryptionKey) ? null : "utf8");
       const dataString = this._encryptData(data);
       const deserializedData = this._deserialize(dataString);
       this._validate(deserializedData);
@@ -10013,7 +10016,7 @@ class Conf {
     throw new Error("Config schema violation: " + errors2.join("; "));
   }
   _ensureDirectory() {
-    fs.mkdirSync(path.dirname(this.path), { recursive: true });
+    fs$1.mkdirSync(path.dirname(this.path), { recursive: true });
   }
   _write(value) {
     let data = this._serialize(value);
@@ -10024,13 +10027,13 @@ class Conf {
       data = concatUint8Arrays([initializationVector, stringToUint8Array(":"), cipher.update(stringToUint8Array(data)), cipher.final()]);
     }
     if (process$1.env.SNAP) {
-      fs.writeFileSync(this.path, data, { mode: __privateGet(this, _options).configFileMode });
+      fs$1.writeFileSync(this.path, data, { mode: __privateGet(this, _options).configFileMode });
     } else {
       try {
         writeFileSync(this.path, data, { mode: __privateGet(this, _options).configFileMode });
       } catch (error2) {
         if ((error2 == null ? void 0 : error2.code) === "EXDEV") {
-          fs.writeFileSync(this.path, data, { mode: __privateGet(this, _options).configFileMode });
+          fs$1.writeFileSync(this.path, data, { mode: __privateGet(this, _options).configFileMode });
           return;
         }
         throw error2;
@@ -10039,15 +10042,15 @@ class Conf {
   }
   _watch() {
     this._ensureDirectory();
-    if (!fs.existsSync(this.path)) {
+    if (!fs$1.existsSync(this.path)) {
       this._write(createPlainObject());
     }
     if (process$1.platform === "win32") {
-      fs.watch(this.path, { persistent: false }, debounceFunction(() => {
+      fs$1.watch(this.path, { persistent: false }, debounceFunction(() => {
         this.events.dispatchEvent(new Event("change"));
       }, { wait: 100 }));
     } else {
-      fs.watchFile(this.path, { persistent: false }, debounceFunction(() => {
+      fs$1.watchFile(this.path, { persistent: false }, debounceFunction(() => {
         this.events.dispatchEvent(new Event("change"));
       }, { wait: 5e3 }));
     }
@@ -10455,6 +10458,57 @@ app$1.whenReady().then(() => {
     mainWin == null ? void 0 : mainWin.close();
   });
   createLoginWindow();
+  ipcMain$1.handle("select-folder", async () => {
+    const window = BrowserWindow.getFocusedWindow();
+    if (!window) {
+      throw new Error("No focused window");
+    }
+    const result = await dialog.showOpenDialog(window, {
+      properties: ["openDirectory"]
+    });
+    return result;
+  });
+  ipcMain$1.handle("download-file", async (event, { url, fileName }) => {
+    try {
+      const savedPath = store.get("downloadPath") || app$1.getPath("downloads");
+      const filePath = path.join(savedPath, fileName);
+      const fileStream = fs.createWriteStream(filePath);
+      const httpModule = url.startsWith("https") ? https$1 : http$1;
+      return new Promise((resolve2, reject) => {
+        const request = httpModule.get(url, (response) => {
+          if (response.statusCode !== 200) {
+            reject(new Error(`Failed to download file: ${response.statusCode}`));
+            return;
+          }
+          response.pipe(fileStream);
+          fileStream.on("finish", () => {
+            fileStream.close();
+            resolve2({ success: true, filePath });
+          });
+        });
+        request.on("error", (err) => {
+          fs.unlink(filePath, () => {
+          });
+          reject(err);
+        });
+        fileStream.on("error", (err) => {
+          fs.unlink(filePath, () => {
+          });
+          reject(err);
+        });
+      });
+    } catch (error2) {
+      const errorMessage = error2 instanceof Error ? error2.message : String(error2);
+      throw new Error(`Download failed: ${errorMessage}`);
+    }
+  });
+  ipcMain$1.handle("get-store-value", (event, key) => {
+    return store.get(key);
+  });
+  ipcMain$1.handle("set-store-value", (event, key, value) => {
+    store.set(key, value);
+    return true;
+  });
 });
 export {
   MAIN_DIST,

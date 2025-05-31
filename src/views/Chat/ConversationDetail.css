@@ -160,9 +160,16 @@
               background-color: var(--primary-background-color);
               border-radius: 8px;
               overflow: hidden;
-              cursor: pointer;
               min-width: 240px;
               max-width: 320px;
+
+              &.clickable {
+                cursor: pointer;
+
+                &:hover {
+                  background-color: var(--hover-background-color);
+                }
+              }
 
               .file-content {
                 padding: 12px;
@@ -196,6 +203,14 @@
               .file-size {
                 font-size: 12px;
                 color: var(--secondary-text-color);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              }
+
+              .download-hint {
+                color: var(--primary-color);
+                font-size: 12px;
               }
 
               .file-overlay {

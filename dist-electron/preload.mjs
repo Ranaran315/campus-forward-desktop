@@ -1,5 +1,21 @@
 "use strict";
 const electron = require("electron");
+electron.contextBridge.exposeInMainWorld("electron", {
+  ipcRenderer: {
+    invoke: (channel, ...args) => {
+      const validChannels = [
+        "select-folder",
+        "download-file",
+        "get-store-value",
+        "set-store-value"
+      ];
+      if (validChannels.includes(channel)) {
+        return electron.ipcRenderer.invoke(channel, ...args);
+      }
+      return Promise.reject(new Error(`Invalid channel: ${channel}`));
+    }
+  }
+});
 electron.contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args) {
     const [channel, listener] = args;

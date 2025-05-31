@@ -436,7 +436,25 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     };
   }, []);
 
-  // 渲染消息内容
+  const handleFileDownload = async (url: string, fileName: string) => {
+    try {
+      const result = await window.electron.ipcRenderer.invoke('download-file', {
+        url: getAttachmentUrl(url),
+        fileName
+      });
+
+      if (result.success) {
+        AntMessage.success(`文件已下载到: ${result.filePath}`);
+      } else {
+        throw new Error('下载失败');
+      }
+    } catch (error: any) {
+      console.error('文件下载失败:', error);
+      AntMessage.error(error?.message || '文件下载失败');
+    }
+  };
+
+  // 修改文件消息渲染
   const renderMessageContent = (message: DisplayMessage) => {
     switch (message.type) {
       case 'image':
@@ -457,7 +475,11 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
         ));
       case 'file':
         return message.attachments?.map((attachment, index) => (
-          <div key={index} className="message-file">
+          <div 
+            key={index} 
+            className={`message-file ${!message.isSent ? 'clickable' : ''}`}
+            onClick={() => !message.isSent && handleFileDownload(attachment.url, attachment.fileName)}
+          >
             <div className="file-content">
               <div className="file-info">
                 <img 
@@ -471,14 +493,9 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
               </div>
               <div className="file-size">
                 {formatFileSize(attachment.size)}
+                {!message.isSent && <span className="download-hint">点击下载</span>}
               </div>
             </div>
-            <a 
-              href={getAttachmentUrl(attachment.url)} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="file-overlay"
-            />
           </div>
         ));
       default:
