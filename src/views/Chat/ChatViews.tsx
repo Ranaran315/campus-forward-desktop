@@ -11,6 +11,7 @@ import { formatDateTime } from '@/utils/dateUtils'
 import apiClient from '@/lib/axios'; // Import apiClient
 import { Spin, Alert } from 'antd'; // Import Spin and Alert
 import { useWebSocketContext } from '@/contexts/WebSocketProvider'; // Import WebSocket context
+import { useAuth } from '@/contexts/AuthContext' // 导入 useAuth
 
 // Renamed from Message to ConversationSummary
 export interface ConversationSummary { // 类型被 ConversationDetail.tsx 用作 ConversationSummaryMessage
@@ -69,22 +70,6 @@ export interface FrontendConversation {
   type: 'private' | 'group'; // 添加会话类型，方便前端逻辑处理
 }
 
-// ENSURE getCurrentUserId function is present and as per original logic
-const getCurrentUserId = (): string => {
-  const storedUser = localStorage.getItem('userInfo') 
-  if (storedUser) {
-    try {
-      const parsedUser = JSON.parse(storedUser)
-      const userIdToReturn = parsedUser?._id || 'currentUserPlaceholderId';
-      return userIdToReturn;
-    } catch (e) {
-      console.error("Failed to parse user from localStorage", e) 
-      return 'currentUserPlaceholderId'
-    }
-  }
-  return 'currentUserPlaceholderId'
-}
-
 // Renamed function
 function transformBackendConversationToFrontendConversation(
   conversation: BackendConversation & { isPinned?: boolean, unreadCount?: number }, // 添加 isPinned 和 unreadCount 到 BackendConversation 的临时类型中断言
@@ -126,16 +111,20 @@ function transformBackendConversationToFrontendConversation(
   }
 }
 
+// 使用 AuthContext 中的用户信息
 function ChatViews() {
-  const [conversationList, setConversationList] = useState<FrontendConversation[]>([]) 
+  const [conversationList, setConversationList] = useState<FrontendConversation[]>([])
   const [selectedConversation, setSelectedConversation] = useState<FrontendConversation | null>(null)
-  const [conversationsLoading, setConversationsLoading] = useState<boolean>(true); 
-  const [conversationsError, setConversationsError] = useState<string | null>(null); 
+  const [conversationsLoading, setConversationsLoading] = useState<boolean>(true)
+  const [conversationsError, setConversationsError] = useState<string | null>(null)
 
   const location = useLocation()
   const navigate = useNavigate()
-  const currentUserId = getCurrentUserId(); // Use the local function
-  const { on: webSocketOn } = useWebSocketContext(); 
+  const { user: currentUser } = useAuth() // 使用 AuthContext 中的用户信息
+  const { on: webSocketOn } = useWebSocketContext()
+
+  // 获取当前用户ID
+  const currentUserId = currentUser?.sub || 'currentUserPlaceholderId'
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -177,17 +166,10 @@ function ChatViews() {
                       // might use a stale or initial (potentially placeholder) currentUserId if it changes later.
 
   useEffect(() => {
-    // REMOVED pre-checks for webSocketOn and currentUserId
-    // This might lead to errors if webSocketOn is null or currentUserId is placeholder when used inside.
-    
     // Ensure webSocketOn is available before trying to use it.
     if (!webSocketOn) return; 
-    // It's still safer to check currentUserId if it's used for comparisons, 
-    // but per request, strict pre-check is removed. User must be aware of potential issues.
 
     const handleUnreadCountUpdate = (data: { conversationId: string, unreadCount: number, targetUserId?: string }) => {
-      // The check for targetUserId still needs currentUserId.
-      // If currentUserId is 'currentUserPlaceholderId', this comparison might behave unexpectedly.
       if (data.targetUserId && data.targetUserId !== currentUserId) {
         return;
       }
@@ -200,14 +182,59 @@ function ChatViews() {
       );
     };
 
-    const unsubscribe = webSocketOn('unreadCountUpdated', handleUnreadCountUpdate);
+    // 添加新消息处理器
+    const handleNewMessage = (message: any) => {
+      let msgConvId: string;
+      let senderId = '';
+
+      // 提取会话ID
+      if (message.conversation && typeof message.conversation === 'object' && message.conversation._id) {
+        msgConvId = message.conversation._id;
+      } else if (typeof message.conversation === 'string') {
+        msgConvId = message.conversation;
+      } else if (message.conversationId) {
+        msgConvId = message.conversationId;
+      } else {
+        console.warn('[ChatViews handleNewMessage] Could not extract conversationId from message:', message);
+        return;
+      }
+
+      // 提取发送者ID
+      if (typeof message.sender === 'string') {
+        senderId = message.sender;
+      } else if (message.sender && typeof message.sender === 'object') {
+        // 根据后端返回的格式调整
+        senderId = message.sender._id || message.sender.sub || '';
+      }
+
+      // 更新会话列表
+      setConversationList(prevList => {
+        const existingConv = prevList.find(c => c.id === msgConvId);
+        if (existingConv) {
+          const updatedConv = {
+            ...existingConv,
+            content: message.content,
+            timestamp: new Date(message.createdAt).toISOString(),
+            // 只有当当前用户不是发送者时才增加未读数
+            unreadCount: senderId !== currentUserId 
+              ? (existingConv.unreadCount || 0) + 1 
+              : existingConv.unreadCount
+          };
+          const listWithoutOriginal = prevList.filter(c => c.id !== msgConvId);
+          return [updatedConv, ...listWithoutOriginal];
+        }
+        return prevList;
+      });
+    };
+
+    const unsubscribeUnreadCount = webSocketOn('unreadCountUpdated', handleUnreadCountUpdate);
+    const unsubscribeNewMessage = webSocketOn('chat:newMessage', handleNewMessage);
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      if (unsubscribeUnreadCount) unsubscribeUnreadCount();
+      if (unsubscribeNewMessage) unsubscribeNewMessage();
     };
-  }, [webSocketOn, currentUserId, setConversationList]); // Dependencies remain as they are used in the effect.
+  }, [webSocketOn, currentUserId, setConversationList]);
 
   useEffect(() => {
     // REMOVED pre-checks for currentUserId
