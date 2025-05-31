@@ -12,6 +12,7 @@ import './ConversationSidebar.css';
 import { formatMessageTime } from '@/utils/dateUtils';
 import apiClient from '@/lib/axios';
 import { message as antdMessage } from 'antd';
+import CreateGroupModal from './CreateGroupModal';
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -32,6 +33,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
 
   const handleItemContextMenu = (event: React.MouseEvent, conversation: Conversation) => {
     event.preventDefault();
@@ -142,6 +144,19 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
     setShowAddMenu(true);
   };
 
+  // 处理群聊创建成功
+  const handleGroupCreated = (conversationId: string) => {
+    // 关闭所有弹窗
+    setShowCreateGroupModal(false);
+    setShowAddMenu(false);
+    
+    // 找到新创建的会话并选中它
+    const newConversation = conversations.find(conv => conv.id === conversationId);
+    if (newConversation) {
+      onConversationSelect(newConversation);
+    }
+  };
+
   // 添加菜单项
   const addMenuItems: ContextMenuItem[] = [
     {
@@ -149,8 +164,8 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
       icon: <GroupIcon />,
       label: '创建群聊',
       onClick: () => {
-        // TODO: 实现创建群聊功能
         setShowAddMenu(false);
+        setShowCreateGroupModal(true);
       },
     }
   ];
@@ -228,6 +243,12 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
           onClose={() => setShowAddMenu(false)}
         />
       )}
+
+      <CreateGroupModal
+        visible={showCreateGroupModal}
+        onClose={() => setShowCreateGroupModal(false)}
+        onSuccess={handleGroupCreated}
+      />
     </aside>
   );
 };
