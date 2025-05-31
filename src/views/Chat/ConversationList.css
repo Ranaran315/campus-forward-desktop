@@ -4,7 +4,7 @@
     /* 设置最大宽度 */
     background-color: var(--primary-background-color);
     border-radius: 8px;
-    padding: 20px;
+    padding: 20px 10px;
     overflow-y: auto;
 
     /* 允许消息列表滚动 */
@@ -21,13 +21,21 @@
         .conversation-item {
             width: 100%;
             padding: 15px;
-            border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s ease;
             display: flex;
             align-items: center;
             gap: 10px;
             box-sizing: border-box;
+            position: relative; /* 为未读指示器添加定位上下文 */
+            &:first-child {
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
+            }
+            &:last-child {
+                border-bottom-left-radius: 8px;
+                border-bottom-right-radius: 8px;
+            }
 
             &.pinned {
                 background-color: var(--third-background-color);
@@ -81,6 +89,16 @@
                     color: var(--secondary-text-color);
                 }
             }
+
+            .unread-indicator {
+                width: 8px;
+                height: 8px;
+                background-color: red;
+                border-radius: 50%;
+                position: absolute;
+                top: 18px;
+                right: 10px;
+            }
         }
     }
 }
@@ -90,7 +108,7 @@
     justify-content: space-between;
     align-items: center; /* Vertically align content and badge */
     font-size: 0.85rem;
-    color: #888;
+    color: var(--secondary-text-color);
     margin-top: 4px;
     width: 100%; /* Ensure it takes full width to position badge correctly */
 }
@@ -102,6 +120,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-right: 8px; /* Add some space between content and badge */
+    font-size: 12px;
+    width: 80%;
 }
 
 .unread-badge {

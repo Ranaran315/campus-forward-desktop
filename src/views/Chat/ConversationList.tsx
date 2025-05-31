@@ -6,7 +6,7 @@ import { PushpinOutlined, PushpinFilled, DeleteOutlined } from '@ant-design/icon
 import MessageReadIcon from '@/assets/icons/message_read.svg?react';
 import MessageUnreadIcon from '@/assets/icons/message_unread.svg?react';
 import './ConversationList.css';
-import { formatConversationListTime } from '@/utils/dateUtils';
+import { formatMessageTime } from '@/utils/dateUtils';
 import apiClient from '@/lib/axios';
 import { message as antdMessage } from 'antd';
 
@@ -127,7 +127,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
             <div className="conversation-item-right">
               <div className="conversation-item-desc">
                 <div className="sender">{conversation.sender}</div>
-                <div className="timestamp">{formatConversationListTime(conversation.timestamp)}</div>
+                <div className="timestamp">{formatMessageTime(conversation.timestamp)}</div>
               </div>
               <div className="conversation-item-detail">
                 <div className="conversation-content">{conversation.content}</div>

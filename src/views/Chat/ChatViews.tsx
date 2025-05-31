@@ -295,24 +295,44 @@ function ChatViews() {
     }
   };
 
-  // Renamed handler
-  const handleConversationClick = (clickedConversation: FrontendConversation) => {
-    setSelectedConversation(clickedConversation) // Use renamed state setter
-    setConversationList(prevList =>
-      prevList.map(c =>
-        c.id === clickedConversation.id ? { ...c, unreadCount: 0 } : c
-      )
-    )
-  }
+  // 处理会话点击，包括未读消息的处理
+  const handleConversationClick = async (clickedConversation: FrontendConversation) => {
+    setSelectedConversation(clickedConversation);
+
+    // 只有当有未读消息时才进行处理
+    if (clickedConversation.unreadCount > 0) {
+      const originalUnreadCount = clickedConversation.unreadCount;
+
+      // 乐观更新UI
+      setConversationList(prevList =>
+        prevList.map(c =>
+          c.id === clickedConversation.id ? { ...c, unreadCount: 0 } : c
+        )
+      );
+
+      try {
+        // 调用后端API更新未读状态
+        await apiClient.post(`/chat/conversations/${clickedConversation.id}/read`);
+      } catch (error) {
+        console.error('Failed to mark conversation as read:', error);
+        // 如果API调用失败，回滚UI状态
+        setConversationList(prevList =>
+          prevList.map(c =>
+            c.id === clickedConversation.id ? { ...c, unreadCount: originalUnreadCount } : c
+          )
+        );
+      }
+    }
+  };
 
   return (
-    <div className="message-layout">
+    <div className="chat-layout">
       {conversationsLoading ? (
-        <div className="message-list-container-loading" style={{ width: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid #f0f0f0' }}>
+        <div className="chat-list-container-loading" style={{ width: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid #f0f0f0' }}>
           <Spin tip="加载会话中..." />
         </div>
       ) : conversationsError ? (
-        <div className="message-list-container-error" style={{ width: '300px', padding: '20px', borderRight: '1px solid #f0f0f0' }}>
+        <div className="chat-list-container-error" style={{ width: '300px', padding: '20px', borderRight: '1px solid #f0f0f0' }}>
           <Alert message="加载失败" description={conversationsError} type="error" showIcon />
         </div>
       ) : (

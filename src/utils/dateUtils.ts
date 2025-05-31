@@ -73,7 +73,7 @@ export const formatDateTime = (
  * @param dateInput - 可以是日期字符串 (ISO 8601 格式推荐) 或 Date 对象。
  * @returns 格式化后的时间字符串，如果日期无效则返回 "未知时间"。
  */
-export const formatConversationListTime = (
+export const formatMessageTime = (
   dateInput: string | Date | undefined | null
 ): string => {
   if (!dateInput) {

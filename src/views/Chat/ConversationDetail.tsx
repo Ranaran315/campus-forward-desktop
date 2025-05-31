@@ -7,6 +7,7 @@ import apiClient from '@/lib/axios'; // Import apiClient
 import './ConversationDetail.css';
 import { useWebSocketContext } from '@/contexts/WebSocketProvider'; // Import WebSocket context
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { formatMessageTime } from '@/utils/dateUtils';
 
 // Interface for individual messages in the chat
 interface DisplayMessage {
@@ -35,7 +36,7 @@ interface MessageDetailsProps {
 }
 
 const MIN_FOOTER_HEIGHT = 200; // Example: Toolbar + 1 row input + padding
-const MAX_FOOTER_HEIGHT = 600; // Example: Max reasonable height
+const MAX_FOOTER_HEIGHT = 500; // Example: Max reasonable height
 
 const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [chatMessages, setChatMessages] = useState<DisplayMessage[]>([]);
@@ -96,11 +97,9 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
               id: msg._id,
               senderId: senderId,
               text: msg.content, // msg.content maps to text
-              timestamp: new Date(msg.createdAt).toLocaleString(),
+              timestamp: formatMessageTime(msg.createdAt),
               avatar: senderAvatar, // Fallback avatar
               isSent: msg.isSent, // Directly use isSent from backend
-              // If you want to display senderName, add it to DisplayMessage interface and here
-              // senderName: senderName, 
             };
           });
           // Reverse the messages so that oldest are first, newest are last (for flex-direction: column-reverse)
@@ -125,26 +124,38 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
 
   const handleMouseDownResize = (e: React.MouseEvent) => {
     e.preventDefault();
+    console.log('Mouse down on resize handle');
     setIsResizing(true);
     setStartY(e.clientY);
     if (footerRef.current) {
-      setStartHeight(footerRef.current.offsetHeight);
+      const currentHeight = footerRef.current.offsetHeight;
+      console.log('Starting resize, current height:', currentHeight);
+      setStartHeight(currentHeight);
     }
   };
 
   useEffect(() => {
     const handleMouseMoveResize = (e: MouseEvent) => {
       if (!isResizing || !footerRef.current) return;
+      
       const deltaY = e.clientY - startY;
       let newHeight = startHeight - deltaY;
-      
       newHeight = Math.max(MIN_FOOTER_HEIGHT, Math.min(newHeight, MAX_FOOTER_HEIGHT));
       
+      console.log('Resizing - Delta Y:', deltaY, 'New Height:', newHeight);
       setFooterHeight(newHeight);
-      footerRef.current.style.height = `${newHeight}px`;
+      
+      // 强制立即更新DOM
+      requestAnimationFrame(() => {
+        if (footerRef.current) {
+          footerRef.current.style.height = `${newHeight}px`;
+          console.log('Applied height:', footerRef.current.style.height);
+        }
+      });
     };
 
     const handleMouseUpResize = () => {
+      console.log('Mouse up, finished resizing');
       setIsResizing(false);
     };
 
@@ -182,11 +193,8 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       } else {
         console.warn('[WebSocket MSG Process] Could not extract conversationId from message:', message);
       }
-      
-      console.log('[WebSocket MSG Process] Current conversation.id:', conversation?.id);
 
       if (msgConversationId && conversation?.id && msgConversationId === conversation.id) {
-        console.log('[WebSocket MSG Process] Conversation ID matched. Proceeding to transform message.');
         
         let senderId = '';
         let senderAvatar: string | undefined = undefined;
@@ -196,33 +204,26 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
         } else if (message.sender && typeof message.sender === 'object' && message.sender._id) { // Ensure _id exists for objects
           senderId = message.sender._id;
           senderAvatar = message.sender.avatar;
-        } else {
-          console.warn('[WebSocket MSG Process] Could not determine senderId from message.sender:', message.sender);
-          // Decide on a fallback or skip if senderId is crucial
-        }
+        } 
 
         const newDisplayMessage: DisplayMessage = {
-          id: message._id, // Assuming _id is always present and is the unique message ID
+          id: message._id,
           senderId: senderId,
           text: message.content,
-          timestamp: new Date(message.createdAt).toLocaleString(),
-          avatar: senderAvatar, // Fallback avatar
-          // For WebSocket messages, calculate isSent based on current user
-          isSent: senderId === authenticatedUser?.sub, 
+          timestamp: formatMessageTime(message.createdAt),
+          avatar: senderAvatar,
+          isSent: senderId === authenticatedUser?.sub,
         };
-        
-        console.log('[WebSocket MSG Process] Transformed newDisplayMessage:', newDisplayMessage);
+
         
         setChatMessages(prevMessages => {
           if (prevMessages.find(m => m.id === newDisplayMessage.id)) {
-            console.log('[WebSocket MSG Process] Message already exists, not adding:', newDisplayMessage.id);
+           
             return prevMessages;
           }
-          console.log('[WebSocket MSG Process] Adding new message to chatMessages state.');
+         
           return [...prevMessages, newDisplayMessage];
         });
-      } else {
-        console.log(`[WebSocket MSG Process] Conversation ID did NOT match or was missing. Received: ${msgConversationId}, Current: ${conversation?.id}`);
       }
     };
 
@@ -273,7 +274,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   }
 
   return (
-    <main className="message-content-container">
+    <main className="chat-content-container">
       <div className="chat-detail-view">
         <header className="chat-header">
           <Avatar src={conversation.avatar} size={35} />
@@ -301,7 +302,6 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
             </div>
           )}
           {!chatLoading && !chatError && chatMessages.map((msg) => {
-            console.log(`Message ID: ${msg.id}, Sender ID: ${msg.senderId}, IsSent from backend: ${msg.isSent}`);
 
             return (
               <div key={msg.id} className={`message-wrapper ${msg.isSent ? 'sent' : 'received'}`}>

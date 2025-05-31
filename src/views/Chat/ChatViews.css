@@ -1,80 +1,22 @@
-/* src/pages/MessagePage.css */
-.message-layout {
+/* src/pages/chatPage.css */
+.chat-layout {
   display: flex;
-  gap: 10px;
-  height: 100%; /* 占据父容器的全部高度 */
-}
-
-.message-item-detail {
-  color: var(--secondary-text-color);
-  width: 100%;
-}
-
-.message-content {
-  font-size: 12px;
-  width: 80%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.unread-indicator {
-  width: 8px;
-  height: 8px;
-  background-color: red;
-  border-radius: 50%;
-  position: absolute;
-  top: 18px;
-  right: 10px;
-}
-
-.message-content-container {
-  flex-grow: 1;
-  padding: 20px;
-  background-color: var(--third-color);
-  border-radius: 8px;
-  overflow-y: auto; /* 允许消息内容滚动 */
-}
-
-.message-details {
-  display: flex;
-  flex-direction: column;
   height: 100%;
-}
+  background-color: var(--primary-background-color);
 
-.detail-header {
-  width: 100%;
-  display: flex;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--third-background-color);
-}
+  .chat-list-container-loading,
+  .chat-list-container-error {
+    width: 300px;
+    border-right: 1px solid var(--primary-border-color);
+  }
 
-.sender-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+  .chat-list-container-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.sender-info span {
-  margin-right: 15px;
-}
-
-.sender-info .sender-name {
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--primary-text-color);
-}
-
-.detail-content {
-  font-size: 14px;
-  line-height: 1.6;
-  overflow-y: auto; /* 允许消息内容滚动 */
-}
-
-.empty-message {
-  font-size: 16px;
-  color: #777;
-  text-align: center;
-  padding-top: 50px;
+  .chat-list-container-error {
+    padding: 20px;
+  }
 }
