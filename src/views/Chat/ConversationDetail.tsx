@@ -1,15 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
 import type { ConversationSummary } from './ChatViews';
-import { Button, Spin, Alert, message as AntMessage } from 'antd'; // Added Ant Design Button, Spin, Alert, message import
-import { DownOutlined } from '@ant-design/icons'; // Added Ant Design Icon import
-import apiClient from '@/lib/axios'; // Import apiClient
+import { Button, Spin, Alert, message as AntMessage } from 'antd';
+import { DownOutlined, FileOutlined, LoadingOutlined } from '@ant-design/icons';
+import apiClient from '@/lib/axios';
 import './ConversationDetail.css';
-import { useWebSocketContext } from '@/contexts/WebSocketProvider'; // Import WebSocket context
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useWebSocketContext } from '@/contexts/WebSocketProvider';
+import { useAuth } from '@/contexts/AuthContext';
 import { formatMessageTime } from '@/utils/dateUtils';
+import { getImageUrl, getAttachmentUrl, getAvatarUrl } from '@/utils/imageHelper';
+import ImageIcon from '@/assets/icons/image.svg?react'
+import FileIcon from '@/assets/icons/file.svg?react'
+import ExpressionIcon from '@/assets/icons/expression.svg?react'
+import AtIcon from '@/assets/icons/at.svg?react'
 
 // Interface for individual messages in the chat
+interface MessageAttachment {
+  url: string;
+  fileName: string;
+  size: number;
+}
+
 interface DisplayMessage {
   id: string;
   senderId: string;
@@ -17,18 +28,20 @@ interface DisplayMessage {
   timestamp: string;
   avatar?: string;
   isSent: boolean;
+  type: 'text' | 'image' | 'file';
+  attachments?: MessageAttachment[];
 }
 
 // Define BackendChatMessage interface (adjust based on actual backend response)
 interface BackendChatMessage {
   _id: string;
-  sender: string | { _id: string; username?: string; realname?: string; avatar?: string }; // Sender can be ID or populated object
+  sender: string | { _id: string; username?: string; realname?: string; avatar?: string };
   content: string;
-  createdAt: string; // ISO date string
-  isSent: boolean; // Added isSent from backend
-  conversation?: string | { _id: string }; // For WebSocket message structure
-  conversationId?: string; // Alternative for WebSocket message structure
-  // Add any other fields your backend sends for a chat message
+  createdAt: string;
+  type: 'text' | 'image' | 'file';
+  attachments?: MessageAttachment[];
+  conversation?: string | { _id: string };
+  conversationId?: string;
 }
 
 interface MessageDetailsProps {
@@ -52,6 +65,9 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const { on, isConnected } = useWebSocketContext(); // Get WebSocket context
   const chatMessageAreaRef = useRef<HTMLElement>(null); // Ref for chat message area
   const { user: authenticatedUser } = useAuth(); // Get authenticated user, removed unused authIsLoading
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Scroll to bottom function
   const scrollToBottom = () => {
@@ -65,50 +81,143 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     scrollToBottom();
   }, [chatMessages]);
 
+  // 修改文件上传处理
+  const handleFileUpload = async (files: FileList | null, type: 'file' | 'image') => {
+    if (!files || files.length === 0 || !conversation) return;
+
+    const file = files[0];
+    
+    // 检查文件大小
+    const maxSize = type === 'image' ? 5 * 1024 * 1024 : 20 * 1024 * 1024;
+    if (file.size > maxSize) {
+      AntMessage.error(`文件大小不能超过${maxSize / 1024 / 1024}MB`);
+      return;
+    }
+
+    // 检查文件类型
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedFileTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/zip',
+      'application/x-zip-compressed'
+    ];
+
+    if (type === 'image' && !allowedImageTypes.includes(file.type)) {
+      AntMessage.error('只支持 JPG、PNG、GIF、WEBP 格式的图片');
+      return;
+    }
+
+    if (type === 'file' && !allowedFileTypes.includes(file.type)) {
+      AntMessage.error('不支持的文件类型');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // 根据类型选择不同的上传端点
+      const uploadEndpoint = type === 'image' ? '/chat/upload/image' : '/chat/upload/file';
+      const uploadResponse = await apiClient.post(uploadEndpoint, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (!uploadResponse.data.success) {
+        throw new Error(uploadResponse.data.message || '上传失败');
+      }
+
+      const fileData = uploadResponse.data;
+
+      // 发送消息
+      const messagePayload = {
+        type,
+        content: type === 'image' ? '[图片消息]' : `[文件] ${file.name}`,
+        conversationId: conversation.id,
+        attachments: [{
+          url: fileData.url,
+          fileName: file.name,
+          size: file.size
+        }]
+      };
+
+      console.log('Sending message payload:', messagePayload);
+
+      const response = await apiClient.post('/chat/messages', messagePayload);
+      console.log('Message sent response:', response.data);
+      
+      // 清空文件输入
+      if (type === 'image' && imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+      if (type === 'file' && fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+
+      // 显示上传成功提示
+      AntMessage.success(type === 'image' ? '图片发送成功' : '文件发送成功');
+      
+    } catch (error: any) {
+      console.error('Failed to upload file:', error);
+      const errorMessage = error?.response?.data?.message || 
+                          (Array.isArray(error?.response?.data) ? error.response.data.join(', ') : error?.message) || 
+                          '文件上传失败';
+      AntMessage.error(errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // 修改消息转换函数
+  const transformBackendMessage = (msg: BackendChatMessage): DisplayMessage => {
+    let senderId = '';
+    let senderAvatar: string | undefined = undefined;
+
+    if (typeof msg.sender === 'string') {
+      senderId = msg.sender;
+    } else if (msg.sender && typeof msg.sender === 'object' && msg.sender._id) {
+      senderId = msg.sender._id;
+      senderAvatar = msg.sender.avatar ? getAvatarUrl(msg.sender.avatar) : undefined;
+    }
+
+    return {
+      id: msg._id,
+      senderId: senderId,
+      text: msg.content,
+      timestamp: formatMessageTime(msg.createdAt),
+      avatar: senderAvatar,
+      isSent: senderId === authenticatedUser?.sub,
+      type: msg.type || 'text',
+      attachments: msg.attachments
+    };
+  };
+
+  // 修改获取消息的逻辑
   useEffect(() => {
     if (conversation) {
       const fetchMessages = async () => {
         setChatLoading(true);
         setChatError(null);
         try {
-          const response = await apiClient.get<BackendChatMessage[]>(`/chat/conversations/${conversation.id}/messages?limit=50`);
+          const response = await apiClient.get<BackendChatMessage[]>(
+            `/chat/conversations/${conversation.id}/messages?limit=50`
+          );
           
-          // If 'response' is AxiosResponse<BackendChatMessage[], any>, then data is in response.data
-          // If interceptor correctly makes it T, then response is BackendChatMessage[]
-          // Linter suggests response is AxiosResponse, so use response.data
-          // Assuming the backend directly returns an array of messages. If it's nested (e.g., { messages: [...] }), adjust accordingly.
-          const backendMessages: BackendChatMessage[] = (response as any).data || []; 
-
-          const transformedMessages: DisplayMessage[] = backendMessages.map((msg: BackendChatMessage) => {
-            let senderId = '';
-            let senderName = '未知用户'; // Fallback name
-            let senderAvatar: string | undefined = undefined; // Default avatar
-
-            if (typeof msg.sender === 'string') {
-              senderId = msg.sender;
-              // senderName might remain '未知用户' or you might have a way to fetch it if needed
-            } else if (msg.sender && typeof msg.sender === 'object') {
-              senderId = msg.sender._id;
-              senderName = msg.sender.username || msg.sender.realname || '未知用户';
-              senderAvatar = msg.sender.avatar; 
-            }
-
-            return {
-              id: msg._id,
-              senderId: senderId,
-              text: msg.content, // msg.content maps to text
-              timestamp: formatMessageTime(msg.createdAt),
-              avatar: senderAvatar, // Fallback avatar
-              isSent: msg.isSent, // Directly use isSent from backend
-            };
-          });
-          // Reverse the messages so that oldest are first, newest are last (for flex-direction: column-reverse)
-          const reversedMessages = transformedMessages.reverse(); 
+          const backendMessages: BackendChatMessage[] = (response as any).data || [];
+          const transformedMessages = backendMessages.map(transformBackendMessage);
+          const reversedMessages = transformedMessages.reverse();
           setChatMessages(reversedMessages);
         } catch (err: any) {
           const errorMsg = err.backendMessage || err.message || '获取聊天记录失败';
           setChatError(errorMsg);
-          setChatMessages([]); // Clear messages on error
+          setChatMessages([]);
         } finally {
           setChatLoading(false);
         }
@@ -116,11 +225,11 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
 
       fetchMessages();
     } else {
-      setChatMessages([]); // Clear messages if no conversation is selected
+      setChatMessages([]);
       setChatLoading(false);
       setChatError(null);
     }
-  }, [conversation]);
+  }, [conversation, authenticatedUser?.sub]);
 
   const handleMouseDownResize = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -170,71 +279,44 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     };
   }, [isResizing, startY, startHeight]);
 
-  // WebSocket effect for receiving new messages
+  // 修改WebSocket消息处理
   useEffect(() => {
     if (!on || !conversation?.id) {
       return;
     }
 
     const handleNewChatMessage = (message: BackendChatMessage) => {
-      console.log('[WebSocket MSG Received] Raw message:', JSON.parse(JSON.stringify(message))); // Log a deep copy
+      console.log('[WebSocket MSG Received]', message);
 
       let msgConversationId: string | undefined = undefined;
 
       if (message.conversation && typeof message.conversation === 'object' && message.conversation._id) {
         msgConversationId = message.conversation._id;
-        console.log('[WebSocket MSG Process] Extracted conversationId from message.conversation._id:', msgConversationId);
       } else if (typeof message.conversation === 'string') {
         msgConversationId = message.conversation;
-        console.log('[WebSocket MSG Process] Extracted conversationId from message.conversation (string):', msgConversationId);
       } else if (message.conversationId) {
         msgConversationId = message.conversationId;
-        console.log('[WebSocket MSG Process] Extracted conversationId from message.conversationId:', msgConversationId);
-      } else {
-        console.warn('[WebSocket MSG Process] Could not extract conversationId from message:', message);
       }
 
       if (msgConversationId && conversation?.id && msgConversationId === conversation.id) {
-        
-        let senderId = '';
-        let senderAvatar: string | undefined = undefined;
-
-        if (typeof message.sender === 'string') {
-          senderId = message.sender;
-        } else if (message.sender && typeof message.sender === 'object' && message.sender._id) { // Ensure _id exists for objects
-          senderId = message.sender._id;
-          senderAvatar = message.sender.avatar;
-        } 
-
-        const newDisplayMessage: DisplayMessage = {
-          id: message._id,
-          senderId: senderId,
-          text: message.content,
-          timestamp: formatMessageTime(message.createdAt),
-          avatar: senderAvatar,
-          isSent: senderId === authenticatedUser?.sub,
-        };
-
+        const newDisplayMessage = transformBackendMessage(message);
         
         setChatMessages(prevMessages => {
           if (prevMessages.find(m => m.id === newDisplayMessage.id)) {
-           
             return prevMessages;
           }
-         
           return [...prevMessages, newDisplayMessage];
         });
       }
     };
 
     const unsubscribe = on('chat:newMessage', handleNewChatMessage);
-
     return () => {
       if (unsubscribe) {
         unsubscribe();
       }
     };
-  }, [on, conversation?.id, setChatMessages, authenticatedUser?.sub]);
+  }, [on, conversation?.id, authenticatedUser?.sub]);
 
   const handleSendMessage = async () => {
     const trimmedText = newMessageText.trim();
@@ -257,6 +339,36 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     } catch (error: any) {
       console.error('Failed to send message:', error);
       AntMessage.error(error?.response?.data?.message || error?.backendMessage || '发送消息失败');
+    }
+  };
+
+  // 渲染消息内容
+  const renderMessageContent = (message: DisplayMessage) => {
+    switch (message.type) {
+      case 'image':
+        return message.attachments?.map((attachment, index) => (
+          <div key={index} className="message-image">
+            <img 
+              src={getImageUrl(attachment.url)} 
+              alt="图片消息" 
+              onClick={() => window.open(getImageUrl(attachment.url), '_blank')}
+            />
+          </div>
+        ));
+      case 'file':
+        return message.attachments?.map((attachment, index) => (
+          <div key={index} className="message-file">
+            <FileOutlined />
+            <a href={getAttachmentUrl(attachment.url)} target="_blank" rel="noopener noreferrer">
+              {attachment.fileName}
+            </a>
+            <span className="file-size">
+              ({(attachment.size / 1024).toFixed(2)} KB)
+            </span>
+          </div>
+        ));
+      default:
+        return <div className="message-text">{message.text}</div>;
     }
   };
 
@@ -286,13 +398,13 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
 
         <section className="chat-message-area" ref={chatMessageAreaRef}>
           {chatLoading && (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <Spin tip="加载消息中..." />
+            <div className="loading-container">
+              <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
             </div>
           )}
           {chatError && !chatLoading && (
-            <div style={{ padding: '20px' }}>
-              <Alert message="加载错误" description={chatError} type="error" showIcon />
+            <div className="error-container">
+              <Alert message="错误" description={chatError} type="error" showIcon />
             </div>
           )}
           {!chatLoading && !chatError && chatMessages.length === 0 && conversation && (
@@ -310,7 +422,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
                 )}
                 <div className={`message-bubble ${msg.isSent ? 'sent' : 'received'}`}>
                   <div className="message-text-content">
-                    <div className="message-text">{msg.text}</div>
+                    {renderMessageContent(msg)}
                     <div className="message-timestamp">{msg.timestamp}</div>
                   </div>
                 </div>
@@ -329,13 +441,40 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
         >
           <div className="resize-handle" onMouseDown={handleMouseDownResize}></div>
           <div className="toolbar-icons">
-            <span>😃</span>
-            <span>✂️</span>
-            <span>📁</span>
-            <span>🖼️</span>
-            <span>@</span>
-            <span>🎤</span>
-            <span>🤖</span>
+            <span>
+              <ExpressionIcon />
+            </span>
+            <span 
+              onClick={() => !uploading && imageInputRef.current?.click()}
+              className={uploading ? 'disabled' : ''}
+            >
+              {uploading ? <LoadingOutlined /> : <ImageIcon />}
+              <input
+                type="file"
+                ref={imageInputRef}
+                style={{ display: 'none' }}
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={(e) => handleFileUpload(e.target.files, 'image')}
+                disabled={uploading}
+              />
+            </span>
+            <span 
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              className={uploading ? 'disabled' : ''}
+            >
+              {uploading ? <LoadingOutlined /> : <FileIcon />}
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                onChange={(e) => handleFileUpload(e.target.files, 'file')}
+                disabled={uploading}
+              />
+            </span>
+            <span>
+              <AtIcon />
+            </span>
           </div>
           <div className="input-field-wrapper">
             <textarea 
@@ -350,9 +489,15 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
                   handleSendMessage();
                 }
               }}
+              disabled={uploading}
             ></textarea>
             <div className="send-button-container">
-              <Button type="primary" className="antd-send-button" onClick={handleSendMessage}>
+              <Button 
+                type="primary" 
+                className="antd-send-button" 
+                onClick={handleSendMessage}
+                disabled={uploading}
+              >
                 发送
                 <DownOutlined style={{ fontSize: '12px', marginLeft: '4px' }} />
               </Button>
