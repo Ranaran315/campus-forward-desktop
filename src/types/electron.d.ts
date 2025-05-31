@@ -16,6 +16,8 @@ interface ElectronAPI {
     invoke(channel: 'show-in-folder', args: { 
       filePath: string 
     }): Promise<{ success: boolean; error?: string }>;
+    invoke(channel: 'get-downloads-path'): Promise<string>;
+    invoke(channel: 'ensure-dir', dirPath: string): Promise<boolean>;
   };
 }
 

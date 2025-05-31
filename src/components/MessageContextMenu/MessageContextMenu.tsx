@@ -6,10 +6,9 @@ import { message } from 'antd';
 // 导入本地图标
 import CopyIcon from '@/assets/icons/copy.svg?react';
 import ShareIcon from '@/assets/icons/share.svg?react';
-import RemarkIcon from '@/assets/icons/remark.svg?react';
 import QuoteIcon from '@/assets/icons/quote.svg?react';
 import DeleteIcon from '@/assets/icons/delete.svg?react';
-import OpenFileIcon from '@/assets/icons/open_file.svg?react';
+// import OpenFileIcon from '@/assets/icons/open_file.svg?react';
 import DownloadIcon from '@/assets/icons/download.svg?react';
 import SaveAsIcon from '@/assets/icons/save_as.svg?react';
 import FolderIcon from '@/assets/icons/folder.svg?react';
@@ -81,8 +80,14 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
         throw new Error('文件路径不存在');
       }
 
+      // 获取保存的路径
+      const savedFilePath = await window.electron.ipcRenderer.invoke('get-store-value', type === 'image' ? 'imagePath' : 'filePath');
+      if (!savedFilePath) {
+        throw new Error('未配置保存路径');
+      }
+
       const result = await window.electron.ipcRenderer.invoke('open-file', {
-        filePath
+        filePath: savedFilePath + '/' + fileName
       });
 
       if (!result.success) {
@@ -102,8 +107,14 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
         throw new Error('文件路径不存在');
       }
 
+      // 获取保存的路径
+      const savedFilePath = await window.electron.ipcRenderer.invoke('get-store-value', type === 'image' ? 'imagePath' : 'filePath');
+      if (!savedFilePath) {
+        throw new Error('未配置保存路径');
+      }
+
       const result = await window.electron.ipcRenderer.invoke('show-in-folder', {
-        filePath
+        filePath: savedFilePath + '/' + fileName
       });
 
       if (!result.success) {
@@ -157,12 +168,12 @@ const MessageContextMenu: React.FC<MessageContextMenuProps> = ({
 
   // 文件特有的菜单项
   const fileMenuItems: MenuItemType[] = [
-    {
-      key: 'open',
-      label: '打开方式...',
-      icon: <OpenFileIcon />,
-      onClick: handleOpenWithDefaultApp,
-    },
+    // {
+    //   key: 'open',
+    //   label: '打开方式...',
+    //   icon: <OpenFileIcon />,
+    //   onClick: handleOpenWithDefaultApp,
+    // },
     {
       key: 'save',
       label: '保存',

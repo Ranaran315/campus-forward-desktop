@@ -362,4 +362,20 @@ app.whenReady().then(() => {
     store.set(key, value);
     return true;
   });
+
+  // 获取系统下载路径
+  ipcMain.handle('get-downloads-path', () => {
+    return app.getPath('downloads');
+  });
+
+  // 确保目录存在
+  ipcMain.handle('ensure-dir', async (_, dirPath: string) => {
+    try {
+      await fs.promises.mkdir(dirPath, { recursive: true });
+      return true;
+    } catch (error) {
+      console.error('创建目录失败:', error);
+      return false;
+    }
+  });
 })

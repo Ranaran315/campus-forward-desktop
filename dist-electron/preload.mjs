@@ -10,7 +10,9 @@ electron.contextBridge.exposeInMainWorld("electron", {
         "set-store-value",
         "save-file",
         "open-file",
-        "show-in-folder"
+        "show-in-folder",
+        "get-downloads-path",
+        "ensure-dir"
       ];
       if (validChannels.includes(channel)) {
         return electron.ipcRenderer.invoke(channel, ...args);

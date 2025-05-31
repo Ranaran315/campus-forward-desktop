@@ -155,25 +155,12 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       return;
     }
 
-    // 如果是图片，创建预览
-    if (type === 'image') {
-      const previewUrl = URL.createObjectURL(file);
-      setPreviewFiles([{ file, previewUrl, type }]); // 只保留最新的一张图片
-      
-      // 清空文件输入
-      if (imageInputRef.current) {
-        imageInputRef.current.value = '';
-      }
-      return;
-    }
-
-    // 如果是文件，直接上传
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
       
-      const uploadEndpoint = '/chat/upload/file';
+      const uploadEndpoint = type === 'image' ? '/chat/upload/image' : '/chat/upload/file';
       const uploadResponse = await apiClient.post(uploadEndpoint, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -188,8 +175,8 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
 
       // 发送消息
       const messagePayload = {
-        type: 'file',
-        content: `[文件] ${file.name}`,
+        type,
+        content: type === 'image' ? '[图片消息]' : `[文件] ${file.name}`,
         conversationId: conversation.id,
         attachments: [{
           url: fileData.url,
@@ -198,14 +185,30 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
         }]
       };
 
+      // 保存文件到本地指定路径
+      try {
+        await window.electron.ipcRenderer.invoke('save-file', {
+          url: getAttachmentUrl(fileData.url),
+          fileName: file.name,
+          saveType: 'default',
+          fileType: type
+        });
+      } catch (saveError) {
+        console.error('保存文件到本地失败:', saveError);
+        // 不阻止消息发送，只是提示用户
+        AntMessage.warning('文件已发送，但保存到本地失败');
+      }
+
       await apiClient.post('/chat/messages', messagePayload);
       
       // 清空文件输入
-      if (fileInputRef.current) {
+      if (type === 'file' && fileInputRef.current) {
         fileInputRef.current.value = '';
+      } else if (type === 'image' && imageInputRef.current) {
+        imageInputRef.current.value = '';
       }
 
-      AntMessage.success('文件发送成功');
+      AntMessage.success(type === 'image' ? '图片发送成功' : '文件发送成功');
       
     } catch (error: any) {
       console.error('Failed to upload file:', error);
@@ -215,6 +218,10 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
       AntMessage.error(errorMessage);
     } finally {
       setUploading(false);
+      // 清空预览
+      if (type === 'image') {
+        setPreviewFiles([]);
+      }
     }
   };
 
@@ -455,19 +462,21 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
 
   const handleFileDownload = async (url: string, fileName: string) => {
     try {
-      const result = await window.electron.ipcRenderer.invoke('download-file', {
+      const result = await window.electron.ipcRenderer.invoke('save-file', {
         url: getAttachmentUrl(url),
-        fileName
+        fileName,
+        saveType: 'default',
+        fileType: 'file'
       });
 
       if (result.success) {
-        AntMessage.success(`文件已下载到: ${result.filePath}`);
+        AntMessage.success('文件保存成功');
       } else {
-        throw new Error('下载失败');
+        throw new Error(result.error || '保存失败');
       }
     } catch (error: any) {
-      console.error('文件下载失败:', error);
-      AntMessage.error(error?.message || '文件下载失败');
+      console.error('文件保存失败:', error);
+      AntMessage.error(error?.message || '文件保存失败');
     }
   };
 

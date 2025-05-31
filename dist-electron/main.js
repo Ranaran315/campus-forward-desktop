@@ -10558,6 +10558,18 @@ app$1.whenReady().then(() => {
     store.set(key, value);
     return true;
   });
+  ipcMain$1.handle("get-downloads-path", () => {
+    return app$1.getPath("downloads");
+  });
+  ipcMain$1.handle("ensure-dir", async (_, dirPath) => {
+    try {
+      await fs.promises.mkdir(dirPath, { recursive: true });
+      return true;
+    } catch (error2) {
+      console.error("创建目录失败:", error2);
+      return false;
+    }
+  });
 });
 export {
   MAIN_DIST,
