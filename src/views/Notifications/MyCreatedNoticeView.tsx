@@ -6,7 +6,6 @@ import {
   Pagination,
   Empty,
   Tag,
-  Button,
   Space,
   Spin,
   Alert,
@@ -16,8 +15,16 @@ import { InputField } from '@/components/Form/Form'
 import apiClient, { BackendStandardResponse } from '@/lib/axios' // Import BackendStandardResponse
 import './MyCreatedNoticeView.css'
 import { useNavigate } from 'react-router-dom'
+import { PaperClipOutlined } from '@ant-design/icons'
 
 // Define a type for notices fetched from the backend
+interface NoticeAttachment {
+  fileName: string
+  url: string
+  size?: number
+  mimeType?: string
+}
+
 interface MyCreatedNoticeItem {
   _id: string
   title: string
@@ -30,17 +37,18 @@ interface MyCreatedNoticeItem {
   tags?: string[]
   importance: 'high' | 'medium' | 'low'
   deadline?: string
+  attachments?: NoticeAttachment[]
 }
 
-// Define the structure of the paginated API response (this is the type for backendResponse.data)
-interface PaginatedNoticesResponse {
-  data: MyCreatedNoticeItem[]
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
+// Define the structure of the paginated API response (this is the type for backendResponse.data.data)
+interface PaginatedNoticesData {
+  data: MyCreatedNoticeItem[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 const getStatusTagColor = (status: MyCreatedNoticeItem['status']) => {
@@ -96,25 +104,21 @@ const MyCreatedNoticeView: React.FC = () => {
       }
 
       const backendResponse = await apiClient.get<
-        BackendStandardResponse<PaginatedNoticesResponse>
+        BackendStandardResponse<PaginatedNoticesData>
       >('/informs/my-created', { params })
 
-      if (backendResponse && backendResponse.data) {
-        const responseData = backendResponse.data // responseData is PaginatedNoticesResponse
-        setNotices(
-          // @ts-ignore
-          responseData.data?.map((notice) => ({
-            ...notice,
-          })) || []
-        ) // Ensure an array is always passed to setNotices
-        // @ts-ignore
-        setTotalNotices(responseData.total)
+      // Attempt to access total from backendResponse directly as a last resort
+      if (backendResponse?.data?.data && Array.isArray(backendResponse.data.data)) {
+        console.log('Backend response data object:', backendResponse.data)
+        setNotices(backendResponse.data.data) 
+        // @ts-ignore // Temporarily ignore TS error for total, assuming it might be at root of backendResponse
+        setTotalNotices(backendResponse.total || backendResponse.data.total) 
       } else {
-        const errorMessage = // @ts-ignore
-          backendResponse?.message ||
+        const errorMessage = 
+          (backendResponse as any)?.message ||
           '获取通知列表失败：响应数据格式不正确或为空。'
         console.error(
-          'Failed to fetch notices or data is null:',
+          'Failed to fetch notices or data is null/not an array:',
           backendResponse
         )
         setError(errorMessage)
@@ -208,12 +212,12 @@ const MyCreatedNoticeView: React.FC = () => {
             closable
             onClose={() => setError(null)}
           />
-        ) : notices.length > 0 ? (
+        ) : Array.isArray(notices) && notices.length > 0 ? (
           <List
             className="my-notices-list"
             itemLayout="vertical"
             dataSource={notices}
-            renderItem={(item: any) => (
+            renderItem={(item: MyCreatedNoticeItem) => (
               <List.Item
                 key={item._id}
                 className="my-notices-list-item"
@@ -237,16 +241,44 @@ const MyCreatedNoticeView: React.FC = () => {
                 <List.Item.Meta
                   title={
                     <a
-                      onClick={() => console.log('View details for:', item._id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        console.log('View details for:', item._id)
+                      }}
                     >
                       {item.title}
                     </a>
                   }
-                  description={item.description || '暂无摘要'} // Uses item.description
+                  description={
+                    <>
+                      {item.description || '暂无摘要'}
+                      {Array.isArray(item.attachments) && item.attachments.length > 0 && (
+                        <div className="notice-attachments" style={{ marginTop: '8px' }}>
+                          <Space>
+                            {item.attachments.map((attachment: NoticeAttachment, index: number) => (
+                              <Tag 
+                                key={index} 
+                                icon={<PaperClipOutlined />}
+                                style={{ cursor: 'pointer' }}
+                                onClick={(e) => {
+                                  e.stopPropagation() // 防止触发父元素的点击事件
+                                  // 构建完整的URL
+                                  const fullUrl = `${window.location.origin}${attachment.url}`
+                                  window.open(fullUrl, '_blank')
+                                }}
+                              >
+                                {attachment.fileName} {attachment.size ? `(${(attachment.size / 1024).toFixed(1)}KB)` : ''}
+                              </Tag>
+                            ))}
+                          </Space>
+                        </div>
+                      )}
+                    </>
+                  }
                 />
-                {item.tags && item.tags.length > 0 && (
+                {Array.isArray(item.tags) && item.tags.length > 0 && (
                   <div className="item-tags">
-                    {item.tags.map((tag: any) => (
+                    {item.tags.map((tag: string) => (
                       <Tag key={tag}>{tag}</Tag>
                     ))}
                   </div>

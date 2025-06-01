@@ -56,7 +56,16 @@ export class FileUploadService {
    * @returns 上传结果
    */
   static async uploadNoticeAttachment(file: File) {
-    return this.uploadFile(file, 'inform-attachments')
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const res = await apiClient.post('/informs/upload-attachment', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    return res.data
   }
 
   /**

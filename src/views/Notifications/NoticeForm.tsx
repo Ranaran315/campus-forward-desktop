@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Form,
   Input,
@@ -10,6 +10,7 @@ import {
   Col,
   FormInstance,
   message,
+  UploadFile,
 } from 'antd'
 import { NoticeAttachmentUpload } from '@/components/FileUpload'
 import apiClient from '@/lib/axios'
@@ -17,9 +18,24 @@ import { useNavigate } from 'react-router-dom'
 import PublishTargetModal, {
   TargetData,
 } from '@/components/Modal/PublishTargetModal/PublishTargetModal'
+import { getAttachmentUrl } from '@/utils/imageHelper'
+import dayjs from 'dayjs'
 
 const { Option } = Select
 const { TextArea } = Input
+
+// Helper function to transform backend attachments to antd UploadFile
+const transformBackendAttachmentToAntd = (backendAtt: any): UploadFile => {
+  const completeUrl = backendAtt.url ? getAttachmentUrl(backendAtt.url) : undefined;
+  return {
+    uid: backendAtt.url || backendAtt.fileName || Date.now().toString(),
+    name: backendAtt.fileName || '未命名文件',
+    status: 'done',
+    url: completeUrl,
+    thumbUrl: completeUrl,
+    size: backendAtt.size,
+  };
+};
 
 interface NoticeFormProps {
   formInstance: FormInstance
@@ -38,10 +54,53 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
 
   const navigate = useNavigate()
 
-  const isNew = !status
+  const isNew = !id
   const isDraft = status === 'draft'
   const isPublished = status === 'published'
   const isArchived = status === 'archived'
+
+  useEffect(() => {
+    if (id && formInstance) {
+      const loadNoticeDetails = async () => {
+        try {
+          message.loading({ content: '正在加载通知详情...', key: 'loadNotice' });
+          const response = await apiClient.get(`/informs/${id}`);
+          const noticeDetailsFromBackend = response.data.data || response.data;
+
+          if (noticeDetailsFromBackend) {
+            let attachmentsForForm: UploadFile[] = [];
+            if (noticeDetailsFromBackend.attachments && Array.isArray(noticeDetailsFromBackend.attachments)) {
+              attachmentsForForm = noticeDetailsFromBackend.attachments.map(
+                (att: any) => transformBackendAttachmentToAntd(att)
+              );
+            }
+            
+            console.log('[DEBUG] Transformed attachments for form:', attachmentsForForm);
+
+            formInstance.setFieldsValue({
+              title: noticeDetailsFromBackend.title,
+              content: noticeDetailsFromBackend.content,
+              description: noticeDetailsFromBackend.description,
+              importance: noticeDetailsFromBackend.importance,
+              tags: noticeDetailsFromBackend.tags || [],
+              deadline: noticeDetailsFromBackend.deadline ? dayjs(noticeDetailsFromBackend.deadline) : null,
+              allowComments: noticeDetailsFromBackend.allowReplies !== undefined ? noticeDetailsFromBackend.allowReplies : true,
+              attachments: attachmentsForForm,
+            });
+            message.success({ content: '通知详情加载完毕!', key: 'loadNotice' });
+          } else {
+            message.error({ content: '未找到通知详情。', key: 'loadNotice' });
+          }
+        } catch (error) {
+          message.error({ content: `加载通知详情失败: ${(error as Error).message}`, key: 'loadNotice' });
+          console.error('Error loading notice details:', error);
+        }
+      };
+      loadNoticeDetails();
+    } else if (formInstance) {
+      formInstance.resetFields();
+    }
+  }, [id, formInstance]);
 
   const handleCancel = () => {
     if (isNew) {
@@ -61,13 +120,28 @@ const NoticeForm: React.FC<NoticeFormProps> = ({
       allowReplies:
         values.allowComments === undefined ? true : values.allowComments,
       attachments: values.attachments
-        ? values.attachments.map((att: any) => ({
-            fileName: att.name || att.originalname || '未命名文件',
-            url: att.response?.url || att.url,
-            size: att.response?.size || att.size,
-            mimetype: att.response?.mimetype || att.type,
-            status: att.status,
-          }))
+        ? values.attachments.map((att: UploadFile<any>) => { 
+            if (att.response && att.response.url && att.originFileObj) { 
+              return {
+                fileName: att.response.originalname || att.name, 
+                url: att.response.url, 
+                size: att.response.size,
+                mimetype: att.response.mimetype || att.type,
+              };
+            } else if (att.url && att.fileName) { 
+              return {
+                fileName: att.fileName,
+                url: att.url,
+                size: att.size,
+                mimetype: (att as any).mimetype, 
+              };
+            } else if (att.originFileObj) { 
+              console.warn('Attachment without URL in response:', att);
+              return null; 
+            }
+            console.warn('Unknown attachment structure:', att);
+            return null; 
+          }).filter((att: any): att is { fileName: string; url: string; size?: number; mimetype?: string } => att !== null && att.url && att.fileName) 
         : [],
     }
 
