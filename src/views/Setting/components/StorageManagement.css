@@ -1,0 +1,54 @@
+.settings-content {
+  padding: 20px;
+}
+
+.settings-content h2 {
+  color: var(--primary-text-color);
+  margin-bottom: 24px;
+}
+
+/* Form styles */
+.settings-content .ant-form-item-label > label {
+  color: var(--primary-text-color) !important;
+}
+
+.settings-content .ant-form-item-extra {
+  color: var(--secondary-text-color) !important;
+}
+
+/* Input styles */
+.settings-content .ant-input {
+  background-color: var(--primary-background-color) !important;
+  border-color: var(--primary-border-color) !important;
+  color: var(--primary-text-color) !important;
+}
+
+.settings-content .ant-input:hover,
+.settings-content .ant-input:focus {
+  border-color: var(--primary-color) !important;
+}
+
+.settings-content .ant-input[readonly] {
+  background-color: var(--secondary-background-color) !important;
+}
+
+/* Button styles */
+.settings-content .ant-btn {
+  border-color: var(--primary-border-color);
+}
+
+.settings-content .ant-btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.settings-content .ant-btn-primary:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+/* Icon color */
+.settings-content .anticon {
+  color: currentColor;
+} 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Form, Input, message } from 'antd';
 import { FolderOpenOutlined } from '@ant-design/icons';
+import './StorageManagement.css';
 
 const StorageManagement: React.FC = () => {
   const [filePath, setFilePath] = useState<string>('');

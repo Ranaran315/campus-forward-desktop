@@ -9,6 +9,7 @@ import {
 import './App.css'
 import './Ant.css'
 import "@/themes/themes.css"
+import { useEffect } from 'react'
 // 登录注册
 import LoginViews from './views/Login/Login'
 import RegisterViews from './views/Register/Register'
@@ -192,6 +193,15 @@ function AppLayout() {
 }
 
 function App() {
+  // 初始化主题
+  useEffect(() => {
+    const darkMode = localStorage.getItem('darkMode')
+    document.documentElement.setAttribute(
+      'data-theme',
+      darkMode === 'true' ? 'dark' : 'light'
+    )
+  }, [])
+
   return (
     <AuthProvider>
       <MessageContainer></MessageContainer>

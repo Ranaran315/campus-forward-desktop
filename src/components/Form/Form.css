@@ -19,7 +19,12 @@
     position: relative;
 
     &:focus-within .toggle-password-visibility {
+      color: #000;
+      background-color: transparent;
       opacity: 1;
+      &:hover {
+        background-color: transparent;
+      }
     }
 
     .input-inner {
@@ -61,6 +66,7 @@
       cursor: pointer;
       font-size: 16px;
       background-color: transparent;
+      color: #ccc;
       opacity: 0;
     }
   }

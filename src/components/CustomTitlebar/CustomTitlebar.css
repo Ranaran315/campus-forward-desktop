@@ -4,13 +4,17 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  background-color: var(--secondary-background-color);
   -webkit-app-region: drag; /* 允许拖动窗口 */
 }
 
 .custom-titlebar-controls {
   background-color: inherit;
   -webkit-app-region: no-drag; /* 禁止拖动按钮 */
+}
+
+.custom-titlebar-controls button {
+  background-color: transparent;
+  color: #000;
 }
 
 .window-icon {
