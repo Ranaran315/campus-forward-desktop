@@ -57,13 +57,26 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         const formData = new FormData();
         formData.append('file', fileList[0].originFileObj);
         try {
-          await apiClient.post(`/chat/groups/${groupRes.data.group._id}/avatar`, formData, {
+          console.log('开始上传群头像:', {
+            groupId: groupRes.data.group._id,
+            fileSize: fileList[0].originFileObj.size,
+            fileType: fileList[0].originFileObj.type
+          });
+          
+          const avatarRes = await apiClient.post(`/chat/groups/${groupRes.data.group._id}/avatar`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
             },
           });
-        } catch (error) {
-          console.error('上传群头像失败:', error);
+          
+          console.log('群头像上传成功:', avatarRes.data);
+        } catch (error: any) {
+          console.error('上传群头像失败:', {
+            error: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            headers: error.response?.headers
+          });
           message.warning('群组已创建，但头像上传失败');
         }
       }

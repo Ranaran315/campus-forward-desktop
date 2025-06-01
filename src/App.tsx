@@ -117,7 +117,7 @@ function AppLayout() {
                 </span>
               )}
             </Link>
-            <Link
+            {/* <Link
               to="/calendar"
               className={`sidebar-button ${
                 currentPath === '/calendar' ? 'active' : ''
@@ -125,7 +125,7 @@ function AppLayout() {
             >
               <CalendarIcon className="sidebar-icon" />
               <span>日程</span>
-            </Link>
+            </Link> */}
             <Link
               to="/contacts"
               className={`sidebar-button ${
