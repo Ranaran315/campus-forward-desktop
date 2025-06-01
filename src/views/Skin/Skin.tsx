@@ -3,7 +3,8 @@ import { Card, message } from 'antd';
 import MessageIcon from '@/assets/icons/message.svg?react';
 import NotificationIcon from '@/assets/icons/notification.svg?react';
 import FriendIcon from '@/assets/icons/friend.svg?react';
-import './Skin.css'
+import '@/themes/themes.css';
+import './Skin.css';
 
 interface ThemePreviewProps {
   isDarkMode: boolean;
@@ -15,8 +16,9 @@ interface ThemePreviewProps {
 const ThemePreview: React.FC<ThemePreviewProps> = ({ isDarkMode, isActive, onClick }) => {
   return (
     <div 
-      className={`theme-preview ${isDarkMode ? 'dark' : 'light'} ${isActive ? 'active' : ''}`}
+      className={`theme-preview ${isActive ? 'active' : ''}`}
       onClick={onClick}
+      data-theme={isDarkMode ? 'dark' : 'light'}
     >
       <div className="preview-header">
         <div className="preview-title">{isDarkMode ? '暗色主题' : '亮色主题'}</div>
@@ -101,4 +103,4 @@ function SkinViews() {
   );
 }
 
-export default SkinViews
+export default SkinViews;

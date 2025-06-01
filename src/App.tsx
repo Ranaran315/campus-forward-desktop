@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom'
 import './App.css'
 import './Ant.css'
+import "@/themes/themes.css"
 // 登录注册
 import LoginViews from './views/Login/Login'
 import RegisterViews from './views/Register/Register'
