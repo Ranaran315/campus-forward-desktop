@@ -21,6 +21,13 @@ export interface ConversationSummary { // 类型被 ConversationDetail.tsx 用�
   timestamp: string
   content: string // Last message content or summary
   unread?: boolean
+  type: 'private' | 'group'; // 添加会话类型
+  group?: {
+    _id: string;
+    name: string;
+    avatar?: string;
+    description?: string;
+  };
 }
 
 // Define interfaces for backend data structures (simplified based on assumptions)
@@ -37,6 +44,7 @@ interface BackendGroupProfile {
   _id: string;
   name: string;       // 群名
   avatar?: string;     // 群头像，也是可选的
+  description?: string;
   // 可以添加其他群相关字段，如 memberCount
 }
 
@@ -54,6 +62,7 @@ interface BackendConversation {
   lastMessage?: BackendMessageData // 最新消息
   updatedAt: string // 最后更新时间
   displayProfile?: BackendUser | BackendGroupProfile; // 新增：用于显示的用户或群组信息
+  group?: BackendGroupProfile; // 新增：群组信息
   // Add other fields if necessary, e.g., unreadCount for the current user
   // 如有必要，添加其他字段，例如当前用户的未读计数
 }
@@ -68,6 +77,12 @@ export interface FrontendConversation {
   unreadCount: number; // 新增：未读消息计数
   isPinned: boolean;   // 新增：是否置顶
   type: 'private' | 'group'; // 添加会话类型，方便前端逻辑处理
+  group?: {
+    _id: string;
+    name: string;
+    avatar?: string;
+    description?: string;
+  };
 }
 
 // Renamed function
@@ -78,6 +93,16 @@ function transformBackendConversationToFrontendConversation(
   const profileToShow = conversation.displayProfile;
   let senderName = '未知会话';
   let senderAvatar: string | undefined = undefined;
+  let groupData = undefined;
+
+  if (conversation.type === 'group' && conversation.group) {
+    groupData = {
+      _id: conversation.group._id,
+      name: conversation.group.name,
+      avatar: conversation.group.avatar,
+      description: conversation.group.description
+    };
+  }
 
   if (profileToShow) {
     if ('username' in profileToShow || 'nickname' in profileToShow) {
@@ -108,7 +133,8 @@ function transformBackendConversationToFrontendConversation(
     unreadCount: conversation.unreadCount || 0, // 直接使用后端提供的 unreadCount
     isPinned: conversation.isPinned || false,     // 直接使用后端提供的 isPinned
     type: conversation.type, // 传递会话类型
-  }
+    group: groupData // 添加群组数据
+  };
 }
 
 // 添加欢迎组件
@@ -297,6 +323,8 @@ function ChatViews() {
     setConversationList(prevList => prevList.filter(conv => conv.id !== conversationId));
     if (selectedConversation?.id === conversationId) {
       setSelectedConversation(null); // 如果移除的是当前选中的会话，则清空选中
+      // 显示欢迎界面
+      navigate('.', { replace: true });
     }
   };
 
@@ -351,7 +379,10 @@ function ChatViews() {
         />
       )}
       {selectedConversation ? (
-        <ConversationDetail conversation={selectedConversation} />
+        <ConversationDetail 
+          conversation={selectedConversation} 
+          onConversationRemoved={handleConversationRemove}
+        />
       ) : (
         <ChatWelcome />
       )}

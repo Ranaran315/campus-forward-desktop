@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Avatar from '@/components/Avatar/Avatar';
-import type { ConversationSummary } from './ChatViews';
+import type { ConversationSummary as ConversationSummaryBase } from './ChatViews';
 import { Button, Spin, Alert, message as AntMessage, Image } from 'antd';
-import { DownOutlined, FileOutlined, LoadingOutlined } from '@ant-design/icons';
+import { DownOutlined, LoadingOutlined } from '@ant-design/icons';
 import apiClient from '@/lib/axios';
 import './ConversationDetail.css';
 import { useWebSocketContext } from '@/contexts/WebSocketProvider';
@@ -15,6 +15,8 @@ import ExpressionIcon from '@/assets/icons/expression.svg?react'
 import AtIcon from '@/assets/icons/at.svg?react'
 import { getFileIcon } from '@/utils/fileIconHelper';
 import MessageContextMenu from '@/components/MessageContextMenu/MessageContextMenu';
+import GroupInfoDrawer from './GroupInfoDrawer';
+import MenuIcon from "@/assets/icons/menu.svg?react"
 
 // Interface for individual messages in the chat
 interface MessageAttachment {
@@ -46,8 +48,20 @@ interface BackendChatMessage {
   conversationId?: string;
 }
 
+// Extend the base conversation summary interface
+interface ConversationSummary extends ConversationSummaryBase {
+  group?: {
+    _id: string;
+    name: string;
+    avatar?: string;
+    description?: string;
+  };
+}
+
+// Update the props interface to use the extended type
 interface MessageDetailsProps {
   conversation: ConversationSummary | null;
+  onConversationRemoved: (conversationId: string) => void;
 }
 
 interface PreviewFile {
@@ -72,7 +86,7 @@ const formatFileSize = (bytes: number): string => {
   }
 };
 
-const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
+const ConversationDetail = ({ conversation, onConversationRemoved }: MessageDetailsProps) => {
   const [chatMessages, setChatMessages] = useState<DisplayMessage[]>([]);
   const footerRef = useRef<HTMLElement>(null);
   const [footerHeight, setFooterHeight] = useState<number>(MIN_FOOTER_HEIGHT);
@@ -81,6 +95,7 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
   const [startHeight, setStartHeight] = useState(0);
   const [chatLoading, setChatLoading] = useState<boolean>(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
 
   const [newMessageText, setNewMessageText] = useState<string>(''); // State for new message input
   const { on, isConnected } = useWebSocketContext(); // Get WebSocket context
@@ -106,6 +121,26 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     isSent: false
   });
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
+
+  // Add debug logging
+  useEffect(() => {
+    if (conversation?.type === 'group') {
+      console.log('Group conversation data:', {
+        conversationId: conversation.id,
+        groupId: conversation.group?._id,
+        type: conversation.type
+      });
+    }
+  }, [conversation]);
+
+  // Add debug logging for drawer visibility
+  useEffect(() => {
+    console.log('Drawer visibility changed:', {
+      showGroupInfo,
+      isGroup: conversation?.type === 'group',
+      hasGroupId: Boolean(conversation?.group?._id)
+    });
+  }, [showGroupInfo, conversation]);
 
   // Scroll to bottom function
   const scrollToBottom = () => {
@@ -564,6 +599,23 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
     }
   };
 
+  const handleGroupInfoClick = () => {
+    console.log('Group info button clicked');
+    setShowGroupInfo(true);
+  };
+
+  // 处理群聊解散
+  const handleGroupDissolved = () => {
+    if (conversation) {
+      // 清空当前会话
+      setChatMessages([]);
+      // 显示提示消息
+      AntMessage.info('该群聊已被解散');
+      // 从会话列表中移除
+      onConversationRemoved(conversation.id);
+    }
+  };
+
   if (!conversation) {
     return null;
   }
@@ -575,7 +627,14 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
           <Avatar src={conversation.avatar} size={35} />
           <div className="chat-header-name">{conversation.sender}</div>
           <div className="chat-header-actions">
-            {/* Placeholder for more action icons e.g. <button>More</button> */}
+            {conversation?.type === 'group' && (
+              <Button
+                type="text"
+                icon={<MenuIcon />}
+                onClick={handleGroupInfoClick}
+                className="group-info-button"
+              />
+            )}
           </div>
         </header>
 
@@ -736,8 +795,16 @@ const MessageDetails: React.FC<MessageDetailsProps> = ({ conversation }) => {
           onClose={handleCloseContextMenu}
         />
       )}
+      {conversation?.type === 'group' && conversation.group?._id && (
+        <GroupInfoDrawer
+          visible={showGroupInfo}
+          onClose={() => setShowGroupInfo(false)}
+          groupId={conversation.group._id}
+          onGroupDissolved={handleGroupDissolved}
+        />
+      )}
     </main>
   );
 };
 
-export default MessageDetails; 
+export default ConversationDetail; 

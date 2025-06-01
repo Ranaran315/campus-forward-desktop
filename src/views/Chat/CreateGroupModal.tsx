@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, Form, Input, Upload, message, Checkbox } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import apiClient from '@/lib/axios';
+import './CreateGroupModal.css';
 
 interface CreateGroupModalProps {
   visible: boolean;
@@ -25,17 +26,21 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp';
     if (!isJpgOrPng) {
       message.error('只能上传 JPG/PNG/WebP 格式的图片！');
+      return Upload.LIST_IGNORE;
     }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
       message.error('图片大小不能超过 2MB！');
+      return Upload.LIST_IGNORE;
     }
-    return isJpgOrPng && isLt2M;
+    return false; // 返回 false 阻止自动上传
   };
 
   // 处理图片变化
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
+    // 过滤掉状态为 error 的文件
+    const filteredFileList = newFileList.filter(file => file.status !== 'error');
+    setFileList(filteredFileList);
   };
 
   // 处理表单提交
@@ -151,10 +156,12 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             beforeUpload={beforeUpload}
             onChange={handleChange}
             maxCount={1}
+            customRequest={() => {}} // 禁用默认的上传请求
+            className="avatar-uploader"
           >
             {fileList.length === 0 && (
-              <div>
-                <PlusOutlined />
+              <div className="upload-button-content">
+                {loading ? <LoadingOutlined /> : <PlusOutlined />}
                 <div style={{ marginTop: 8 }}>上传</div>
               </div>
             )}

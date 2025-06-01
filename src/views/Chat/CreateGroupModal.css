@@ -1,0 +1,41 @@
+.avatar-uploader .ant-upload {
+  width: 128px !important;
+  height: 128px !important;
+}
+
+.avatar-uploader .ant-upload-list-item {
+  overflow: hidden !important;
+}
+
+.avatar-uploader .ant-upload-select {
+  overflow: hidden !important;
+}
+
+.upload-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 修复hover效果 */
+.avatar-uploader .ant-upload-select-picture-card:hover .upload-button-content {
+  opacity: 0.8;
+}
+
+/* 预览图片时的样式 */
+.avatar-uploader .ant-upload-list-item-info {
+  overflow: hidden;
+}
+
+/* 上传按钮中的图标和文字样式 */
+.upload-button-content .anticon {
+  font-size: 24px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.upload-button-content div {
+  color: #666;
+} 

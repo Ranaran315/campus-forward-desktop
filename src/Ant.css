@@ -16,6 +16,11 @@
     justify-content: flex-end;
     padding: 16px;
   }
+  .ant-modal-confirm-btns {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
 }
 
 /* Tab栏样式 */
@@ -38,3 +43,11 @@
   }
 }
 
+/* ant-upload */
+.ant-upload-wrapper {
+  .ant-upload-list-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

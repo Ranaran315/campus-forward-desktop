@@ -1,0 +1,123 @@
+.group-info-section {
+  margin-top: 24px;
+}
+
+.group-info-section h4 {
+  margin-bottom: 12px;
+  color: #1f1f1f;
+  font-weight: 500;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.member-item:last-child {
+  border-bottom: none;
+}
+
+.member-item .ant-avatar {
+  margin-right: 12px;
+}
+
+.member-item span {
+  color: #333;
+  font-size: 14px;
+}
+
+/* 头像上传组件样式 */
+.avatar-uploader .ant-upload {
+  width: 128px !important;
+  height: 128px !important;
+}
+
+.avatar-uploader .ant-upload-list-item {
+  overflow: hidden !important;
+}
+
+.avatar-uploader .ant-upload-select {
+  overflow: hidden !important;
+}
+
+.upload-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 修复hover效果 */
+.avatar-uploader .ant-upload-select-picture-card:hover .upload-button-content {
+  opacity: 0.8;
+}
+
+/* 预览图片时的样式 */
+.avatar-uploader .ant-upload-list-item-info {
+  overflow: hidden;
+}
+
+/* 上传按钮中的图标和文字样式 */
+.upload-button-content .anticon {
+  font-size: 24px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.upload-button-content div {
+  color: #666;
+}
+
+/* 自定义上传组件样式 */
+.ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.ant-upload.ant-upload-select-picture-card {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* 抽屉内容区域的滚动条样式 */
+.ant-drawer-body {
+  overflow-y: auto;
+}
+
+.ant-drawer-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-drawer-body::-webkit-scrollbar-thumb {
+  background-color: #d9d9d9;
+  border-radius: 3px;
+}
+
+.ant-drawer-body::-webkit-scrollbar-track {
+  background-color: #f0f0f0;
+}
+
+/* 危险操作区域样式 */
+.group-danger-zone {
+  margin-top: 32px;
+  padding: 16px;
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 4px;
+}
+
+.group-danger-zone h4 {
+  color: #cf1322;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.danger-zone-hint {
+  margin-top: 8px;
+  color: #ff4d4f;
+  font-size: 12px;
+  text-align: center;
+} 
