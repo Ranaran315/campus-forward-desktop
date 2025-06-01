@@ -20,6 +20,7 @@ interface ConversationListProps {
   onConversationSelect: (conversation: Conversation) => void;
   onConversationUpdate: (conversationId: string, updates: Partial<Conversation>) => void;
   onConversationRemove: (conversationId: string) => void;
+  onRefreshConversations: () => Promise<void>;
 }
 
 interface ContextMenuState {
@@ -29,7 +30,7 @@ interface ContextMenuState {
   selectedConv: Conversation | null;
 }
 
-const ConversationList: React.FC<ConversationListProps> = ({ conversations, selectedConversationId, onConversationSelect, onConversationUpdate, onConversationRemove }) => {
+const ConversationList: React.FC<ConversationListProps> = ({ conversations, selectedConversationId, onConversationSelect, onConversationUpdate, onConversationRemove, onRefreshConversations }) => {
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddMenu, setShowAddMenu] = useState(false);
@@ -145,10 +146,13 @@ const ConversationList: React.FC<ConversationListProps> = ({ conversations, sele
   };
 
   // 处理群聊创建成功
-  const handleGroupCreated = (conversationId: string) => {
+  const handleGroupCreated = async (conversationId: string) => {
     // 关闭所有弹窗
     setShowCreateGroupModal(false);
     setShowAddMenu(false);
+    
+    // 刷新会话列表
+    await onRefreshConversations();
     
     // 找到新创建的会话并选中它
     const newConversation = conversations.find(conv => conv.id === conversationId);

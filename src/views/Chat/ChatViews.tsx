@@ -138,44 +138,37 @@ function ChatViews() {
   // 获取当前用户ID
   const currentUserId = currentUser?.sub || 'currentUserPlaceholderId'
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      // REMOVED all pre-checks for currentUserId and authIsLoading
-      // Directly proceed to fetch
-      setConversationsLoading(true);
-      setConversationsError(null);
-      try {
-        // The API call will now proceed even if currentUserId is a placeholder or invalid
-        // This relies on the backend/apiClient to handle it, or it might fail here.
-        const response = await apiClient.get<BackendConversation[]>('/chat/conversations');
-        const actualData: BackendConversation[] = (response as any)?.data || []; 
-        
-        if (Array.isArray(actualData)) {
-            // currentUserId is used here in transformBackendConversationToFrontendConversation
-            const transformedFrontendConversations = actualData.map(conv => 
-              transformBackendConversationToFrontendConversation(conv, currentUserId)
-            );
-            setConversationList(transformedFrontendConversations);
-        } else {
-            console.error("Fetched conversations data is not an array:", actualData); 
-            setConversationList([]);
-            setConversationsError('获取到的会话数据格式不正确');
-        }
-      } catch (err: any) {
-        const errorMsg = err.backendMessage || err.message || '获取会话列表失败';
-        console.error("Error fetching conversations:", err); 
-        setConversationsError(errorMsg);
+  // 添加刷新会话列表的方法
+  const refreshConversations = async () => {
+    setConversationsLoading(true);
+    setConversationsError(null);
+    try {
+      const response = await apiClient.get<BackendConversation[]>('/chat/conversations');
+      const actualData: BackendConversation[] = (response as any)?.data || []; 
+      
+      if (Array.isArray(actualData)) {
+        const transformedFrontendConversations = actualData.map(conv => 
+          transformBackendConversationToFrontendConversation(conv, currentUserId)
+        );
+        setConversationList(transformedFrontendConversations);
+      } else {
+        console.error("Fetched conversations data is not an array:", actualData); 
         setConversationList([]);
-      } finally {
-        setConversationsLoading(false);
+        setConversationsError('获取到的会话数据格式不正确');
       }
-    };
+    } catch (err: any) {
+      const errorMsg = err.backendMessage || err.message || '获取会话列表失败';
+      console.error("Error fetching conversations:", err); 
+      setConversationsError(errorMsg);
+      setConversationList([]);
+    } finally {
+      setConversationsLoading(false);
+    }
+  };
 
-    fetchConversations();
-  }, [currentUserId]); // Keeping currentUserId in dep array as transform depends on it.
-                      // If you prefer it to run only once on mount regardless of currentUserId,
-                      // an empty array [] could be used, but that would mean transformBackendConversationToFrontendConversation
-                      // might use a stale or initial (potentially placeholder) currentUserId if it changes later.
+  useEffect(() => {
+    refreshConversations();
+  }, [currentUserId]);
 
   useEffect(() => {
     // Ensure webSocketOn is available before trying to use it.
@@ -354,6 +347,7 @@ function ChatViews() {
           onConversationSelect={handleConversationClick}
           onConversationUpdate={handleConversationUpdate}
           onConversationRemove={handleConversationRemove}
+          onRefreshConversations={refreshConversations}
         />
       )}
       {selectedConversation ? (

@@ -87,8 +87,18 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       });
 
       message.success('群聊创建成功！');
+      
+      // 确保 conversationRes.data._id 存在
+      if (!conversationRes.data?._id) {
+        throw new Error('创建群聊会话失败：未返回会话ID');
+      }
+      
       onSuccess(conversationRes.data._id);
       onClose();
+      
+      // 清理表单和文件列表
+      form.resetFields();
+      setFileList([]);
     } catch (error: any) {
       console.error('创建群聊失败:', error);
       message.error(error.response?.data?.message || '创建群聊失败');
