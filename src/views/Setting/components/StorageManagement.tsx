@@ -136,4 +136,4 @@ const StorageManagement: React.FC = () => {
   );
 };
 
-export default StorageManagement; 
+export default StorageManagement;
