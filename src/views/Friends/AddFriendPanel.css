@@ -23,6 +23,7 @@
 
     input {
       padding: 12px 12px 12px 40px !important;
+      background-color: var(--primary-background-color) !important;
     }
   }
 

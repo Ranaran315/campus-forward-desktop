@@ -8,7 +8,6 @@ import {
   Space,
   message,
   Tooltip,
-  Avatar,
   Flex,
 } from 'antd'
 import {
@@ -17,6 +16,7 @@ import {
   PushpinOutlined,
   PushpinFilled,
 } from '@ant-design/icons'
+import Avatar from '@/components/Avatar/Avatar'
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import apiClient from '@/lib/axios'
 import { useAppNotificationsContext } from '@/contexts/AppNotificationsContext'

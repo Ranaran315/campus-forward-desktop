@@ -52,31 +52,6 @@
   flex-grow: 1;
 }
 
-.notification-item {
-  padding: 16px;
-  border-bottom: 1px solid var(--primary-border-color);
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.notification-item:hover {
-  background-color: var(--third-background-color);
-}
-
-.notification-item.unread {
-  background-color: var(--third-color);
-}
-
-.notification-item.unread:hover {
-  background-color: var(--secondary-color);
-}
-
-.notification-item.selected {
-  background-color: var(--third-color);
-  border-left: 3px solid var(--primary-color);
-  padding-left: 13px;
-}
-
 .notification-header {
   display: flex;
   justify-content: space-between;

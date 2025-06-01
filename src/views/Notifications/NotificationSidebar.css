@@ -129,7 +129,7 @@
         .unread-dot {
           width: 8px;
           height: 8px;
-          background-color: var(--primary-color);
+          background-color: var(--primary-danger-color);
           border-radius: 50%;
           flex-shrink: 0; /* 防止被压缩 */
         }
