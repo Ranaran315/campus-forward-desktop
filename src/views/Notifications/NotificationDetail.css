@@ -1,123 +1,182 @@
 .notification-detail {
   padding: 24px;
-  height: 100%;
-  background-color: var(--primary-background-color);
-  overflow-y: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.notification-detail-header {
+.notification-header {
+  margin-bottom: 16px;
+}
+
+.notification-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.notification-info {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.notification-tags {
+  margin-bottom: 16px;
+}
+
+.notification-body {
+  font-size: 16px;
+  line-height: 1.6;
   margin-bottom: 24px;
 }
 
-.notification-detail-title {
-  font-size: var(--large-font-size);
-  font-weight: 500;
-  color: var(--primary-text-color);
-  margin: 0 0 8px;
+.notification-body p {
+  margin-bottom: 16px;
 }
 
-.notification-detail-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: var(--secondary-text-color);
-  font-size: var(--small-font-size);
-}
-
-.notification-detail-content {
-  font-size: var(--normal-font-size);
-  line-height: 1.6;
-  color: var(--primary-text-color);
-}
-
-.notification-detail-footer {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--primary-border-color);
-}
-
-.notification-detail-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.notification-detail-button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: var(--normal-font-size);
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.notification-detail-button.primary {
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-}
-
-.notification-detail-button.primary:hover {
-  opacity: 0.9;
-}
-
-.notification-detail-button.secondary {
-  background-color: transparent;
-  color: var(--primary-text-color);
-  border: 1px solid var(--primary-border-color);
-}
-
-.notification-detail-button.secondary:hover {
-  background-color: var(--third-background-color);
-}
-
-/* 头部信息固定 */
-.notification-header,
-.notification-meta,
-.notification-info,
-.notification-tags {
-  flex-shrink: 0;
-}
-
-/* 内容区域自适应高度，溢出时滚动 */
-.notification-body {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 8px;
-  margin: 24px 0;
-  line-height: 1.6;
-  color: var(--primary-text-color);
-}
-
-/* 附件区域也固定不滚动 */
 .notification-attachments {
-  flex-shrink: 0;
   margin-top: 24px;
   padding: 16px;
-  background-color: var(--secondary-background-color);
-  border-radius: 4px;
+  background: #f9f9f9;
+  border-radius: 8px;
 }
 
-/* 底部操作区固定在底部 */
-.notification-actions {
-  flex-shrink: 0;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-color);
+.notification-attachments h4 {
+  margin-bottom: 16px;
+  color: #666;
+}
+
+.attachments-list {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.notification-attachment-image {
+  position: relative;
+  max-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: white;
+  padding-bottom: 24px; /* 为文件名留出空间 */
+}
+
+.notification-attachment-image .ant-image {
+  display: block;
+  width: 100%;
+}
+
+.notification-attachment-image img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-filename {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 8px;
+  background: white;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notification-attachment-file {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.notification-attachment-file.clickable {
+  cursor: pointer;
+}
+
+.notification-attachment-file:hover {
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+}
+
+.file-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.download-hint {
+  color: #1890ff;
+  font-size: 12px;
+}
+
+.notification-actions {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .notification-loading,
 .notification-error,
 .no-notification-selected {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  height: 100%;
-  color: #666;
+  justify-content: center;
+  min-height: 200px;
   text-align: center;
+  color: #666;
 }
 
 .notification-error {
   color: #ff4d4f;
+}
+
+/* Image preview customization */
+.image-preview-mask {
+  background-color: rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
+}
+
+.preview-root {
+  border-radius: 8px;
+  overflow: hidden;
 }

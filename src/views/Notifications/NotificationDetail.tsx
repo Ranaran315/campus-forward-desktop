@@ -9,6 +9,7 @@ import {
   message,
   Tooltip,
   Flex,
+  Image,
 } from 'antd'
 import {
   EyeOutlined,
@@ -20,7 +21,22 @@ import Avatar from '@/components/Avatar/Avatar'
 import { NotificationDetail as NotificationDetailType } from '@/types/notifications.type'
 import apiClient from '@/lib/axios'
 import { useAppNotificationsContext } from '@/contexts/AppNotificationsContext'
+import { getImageUrl, getAttachmentUrl } from '@/utils/imageHelper'
+import { getFileIcon } from '@/utils/fileIconHelper'
 import './NotificationDetail.css'
+
+// 格式化文件大小
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) {
+    return bytes + ' B';
+  } else if (bytes < 1024 * 1024) {
+    return (bytes / 1024).toFixed(1) + ' KB';
+  } else if (bytes < 1024 * 1024 * 1024) {
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  } else {
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+  }
+};
 
 // 可以不需要notification属性，组件内部自己获取
 interface NotificationDetailProps {}
@@ -172,6 +188,80 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
     }
   }
 
+  // 处理文件下载
+  const handleFileDownload = async (url: string, fileName: string) => {
+    try {
+      const result = await window.electron.ipcRenderer.invoke('save-file', {
+        url: getAttachmentUrl(url),
+        fileName,
+        saveType: 'default',
+        fileType: 'file'
+      });
+
+      if (result.success) {
+        message.success('文件保存成功');
+      } else {
+        throw new Error(result.error || '保存失败');
+      }
+    } catch (error: any) {
+      console.error('文件保存失败:', error);
+      message.error(error?.message || '文件保存失败');
+    }
+  };
+
+  // 渲染附件
+  const renderAttachment = (attachment: any) => {
+    // 改进图片类型判断逻辑
+    const isImage = attachment.mimetype?.startsWith('image/') || 
+                   /\.(jpg|jpeg|png|gif|webp)$/i.test(attachment.fileName);
+    
+    if (isImage) {
+      return (
+        <div key={attachment.url} className="notification-attachment-image">
+          <Image
+            src={getAttachmentUrl(attachment.url)}
+            alt={attachment.fileName}
+            width={200}
+            style={{ borderRadius: '8px' }}
+            preview={{
+              mask: '预览图片',
+              maskClassName: 'image-preview-mask',
+              rootClassName: 'preview-root'
+            }}
+          />
+          <div className="image-filename">
+            {attachment.fileName}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        key={attachment.url}
+        className="notification-attachment-file clickable"
+        onClick={() => handleFileDownload(attachment.url, attachment.fileName)}
+      >
+        <div className="file-content">
+          <div className="file-info">
+            <img 
+              src={getFileIcon(attachment.fileName)} 
+              alt="文件图标"
+              className="file-icon"
+            />
+            <span className="file-name" title={attachment.fileName}>
+              {attachment.fileName}
+            </span>
+          </div>
+          <div className="file-size">
+            {formatFileSize(attachment.size)}
+            <span className="download-hint">点击下载</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="notification-loading">加载通知内容中...</div>
   }
@@ -237,19 +327,9 @@ const NotificationDetail: React.FC<NotificationDetailProps> = () => {
       {notification.attachments && notification.attachments.length > 0 && (
         <div className="notification-attachments">
           <h4>附件:</h4>
-          <ul>
-            {notification.attachments.map((attachment, index) => (
-              <li key={index}>
-                <a
-                  href={attachment.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {attachment.fileName}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <div className="attachments-list">
+            {notification.attachments.map((attachment) => renderAttachment(attachment))}
+          </div>
         </div>
       )}
 
