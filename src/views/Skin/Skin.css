@@ -153,31 +153,3 @@
     }
   }
 }
-
-/* 亮色主题预览 */
-.theme-preview[data-theme="light"] {
-  --primary-color: var(--light-theme-primary-color);
-  --secondary-color: var(--light-theme-secondary-color);
-  --third-color: var(--light-theme-third-color);
-  --primary-background-color: var(--light-theme-primary-background);
-  --secondary-background-color: var(--light-theme-secondary-background);
-  --third-background-color: var(--light-theme-third-background);
-  --primary-border-color: var(--light-theme-border-color);
-  --primary-text-color: var(--light-theme-text-color);
-  --secondary-text-color: var(--light-theme-secondary-text);
-  --active-text-color: var(--light-theme-active-text);
-}
-
-/* 暗色主题预览 */
-.theme-preview[data-theme="dark"] {
-  --primary-color: var(--dark-theme-primary-color);
-  --secondary-color: var(--dark-theme-secondary-color);
-  --third-color: var(--dark-theme-third-color);
-  --primary-background-color: var(--dark-theme-primary-background);
-  --secondary-background-color: var(--dark-theme-secondary-background);
-  --third-background-color: var(--dark-theme-third-background);
-  --primary-border-color: var(--dark-theme-border-color);
-  --primary-text-color: var(--dark-theme-text-color);
-  --secondary-text-color: var(--dark-theme-secondary-text);
-  --active-text-color: var(--dark-theme-active-text);
-}

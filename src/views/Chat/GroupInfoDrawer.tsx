@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Drawer, Form, Input, Button, message, Avatar, Upload, Modal } from 'antd';
-import { PlusOutlined, LoadingOutlined, ExclamationCircleFilled } from '@ant-design/icons';
+import { Drawer, Form, Input, Button, message, Avatar, Upload, Modal, Select, Spin } from 'antd';
+import { PlusOutlined, LoadingOutlined, ExclamationCircleFilled, UserAddOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import apiClient from '@/lib/axios';
 import { getAvatarUrl } from '@/utils/imageHelper';
 import './GroupInfoDrawer.css';
 import { useAuth } from '@/contexts/AuthContext';
+import debounce from 'lodash/debounce';
+import SelectUsersModal from '@/components/Modal/SelectUsersModal/SelectUsersModal';
 
 interface GroupInfoDrawerProps {
   visible: boolean;
@@ -40,6 +42,13 @@ interface GroupInfo {
   }>;
 }
 
+interface UserSearchResult {
+  _id: string;
+  username: string;
+  nickname?: string;
+  avatar?: string;
+}
+
 const GroupInfoDrawer: React.FC<GroupInfoDrawerProps> = ({
   visible,
   onClose,
@@ -52,6 +61,10 @@ const GroupInfoDrawer: React.FC<GroupInfoDrawerProps> = ({
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const { user: currentUser } = useAuth();
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   // Add debug logging
   useEffect(() => {
@@ -161,8 +174,64 @@ const GroupInfoDrawer: React.FC<GroupInfoDrawerProps> = ({
     }
   };
 
-  // 判断当前用户是否是群主
-  const isOwner = groupInfo?.owner._id === currentUser?.sub;
+  // 判断当前用户是否是群主或管理员
+  const isOwnerOrAdmin = groupInfo && (
+    groupInfo.owner._id === currentUser?.sub ||
+    groupInfo.admins.some(admin => admin._id === currentUser?.sub)
+  );
+
+  // 搜索用户
+  const searchUsers = debounce(async (searchText: string) => {
+    if (!searchText.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const response = await apiClient.get(`/users/search?q=${encodeURIComponent(searchText)}`);
+      // 过滤掉已经是群成员的用户
+      const filteredResults = response.data.filter((user: UserSearchResult) => 
+        !groupInfo?.members.some(member => member._id === user._id)
+      );
+      setSearchResults(filteredResults);
+    } catch (error) {
+      console.error('搜索用户失败:', error);
+      message.error('搜索用户失败');
+    } finally {
+      setSearchLoading(false);
+    }
+  }, 500);
+
+  // 添加群成员
+  const handleAddMember = async (selectedUsers: { id: string; name: string; avatar?: string }[]) => {
+    if (selectedUsers.length === 0) {
+      message.error('请选择要添加的成员');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // 批量添加成员
+      await Promise.all(
+        selectedUsers.map(user =>
+          apiClient.post(`/chat/groups/${groupId}/members`, {
+            userId: user.id
+          })
+        )
+      );
+      
+      message.success('成功添加群成员');
+      setShowAddMemberModal(false);
+      // 刷新群组信息
+      await fetchGroupInfo();
+    } catch (error: any) {
+      console.error('添加群成员失败:', error);
+      message.error(error.response?.data?.message || '添加群成员失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 处理解散群聊
   const handleDissolveGroup = () => {
@@ -276,7 +345,18 @@ const GroupInfoDrawer: React.FC<GroupInfoDrawerProps> = ({
           </div>
 
           <div className="group-info-section">
-            <h4>群成员 ({groupInfo.members.length})</h4>
+            <div className="section-header">
+              <h4>群成员 ({groupInfo.members.length})</h4>
+              {isOwnerOrAdmin && (
+                <Button
+                  type="link"
+                  icon={<UserAddOutlined />}
+                  onClick={() => setShowAddMemberModal(true)}
+                >
+                  添加成员
+                </Button>
+              )}
+            </div>
             {groupInfo.members.map(member => (
               <div key={member._id} className="member-item">
                 <Avatar src={member.avatar ? getAvatarUrl(member.avatar) : undefined} size={24} />
@@ -286,7 +366,7 @@ const GroupInfoDrawer: React.FC<GroupInfoDrawerProps> = ({
           </div>
 
           {/* 添加解散群聊按钮 */}
-          {isOwner && (
+          {isOwnerOrAdmin && (
             <div className="group-danger-zone">
               <h4>危险操作</h4>
               <Button 
@@ -303,6 +383,13 @@ const GroupInfoDrawer: React.FC<GroupInfoDrawerProps> = ({
           )}
         </Form>
       )}
+
+      <SelectUsersModal
+        visible={showAddMemberModal}
+        onCancel={() => setShowAddMemberModal(false)}
+        onOk={handleAddMember}
+        initialSelectedUsers={[]}
+      />
     </Drawer>
   );
 };

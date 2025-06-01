@@ -8,6 +8,17 @@
   font-weight: 500;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h4 {
+  margin-bottom: 0;
+}
+
 .member-item {
   display: flex;
   align-items: center;
@@ -120,4 +131,14 @@
   color: #ff4d4f;
   font-size: 12px;
   text-align: center;
+}
+
+/* 搜索下拉框样式 */
+.ant-select-dropdown .ant-select-item-option-content {
+  display: flex;
+  align-items: center;
+}
+
+.ant-select-dropdown .ant-select-item-option-content .ant-avatar {
+  margin-right: 8px;
 } 
